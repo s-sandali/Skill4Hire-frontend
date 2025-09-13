@@ -21,7 +21,7 @@ const LandingPage = () => {
             <a href="#features" className="nav-link">Features</a>
             <a href="#about" className="nav-link">About</a>
             <a href="#contact" className="nav-link">Contact</a>
-            <Link to="/register" className="nav-cta">Get Started</Link>
+            <Link to="/login" className="nav-cta">Log In</Link>
           </div>
           
           <div className="hamburger" onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -104,6 +104,33 @@ const LandingPage = () => {
             <div className="cta-buttons">
               <Link to="/register" className="btn-primary large">Get Started Now</Link>
               <button className="btn-outline">Learn More</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Login Section */}
+      <section className="login-section">
+        <div className="container">
+          <div className="login-content">
+            <h2>Already have an account?</h2>
+            <p>Welcome back! Sign in to access your personalized dashboard and continue your journey.</p>
+            <div className="login-actions">
+              <Link to="/login" className="btn-primary large">Log In</Link>
+              <div className="login-benefits">
+                <div className="benefit-item">
+                  <span className="benefit-icon">🚀</span>
+                  <span>Access your matches</span>
+                </div>
+                <div className="benefit-item">
+                  <span className="benefit-icon">📊</span>
+                  <span>Track your progress</span>
+                </div>
+                <div className="benefit-item">
+                  <span className="benefit-icon">💼</span>
+                  <span>Apply to opportunities</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
