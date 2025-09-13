@@ -116,21 +116,8 @@ const LandingPage = () => {
             <h2>Already have an account?</h2>
             <p>Welcome back! Sign in to access your personalized dashboard and continue your journey.</p>
             <div className="login-actions">
-              <Link to="/login" className="btn-primary large">Log In</Link>
-              <div className="login-benefits">
-                <div className="benefit-item">
-                  <span className="benefit-icon">🚀</span>
-                  <span>Access your matches</span>
-                </div>
-                <div className="benefit-item">
-                  <span className="benefit-icon">📊</span>
-                  <span>Track your progress</span>
-                </div>
-                <div className="benefit-item">
-                  <span className="benefit-icon">💼</span>
-                  <span>Apply to opportunities</span>
-                </div>
-              </div>
+              <Link to="/login" className="btn-primary large">Log In</Link>          
+              
             </div>
           </div>
         </div>
