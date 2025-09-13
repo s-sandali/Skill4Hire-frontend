@@ -38,7 +38,7 @@ function App() {
           <div className="hero-content">
             <h1 className="hero-title">
               Unlock Your <span className="gradient-text">Potential</span>
-              <br />with AI-Powered Skills
+              <br />with best match for your Skills
             </h1>
             <p className="hero-description">
               SKILL4HIRE connects talented professionals with cutting-edge opportunities. 
