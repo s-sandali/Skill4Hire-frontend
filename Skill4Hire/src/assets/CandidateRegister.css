@@ -1,0 +1,465 @@
+/* CandidateRegister Styles */
+.candidate-register {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--primary-bg) 0%, #0F0F4D 100%);
+  padding: 2rem 0;
+  font-family: var(--font-primary);
+}
+
+.register-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.register-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.register-logo {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  animation: brainPulse 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 15px rgba(0, 207, 234, 0.4));
+}
+
+.register-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary-text) 0%, var(--primary-accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.register-subtitle {
+  font-size: 1.2rem;
+  color: var(--disabled-text);
+  max-width: 500px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.register-form {
+  background: var(--card-bg);
+  border-radius: 20px;
+  padding: 3rem;
+  border: 1px solid var(--divider-border);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.form-section {
+  margin-bottom: 3rem;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--primary-text);
+}
+
+.section-icon {
+  font-size: 1.75rem;
+}
+
+.section-description {
+  color: var(--disabled-text);
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--primary-text);
+  font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group select {
+  padding: 1rem;
+  border: 2px solid var(--divider-border);
+  border-radius: 12px;
+  background: var(--primary-bg);
+  color: var(--primary-text);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary-accent);
+  box-shadow: 0 0 0 3px rgba(0, 207, 234, 0.1);
+}
+
+.form-group input::placeholder {
+  color: var(--disabled-text);
+}
+
+/* Personality Types Grid */
+.personality-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.personality-card {
+  background: var(--primary-bg);
+  border: 2px solid var(--divider-border);
+  border-radius: 15px;
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.personality-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-accent), var(--highlight-cta));
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.personality-card:hover::before,
+.personality-card.selected::before {
+  transform: scaleX(1);
+}
+
+.personality-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--primary-accent);
+  box-shadow: 0 10px 25px rgba(0, 207, 234, 0.15);
+}
+
+.personality-card.selected {
+  border-color: var(--primary-accent);
+  background: rgba(0, 207, 234, 0.05);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 207, 234, 0.2);
+}
+
+.personality-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.personality-card h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--primary-text);
+}
+
+.personality-card p {
+  font-size: 0.85rem;
+  color: var(--disabled-text);
+  line-height: 1.4;
+}
+
+.selected-personality {
+  background: rgba(0, 207, 234, 0.1);
+  border: 1px solid var(--primary-accent);
+  border-radius: 10px;
+  padding: 1rem;
+  text-align: center;
+  color: var(--primary-text);
+}
+
+/* Job Role Interests */
+.job-role-input {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.job-role-input input {
+  flex: 1;
+  padding: 1rem;
+  border: 2px solid var(--divider-border);
+  border-radius: 12px;
+  background: var(--primary-bg);
+  color: var(--primary-text);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.job-role-input input:focus {
+  outline: none;
+  border-color: var(--primary-accent);
+  box-shadow: 0 0 0 3px rgba(0, 207, 234, 0.1);
+}
+
+.add-role-btn {
+  background: linear-gradient(45deg, var(--primary-accent), var(--highlight-cta));
+  color: var(--primary-bg);
+  border: none;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.add-role-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 207, 234, 0.3);
+}
+
+.job-roles-list h4 {
+  color: var(--primary-text);
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.role-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.role-tag {
+  background: var(--primary-accent);
+  color: var(--primary-bg);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.remove-role {
+  background: none;
+  border: none;
+  color: var(--primary-bg);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.remove-role:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* File Upload */
+.file-upload-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.file-upload-group {
+  position: relative;
+}
+
+.file-label {
+  display: block;
+  cursor: pointer;
+}
+
+.file-upload-box {
+  border: 2px dashed var(--divider-border);
+  border-radius: 15px;
+  padding: 2rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  background: var(--primary-bg);
+}
+
+.file-upload-box:hover {
+  border-color: var(--primary-accent);
+  background: rgba(0, 207, 234, 0.05);
+}
+
+.upload-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.file-upload-box h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--primary-text);
+}
+
+.file-upload-box p {
+  color: var(--disabled-text);
+  font-size: 0.9rem;
+}
+
+.file-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.file-selected {
+  background: rgba(0, 207, 234, 0.1);
+  border: 1px solid var(--primary-accent);
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-top: 1rem;
+  color: var(--primary-accent);
+  font-weight: 500;
+}
+
+/* Form Actions */
+.form-actions {
+  text-align: center;
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--divider-border);
+}
+
+.submit-btn {
+  background: linear-gradient(45deg, var(--primary-accent), var(--highlight-cta));
+  color: var(--primary-bg);
+  border: none;
+  padding: 1.25rem 3rem;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.submit-btn:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px rgba(0, 207, 234, 0.4);
+}
+
+.submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(10, 10, 61, 0.3);
+  border-top: 2px solid var(--primary-bg);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.form-note {
+  color: var(--disabled-text);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .register-container {
+    padding: 0 1rem;
+  }
+  
+  .register-form {
+    padding: 2rem;
+  }
+  
+  .logo-section {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .register-header h1 {
+    font-size: 2rem;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .personality-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+  
+  .job-role-input {
+    flex-direction: column;
+  }
+  
+  .file-upload-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .role-tags {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-form {
+    padding: 1.5rem;
+  }
+  
+  .personality-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .submit-btn {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+  }
+}
