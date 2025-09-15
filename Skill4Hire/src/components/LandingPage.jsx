@@ -94,8 +94,6 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-
-      {/* CTA Section */}
       <section className="cta">
         <div className="container">
           <div className="cta-content">
