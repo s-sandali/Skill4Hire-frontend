@@ -132,6 +132,28 @@
   border-color: #FF6B00;
 }
 
+/* Sign in as dropdown */
+.form-group select {
+  padding: 1rem;
+  border: 2px solid #2D2D5A;
+  border-radius: 12px;
+  font-size: 1rem;
+  background: #FFFFFF;
+  color: #000000; /* make dropdown text black */
+  transition: all 0.3s ease;
+}
+
+.form-group select:focus {
+  outline: none;
+  border-color: #00CFEA;
+  box-shadow: 0 0 0 3px rgba(0, 207, 234, 0.1);
+}
+
+.form-group select option {
+  color: #000000; /* ensure options are black */
+  background: #FFFFFF;
+}
+
 .error-text {
   color: #FF6B00;
   font-size: 0.8rem;
