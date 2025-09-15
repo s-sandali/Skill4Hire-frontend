@@ -1,0 +1,45 @@
+.candidate-profile-form {
+  display: flex;
+  justify-content: center;
+}
+
+.form-card {
+  background-color: #10103D; /* Card BG */
+  padding: 2rem;
+  border-radius: 12px;
+  border: 1px solid #2D2D5A; /* Divider */
+  max-width: 600px;
+  width: 100%;
+}
+
+.form-card label {
+  display: block;
+  margin-top: 1rem;
+  font-weight: 600;
+  color: #FFFFFF; /* Primary Text */
+}
+
+.form-card input,
+.form-card textarea {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.8rem;
+  border-radius: 8px;
+  border: 1px solid #2D2D5A;
+  background-color: #1B1B4D; /* Light BG */
+  color: #FFFFFF;
+  font-size: 1rem;
+}
+
+.form-card input:focus,
+.form-card textarea:focus {
+  border-color: #00CFEA; /* Primary Accent */
+  outline: none;
+  box-shadow: 0 0 6px #00CFEA;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+}
