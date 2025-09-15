@@ -24,7 +24,7 @@ const AdminRegister = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
       console.log('Admin registration submitted:', formData);
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -46,7 +46,7 @@ const AdminRegister = () => {
           </div>
           <p className="register-subtitle">Request administrative access to the Skill4Hire platform</p>
           <div className="admin-notice">
-            <p><strong>⚠️ Important:</strong> Admin access requires approval and verification. This is a request form, not an immediate registration.</p>
+            <p><strong>⚠️ Important:</strong>Admin access requires approval. Your request will be reviewed by our team.</p>
           </div>
         </div>
 
@@ -57,7 +57,7 @@ const AdminRegister = () => {
               <span className="section-icon">⚙️</span>
               Admin Registration
             </h2>
-            
+
             <div className="form-group">
               <label htmlFor="email">Email Address *</label>
               <input
@@ -100,7 +100,7 @@ const AdminRegister = () => {
             <Link to="/role-selection" className="btn-secondary">
               ← Back to Role Selection
             </Link>
-            
+
             <button
               type="submit"
               className="submit-btn"
@@ -117,7 +117,7 @@ const AdminRegister = () => {
                 </>
               )}
             </button>
-            
+
             <p className="form-note">
               By registering, you agree to our Terms of Service and Privacy Policy
             </p>
