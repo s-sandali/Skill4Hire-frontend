@@ -1,3 +1,4 @@
+import './ResumeUpload.css';
 const ResumeUpload = ({ resume, setResume }) => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
