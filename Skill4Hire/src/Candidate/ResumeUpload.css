@@ -1,0 +1,18 @@
+.resume-upload {
+  margin-top: 1rem;
+}
+
+.resume-upload input[type="file"] {
+  background-color: #1B1B4D;
+  padding: 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #2D2D5A;
+  color: #FFFFFF;
+  cursor: pointer;
+}
+
+.resume-upload p {
+  margin-top: 0.8rem;
+  font-size: 0.9rem;
+  color: #4DB8FF; /* Highlight */
+}

@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import brainLogo from '../assets/brain-logo.jpg';
+import { authService } from '../services/authService';
 import './UnifiedLogin.css';
 
+
 const UnifiedLogin = () => {
-  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -14,7 +15,7 @@ const UnifiedLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
-  const [role, setRole] = useState('employee');
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -23,7 +24,6 @@ const UnifiedLogin = () => {
       [name]: value
     }));
     
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -59,27 +59,42 @@ const UnifiedLogin = () => {
     }
     
     setIsLoading(true);
+    setErrors({});
     
     try {
-      // Simulate login API call
-      console.log('Login attempt:', formData);
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const response = await authService.login(formData.email, formData.password);
       
-      // On successful login: route by selected role
-      if (role === 'employee') {
-        navigate('/dashboard/employee');
-      } else if (role === 'company') {
-        navigate('/');
-      } else if (role === 'candidate') {
-        navigate('/');
-      } else if (role === 'admin') {
-        navigate('/');
-      } else {
-        navigate('/');
-      }
+      if (response.success) {
+        if (rememberMe) {
+          localStorage.setItem('rememberedEmail', formData.email);
+        }
 
+        // Store user info for frontend use
+        localStorage.setItem('userRole', response.role);
+        localStorage.setItem('userId', response.id);
+
+        // Redirect based on role
+        switch (response.role) {
+          case 'CANDIDATE':
+             navigate('/candidate-profile');
+            break;
+          case 'COMPANY':
+            navigate('/company-dashboard');
+            break;
+          case 'EMPLOYEE':
+            navigate('/employee-dashboard');
+            break;
+          case 'ADMIN':
+            navigate('/admin-dashboard');
+            break;
+          default:
+            navigate('/');
+        }
+      } else {
+        setErrors({ general: response.message || 'Login failed. Please check your credentials.' });
+      }
     } catch (error) {
-      setErrors({ general: 'Login failed. Please check your credentials and try again.' });
+      setErrors({ general: error.message || 'Login failed. Please try again later.' });
     } finally {
       setIsLoading(false);
     }
@@ -88,6 +103,14 @@ const UnifiedLogin = () => {
   const handleForgotPassword = () => {
     alert('Forgot password functionality would be implemented here');
   };
+
+  useEffect(() => {
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    if (rememberedEmail) {
+      setFormData(prev => ({ ...prev, email: rememberedEmail }));
+      setRememberMe(true);
+    }
+  }, []);
 
   return (
     <div className="unified-login">
@@ -125,21 +148,6 @@ const UnifiedLogin = () => {
               {errors.email && (
                 <span className="error-text">{errors.email}</span>
               )}
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="role">Sign in as</label>
-              <select
-                id="role"
-                name="role"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-              >
-                <option value="candidate">Candidate</option>
-                <option value="company">Company</option>
-                <option value="employee">Employee</option>
-                <option value="admin">Admin</option>
-              </select>
             </div>
 
             <div className="form-group">
@@ -248,4 +256,3 @@ const UnifiedLogin = () => {
 };
 
 export default UnifiedLogin;
-
