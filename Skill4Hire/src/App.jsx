@@ -1,34 +1,26 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import LandingPage from './components/LandingPage.jsx'
+import RoleSelection from './components/RoleSelection.jsx'
+import CandidateRegister from './components/CandidateRegister.jsx'
+import CompanyRegister from './components/CompanyRegister.jsx'
+import EmployeeRegister from './components/EmployeeRegister.jsx'
+import AdminRegister from './components/AdminRegister.jsx'
+import UnifiedLogin from './components/UnifiedLogin.jsx'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <Router>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/role-selection" element={<RoleSelection />} />
+        <Route path="/register/candidate" element={<CandidateRegister />} />
+        <Route path="/register/company" element={<CompanyRegister />} />
+        <Route path="/register/employee" element={<EmployeeRegister />} />
+        <Route path="/register/admin" element={<AdminRegister />} />
+        <Route path="/login" element={<UnifiedLogin />} />
+      </Routes>
+    </Router>
   )
 }
 
