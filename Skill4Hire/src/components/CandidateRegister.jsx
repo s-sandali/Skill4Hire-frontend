@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import brainLogo from '../assets/brain-logo.jpg';
+import { authService } from '../services/authService';
 import './CandidateRegister.css';
 
 const CandidateRegister = () => {
@@ -13,6 +14,8 @@ const CandidateRegister = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -20,6 +23,35 @@ const CandidateRegister = () => {
       ...prev,
       [name]: value
     }));
+    
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.firstName) newErrors.firstName = 'First name is required';
+    if (!formData.lastName) newErrors.lastName = 'Last name is required';
+    
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+    
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const togglePasswordVisibility = () => {
@@ -28,14 +60,25 @@ const CandidateRegister = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsSubmitting(true);
+    setErrors({});
     
     try {
-      console.log('Candidate registration submitted:', formData);
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      alert('Registration successful! Welcome to Skill4Hire!');
+      const response = await authService.registerCandidate(formData);
+      
+      if (response.success) {
+        alert('Registration successful! Please login with your credentials.');
+        navigate('/login');
+      } else {
+        setErrors({ general: response.message || 'Registration failed. Please try again.' });
+      }
     } catch (error) {
-      alert('Registration failed. Please try again.');
+      setErrors({ general: error.message || 'Registration failed. Please try again later.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -53,6 +96,12 @@ const CandidateRegister = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="register-form">
+          {errors.general && (
+            <div className="error-message general-error">
+              {errors.general}
+            </div>
+          )}
+
           {/* Personal Information Section */}
           <div className="form-section">
             <h2 className="section-title">
@@ -70,8 +119,12 @@ const CandidateRegister = () => {
                   value={formData.firstName}
                   onChange={handleInputChange}
                   placeholder="Enter your first name"
+                  className={errors.firstName ? 'error' : ''}
                   required
                 />
+                {errors.firstName && (
+                  <span className="error-text">{errors.firstName}</span>
+                )}
               </div>
               
               <div className="form-group">
@@ -83,8 +136,12 @@ const CandidateRegister = () => {
                   value={formData.lastName}
                   onChange={handleInputChange}
                   placeholder="Enter your last name"
+                  className={errors.lastName ? 'error' : ''}
                   required
                 />
+                {errors.lastName && (
+                  <span className="error-text">{errors.lastName}</span>
+                )}
               </div>
             </div>
 
@@ -97,8 +154,12 @@ const CandidateRegister = () => {
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="your.email@example.com"
+                className={errors.email ? 'error' : ''}
                 required
               />
+              {errors.email && (
+                <span className="error-text">{errors.email}</span>
+              )}
             </div>
 
             <div className="form-group full-width">
@@ -111,6 +172,7 @@ const CandidateRegister = () => {
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder="Create a secure password"
+                  className={errors.password ? 'error' : ''}
                   required
                 />
                 <button 
@@ -121,6 +183,9 @@ const CandidateRegister = () => {
                   {showPassword ? "🙈" : "👁️"}
                 </button>
               </div>
+              {errors.password && (
+                <span className="error-text">{errors.password}</span>
+              )}
             </div>
           </div>
 
