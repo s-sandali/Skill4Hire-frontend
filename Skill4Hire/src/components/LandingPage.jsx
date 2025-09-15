@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import brainLogo from '../assets/brain-logo.jpg'
 import AtlasLabs from '../assets/AtlasLabs.png';
 import IFS from '../assets/IFS.png';
-import WSO2 from '../assets/WSO2.png';
+import wso2 from '../assets/wso2.png';
 import Codegen from '../assets/Codegen.png';
 import Rizing from '../assets/Rizing.png';
 import sysco from '../assets/sysco.png';
@@ -30,7 +30,7 @@ const LandingPage = () => {
   const companies = [
     { name: 'AtlasLabs', logo: AtlasLabs },
     { name: 'IFS', logo: IFS },
-    { name: 'WSO2', logo: WSO2 },
+    { name: 'wso2', logo: wso2 },
     { name: 'Codegen', logo: Codegen },
     { name: 'Rizing', logo: Rizing },
     { name: 'sysco', logo: sysco },
