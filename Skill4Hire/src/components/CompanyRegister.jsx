@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import brainLogo from '../assets/brain-logo.jpg';
 import './CompanyRegister.css';
 
 const CompanyRegister = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     companyName: '',
     email: '',
@@ -29,7 +30,8 @@ const CompanyRegister = () => {
     try {
       console.log('Company registration submitted:', formData);
       await new Promise(resolve => setTimeout(resolve, 2000));
-      alert('Company registration successful! Welcome to Skill4Hire!');
+      alert('Company registration successful! Redirecting to home...');
+      navigate('/');
     } catch (error) {
       alert('Registration failed. Please try again.');
     } finally {

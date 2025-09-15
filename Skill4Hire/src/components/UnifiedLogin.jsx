@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import brainLogo from '../assets/brain-logo.jpg';
 import './UnifiedLogin.css';
 
 const UnifiedLogin = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -13,6 +14,7 @@ const UnifiedLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
+  const [role, setRole] = useState('employee');
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -63,9 +65,18 @@ const UnifiedLogin = () => {
       console.log('Login attempt:', formData);
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // On successful login
-      alert('Login successful! Welcome back to Skill4Hire!');
-      // Here you would typically redirect to dashboard or handle authentication
+      // On successful login: route by selected role
+      if (role === 'employee') {
+        navigate('/dashboard/employee');
+      } else if (role === 'company') {
+        navigate('/');
+      } else if (role === 'candidate') {
+        navigate('/');
+      } else if (role === 'admin') {
+        navigate('/');
+      } else {
+        navigate('/');
+      }
 
     } catch (error) {
       setErrors({ general: 'Login failed. Please check your credentials and try again.' });
@@ -114,6 +125,21 @@ const UnifiedLogin = () => {
               {errors.email && (
                 <span className="error-text">{errors.email}</span>
               )}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="role">Sign in as</label>
+              <select
+                id="role"
+                name="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+              >
+                <option value="candidate">Candidate</option>
+                <option value="company">Company</option>
+                <option value="employee">Employee</option>
+                <option value="admin">Admin</option>
+              </select>
             </div>
 
             <div className="form-group">
