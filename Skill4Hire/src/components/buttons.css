@@ -1,0 +1,36 @@
+.btn-primary {
+  background-color: #00CFEA;
+  color: #0A0A3D;
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.btn-primary:hover {
+  background-color: #4DB8FF; /* Hover Highlight */
+}
+
+.btn-secondary {
+  background-color: #FF6B00;
+  color: #FFFFFF;
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.btn-secondary:hover {
+  background-color: #B2FFFF; /* Hover Cyan */
+  color: #0A0A3D;
+}
+
+.btn-disabled {
+  background-color: #2D2D5A;
+  color: #A1A1B3;
+  cursor: not-allowed;
+}

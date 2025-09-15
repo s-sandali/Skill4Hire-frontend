@@ -1,0 +1,96 @@
+.candidate-profile-page {
+  background-color: #0A0A3D; /* Primary BG */
+  color: #FFFFFF; /* Primary Text */
+  padding: 2rem;
+  min-height: 100vh;
+  font-family: 'Arial', sans-serif;
+}
+
+.page-title {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.form-card {
+  background-color: #10103D; /* Card BG */
+  padding: 2rem;
+  border-radius: 12px;
+  border: 1px solid #2D2D5A; /* Divider */
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.form-card label {
+  display: block;
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
+.form-card input,
+.form-card textarea {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #2D2D5A;
+  background-color: #1B1B4D; /* Light BG */
+  color: #FFFFFF;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+}
+
+.btn-primary {
+  background-color: #00CFEA;
+  color: #0A0A3D;
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-secondary {
+  background-color: #FF6B00;
+  color: #FFFFFF;
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-primary.small, .btn-secondary.small {
+  padding: 0.4rem 1rem;
+  font-size: 0.9rem;
+}
+
+.skills-input {
+  display: flex;
+  flex-direction: column;
+}
+
+.skills-tags {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.skill-tag {
+  background-color: #4DB8FF; /* Highlight */
+  color: #0A0A3D;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  margin: 0.2rem;
+  display: flex;
+  align-items: center;
+}
+
+.skill-tag button {
+  margin-left: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #0A0A3D;
+}
