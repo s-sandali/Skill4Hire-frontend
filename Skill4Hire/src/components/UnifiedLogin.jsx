@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import brainLogo from './brain-logo.jpg';
-import './CandidateLogin.css';
+import brainLogo from '../assets/brain-logo.jpg';
+import './UnifiedLogin.css';
 
-const CandidateLogin = () => {
+const UnifiedLogin = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -63,7 +63,7 @@ const CandidateLogin = () => {
       console.log('Login attempt:', formData);
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-        // On successful login
+      // On successful login
       alert('Login successful! Welcome back to Skill4Hire!');
       // Here you would typically redirect to dashboard or handle authentication
 
@@ -79,7 +79,7 @@ const CandidateLogin = () => {
   };
 
   return (
-    <div className="candidate-login">
+    <div className="unified-login">
       <div className="login-container">
         {/* Header */}
         <div className="login-header">
@@ -204,7 +204,7 @@ const CandidateLogin = () => {
         <div className="login-footer">
           <p>
             Don't have an account? 
-            <Link to="/register" className="register-link">
+            <Link to="/role-selection" className="register-link">
               Create one here
             </Link>
           </p>
@@ -221,4 +221,4 @@ const CandidateLogin = () => {
   );
 };
 
-export default CandidateLogin;
+export default UnifiedLogin;

@@ -45,7 +45,7 @@ const LandingPage = () => {
               Our intelligent platform matches your skills with the perfect career path.
             </p>
             <div className="hero-buttons">
-              <Link to="/register" className="btn-primary">Start Your Journey</Link>
+              <Link to="/role-selection" className="btn-primary">Start Your Journey</Link>
               <button className="btn-secondary">Watch Demo</button>
             </div>
           </div>
@@ -102,7 +102,7 @@ const LandingPage = () => {
             <h2>Ready to Transform Your Career?</h2>
             <p>Join thousands of professionals who have already found their dream opportunities.</p>
             <div className="cta-buttons">
-              <Link to="/register" className="btn-primary large">Get Started Now</Link>
+              <Link to="/role-selection" className="btn-primary large">Get Started Now</Link>
               <button className="btn-outline">Learn More</button>
             </div>
           </div>

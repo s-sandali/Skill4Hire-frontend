@@ -1,0 +1,172 @@
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import brainLogo from '../assets/brain-logo.jpg';
+import './EmployeeRegister.css';
+
+const EmployeeRegister = () => {
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    title: '',
+    email: '',
+    password: ''
+  });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      console.log('Employee registration submitted:', formData);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      alert('Employee registration successful! Welcome to Skill4Hire!');
+    } catch (error) {
+      alert('Registration failed. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="employee-register">
+      <div className="register-container">
+        <div className="register-header">
+          <div className="logo-section">
+            <img src={brainLogo} alt="SKILL4HIRE Brain Logo" className="register-logo" />
+            <h1>Employee Registration</h1>
+          </div>
+          <p className="register-subtitle">Join Skill4Hire as an employee to refer candidates and manage hiring</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="register-form">
+          {/* Employee Information Section */}
+          <div className="form-section">
+            <h2 className="section-title">
+              <span className="section-icon">👥</span>
+              Employee Registration
+            </h2>
+            
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="firstName">First Name *</label>
+                <input
+                  type="text"
+                  id="firstName"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  placeholder="Enter your first name"
+                  required
+                />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="lastName">Last Name *</label>
+                <input
+                  type="text"
+                  id="lastName"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  placeholder="Enter your last name"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="title">Job Title *</label>
+              <input
+                type="text"
+                id="title"
+                name="title"
+                value={formData.title}
+                onChange={handleInputChange}
+                placeholder="e.g., Senior Developer, HR Manager, Marketing Specialist"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="email">Email Address *</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="your.email@example.com"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="password">Password *</label>
+              <div className="password-input-container">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  placeholder="Enter your password"
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? '🙈' : '👁️'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <div className="form-actions">
+            <Link to="/role-selection" className="btn-secondary">
+              ← Back to Role Selection
+            </Link>
+            
+            <button
+              type="submit"
+              className="submit-btn"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="loading-spinner"></span>
+                  Creating Account...
+                </>
+              ) : (
+                <>
+                  🚀 Complete Registration
+                </>
+              )}
+            </button>
+            
+            <p className="form-note">
+              By registering, you agree to our Terms of Service and Privacy Policy
+            </p>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default EmployeeRegister;

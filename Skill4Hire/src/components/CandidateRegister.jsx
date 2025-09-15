@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import brainLogo from './brain-logo.jpg';
+import { Link } from 'react-router-dom';
+import brainLogo from '../assets/brain-logo.jpg';
 import './CandidateRegister.css';
 
 const CandidateRegister = () => {
@@ -121,10 +122,8 @@ const CandidateRegister = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate form submission
     try {
-      console.log('Form submitted:', formData);
-      // Here you would typically send the data to your backend
+      console.log('Candidate registration submitted:', formData);
       await new Promise(resolve => setTimeout(resolve, 2000));
       alert('Registration successful! Welcome to Skill4Hire!');
     } catch (error) {
@@ -359,6 +358,10 @@ const CandidateRegister = () => {
 
           {/* Submit Button */}
           <div className="form-actions">
+            <Link to="/role-selection" className="btn-secondary">
+              ← Back to Role Selection
+            </Link>
+            
             <button
               type="submit"
               className="submit-btn"
