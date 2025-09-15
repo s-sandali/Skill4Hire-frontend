@@ -16,7 +16,6 @@ const CandidateRegister = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
-  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -60,24 +59,30 @@ const CandidateRegister = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
+  e.preventDefault();
+  
+  if (!validateForm()) {
+    return;
+  }
+  
+  setIsSubmitting(true);
+  
+  try {
+    const response = await authService.registerCandidate(formData);
+
+    if (response.success) {
+      alert('Registration successful! Please login with your credentials.');
+      navigate('/login');
+    } else {
+      setErrors({ general: response.message || 'Registration failed. Please try again.' });
     }
-    
-    setIsSubmitting(true);
-    
-    try {
-      console.log('Candidate registration submitted:', formData);
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      alert('Registration successful! Welcome to Skill4Hire!');
-    } catch (error) {
-      setErrors({ general: error.message || 'Registration failed. Please try again later.' });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  } catch (error) {
+    setErrors({ general: error.message || 'Registration failed. Please try again later.' });
+  } finally {
+    setIsSubmitting(false);
+  }
+}; 
+
 
   return (
     <div className="candidate-register">
