@@ -1,5 +1,15 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { 
+  FiSettings, 
+  FiMail, 
+  FiLock, 
+  FiEye, 
+  FiEyeOff, 
+  FiArrowLeft,
+  FiCheck,
+  FiAlertTriangle
+} from 'react-icons/fi';
 import brainLogo from '../assets/brain-logo.jpg';
 import './AdminRegister.css';
 
@@ -11,6 +21,7 @@ const AdminRegister = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -18,19 +29,50 @@ const AdminRegister = () => {
       ...prev,
       [name]: value
     }));
+    
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+    
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsSubmitting(true);
-
+    setErrors({});
+    
     try {
       console.log('Admin registration submitted:', formData);
       await new Promise(resolve => setTimeout(resolve, 2000));
       alert('Admin registration submitted! Your request is under review.');
     } catch (error) {
-      alert('Registration failed. Please try again.');
+      setErrors({ general: error.message || 'Registration failed. Please try again.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -46,20 +88,33 @@ const AdminRegister = () => {
           </div>
           <p className="register-subtitle">Request administrative access to the Skill4Hire platform</p>
           <div className="admin-notice">
-            <p><strong>⚠️ Important:</strong>Admin access requires approval. Your request will be reviewed by our team.</p>
+            <p>
+              <FiAlertTriangle style={{marginRight: '8px'}} />
+              <strong>Important:</strong> Admin access requires approval. Your request will be reviewed by our team.
+            </p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="register-form">
+          {errors.general && (
+            <div className="error-message general-error">
+              <FiAlertTriangle style={{marginRight: '8px'}} />
+              {errors.general}
+            </div>
+          )}
+
           {/* Admin Information Section */}
           <div className="form-section">
             <h2 className="section-title">
-              <span className="section-icon">⚙️</span>
+              <FiSettings className="section-icon" />
               Admin Registration
             </h2>
 
             <div className="form-group">
-              <label htmlFor="email">Email Address *</label>
+              <label htmlFor="email">
+                <FiMail style={{marginRight: '8px'}} />
+                Email Address *
+              </label>
               <input
                 type="email"
                 id="email"
@@ -67,12 +122,19 @@ const AdminRegister = () => {
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="admin@example.com"
+                className={errors.email ? 'error' : ''}
                 required
               />
+              {errors.email && (
+                <span className="error-text">{errors.email}</span>
+              )}
             </div>
 
             <div className="form-group">
-              <label htmlFor="password">Password *</label>
+              <label htmlFor="password">
+                <FiLock style={{marginRight: '8px'}} />
+                Password *
+              </label>
               <div className="password-input-container">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -81,6 +143,7 @@ const AdminRegister = () => {
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder="Enter your password"
+                  className={errors.password ? 'error' : ''}
                   required
                 />
                 <button
@@ -89,16 +152,20 @@ const AdminRegister = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? '🙈' : '👁️'}
+                  {showPassword ? <FiEyeOff /> : <FiEye />}
                 </button>
               </div>
+              {errors.password && (
+                <span className="error-text">{errors.password}</span>
+              )}
             </div>
           </div>
 
           {/* Submit Button */}
           <div className="form-actions">
             <Link to="/role-selection" className="btn-secondary">
-              ← Back to Role Selection
+              <FiArrowLeft style={{marginRight: '8px'}} />
+              Back to Role Selection
             </Link>
 
             <button
@@ -113,7 +180,7 @@ const AdminRegister = () => {
                 </>
               ) : (
                 <>
-                  🚀 Complete Registration
+                  <FiCheck style={{fontSize: '18px'}} /> Complete Registration
                 </>
               )}
             </button>

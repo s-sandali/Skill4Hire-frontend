@@ -10,7 +10,71 @@
     align-items: center;
     justify-content: center;
   }
+  /* Add these to all registration CSS files */
+
+.error-message {
+  background: rgba(255, 107, 0, 0.1);
+  border: 1px solid rgba(255, 107, 0, 0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  color: #FF6B00;
+  font-size: 0.9rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error-text {
+  color: #FF6B00;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+.form-group input.error {
+  border-color: #FF6B00;
+}
+
+.password-toggle {
+  background: none;
+  border: none;
+  color: #A1A1B3;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.password-toggle:hover {
+  color: #00CFEA;
+}
+
+.section-icon {
+  font-size: 1.5rem;
+  color: #00CFEA;
+}
+
+/* Enhanced responsive design */
+@media (max-width: 480px) {
+  .register-header h1 {
+    font-size: 2rem;
+  }
   
+  .register-subtitle {
+    font-size: 1rem;
+  }
+  
+  .register-form {
+    padding: 1.5rem;
+  }
+  
+  .section-title {
+    font-size: 1.3rem;
+  }
+}
   .candidate-register::before {
     content: '';
     position: absolute;

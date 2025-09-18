@@ -83,7 +83,7 @@
   padding: 2rem;
   text-align: center;
   cursor: pointer;
-  transition: all 0.4s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   border: 2px solid #2D2D5A;
   position: relative;
   overflow: hidden;
@@ -125,9 +125,17 @@
 }
 
 .role-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  display: block;
+  margin-bottom: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #00CFEA;
+  transition: all 0.3s ease;
+}
+
+.role-card:hover .role-icon,
+.role-card.selected .role-icon {
+  transform: scale(1.1);
 }
 
 .role-title {
@@ -154,9 +162,20 @@
   color: #00CFEA;
   font-size: 0.9rem;
   font-weight: 600;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.8rem 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+}
+
+.role-features h4::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 2px;
+  background: #00CFEA;
+  margin-right: 8px;
 }
 
 .role-features ul {
@@ -168,9 +187,10 @@
 .role-features li {
   color: #A1A1B3;
   font-size: 0.9rem;
-  margin-bottom: 0.3rem;
-  padding-left: 1rem;
+  margin-bottom: 0.5rem;
+  padding-left: 1.5rem;
   position: relative;
+  line-height: 1.4;
 }
 
 .role-features li::before {
@@ -185,11 +205,14 @@
   color: #00CFEA;
   font-weight: 600;
   font-size: 0.9rem;
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1.2rem;
   border: 2px solid #00CFEA;
   border-radius: 25px;
   background: rgba(0, 207, 234, 0.1);
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .role-card.selected .role-selection-indicator {
@@ -200,7 +223,7 @@
 .role-actions {
   display: flex;
   justify-content: center;
-  gap: 1rem;
+  gap: 1.2rem;
   margin-bottom: 2rem;
   flex-wrap: wrap;
 }
@@ -211,7 +234,7 @@
   text-decoration: none;
   font-weight: 600;
   font-size: 1rem;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
   cursor: pointer;
   display: inline-flex;
@@ -243,28 +266,38 @@
   background: #FF6B00;
   color: #FFFFFF;
   border-color: #FF6B00;
+  transform: translateY(-2px);
 }
 
 .role-help {
   background: rgba(16, 16, 61, 0.8);
   border-radius: 15px;
-  padding: 1.5rem;
+  padding: 1.8rem;
   text-align: center;
   backdrop-filter: blur(10px);
   border: 1px solid #2D2D5A;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .role-help p {
   color: #A1A1B3;
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
 .role-help strong {
   color: #00CFEA;
+  font-weight: 600;
 }
 
-/* Responsive Design */
+/* Enhanced focus states for accessibility */
+.role-card:focus {
+  outline: 2px solid #00CFEA;
+  outline-offset: 2px;
+}
+
+/* Improved responsive design */
 @media (max-width: 768px) {
   .role-selection {
     padding: 1rem;
@@ -297,4 +330,19 @@
     max-width: 300px;
     justify-content: center;
   }
+  
+  .role-help {
+    padding: 1.2rem;
+  }
+}
+
+/* Animation for role selection */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.role-card.selected {
+  animation: pulse 0.5s ease;
 }
