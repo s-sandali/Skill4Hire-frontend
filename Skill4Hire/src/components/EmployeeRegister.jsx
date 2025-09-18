@@ -1,5 +1,17 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { 
+  FiUsers, 
+  FiMail, 
+  FiLock, 
+  FiEye, 
+  FiEyeOff, 
+  FiArrowLeft,
+  FiCheck,
+  FiAlertTriangle,
+  FiUser,
+  FiBriefcase
+} from 'react-icons/fi';
 import brainLogo from '../assets/brain-logo.jpg';
 import './EmployeeRegister.css';
 
@@ -15,6 +27,7 @@ const EmployeeRegister = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -22,12 +35,47 @@ const EmployeeRegister = () => {
       ...prev,
       [name]: value
     }));
+    
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.firstName) newErrors.firstName = 'First name is required';
+    if (!formData.lastName) newErrors.lastName = 'Last name is required';
+    if (!formData.title) newErrors.title = 'Job title is required';
+    
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+    
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsSubmitting(true);
+    setErrors({});
     
     try {
       console.log('Employee registration submitted:', formData);
@@ -35,7 +83,7 @@ const EmployeeRegister = () => {
       alert('Employee registration successful! Redirecting to home...');
       navigate('/');
     } catch (error) {
-      alert('Registration failed. Please try again.');
+      setErrors({ general: error.message || 'Registration failed. Please try again.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -53,16 +101,26 @@ const EmployeeRegister = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="register-form">
+          {errors.general && (
+            <div className="error-message general-error">
+              <FiAlertTriangle style={{marginRight: '8px'}} />
+              {errors.general}
+            </div>
+          )}
+
           {/* Employee Information Section */}
           <div className="form-section">
             <h2 className="section-title">
-              <span className="section-icon">👥</span>
+              <FiUsers className="section-icon" />
               Employee Registration
             </h2>
             
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="firstName">First Name *</label>
+                <label htmlFor="firstName">
+                  <FiUser style={{marginRight: '8px'}} />
+                  First Name *
+                </label>
                 <input
                   type="text"
                   id="firstName"
@@ -70,12 +128,19 @@ const EmployeeRegister = () => {
                   value={formData.firstName}
                   onChange={handleInputChange}
                   placeholder="Enter your first name"
+                  className={errors.firstName ? 'error' : ''}
                   required
                 />
+                {errors.firstName && (
+                  <span className="error-text">{errors.firstName}</span>
+                )}
               </div>
               
               <div className="form-group">
-                <label htmlFor="lastName">Last Name *</label>
+                <label htmlFor="lastName">
+                  <FiUser style={{marginRight: '8px'}} />
+                  Last Name *
+                </label>
                 <input
                   type="text"
                   id="lastName"
@@ -83,13 +148,20 @@ const EmployeeRegister = () => {
                   value={formData.lastName}
                   onChange={handleInputChange}
                   placeholder="Enter your last name"
+                  className={errors.lastName ? 'error' : ''}
                   required
                 />
+                {errors.lastName && (
+                  <span className="error-text">{errors.lastName}</span>
+                )}
               </div>
             </div>
 
             <div className="form-group">
-              <label htmlFor="title">Job Title *</label>
+              <label htmlFor="title">
+                <FiBriefcase style={{marginRight: '8px'}} />
+                Job Title *
+              </label>
               <input
                 type="text"
                 id="title"
@@ -97,12 +169,19 @@ const EmployeeRegister = () => {
                 value={formData.title}
                 onChange={handleInputChange}
                 placeholder="e.g., Senior Developer, HR Manager, Marketing Specialist"
+                className={errors.title ? 'error' : ''}
                 required
               />
+              {errors.title && (
+                <span className="error-text">{errors.title}</span>
+              )}
             </div>
 
             <div className="form-group">
-              <label htmlFor="email">Email Address *</label>
+              <label htmlFor="email">
+                <FiMail style={{marginRight: '8px'}} />
+                Email Address *
+              </label>
               <input
                 type="email"
                 id="email"
@@ -110,12 +189,19 @@ const EmployeeRegister = () => {
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="your.email@example.com"
+                className={errors.email ? 'error' : ''}
                 required
               />
+              {errors.email && (
+                <span className="error-text">{errors.email}</span>
+              )}
             </div>
 
             <div className="form-group">
-              <label htmlFor="password">Password *</label>
+              <label htmlFor="password">
+                <FiLock style={{marginRight: '8px'}} />
+                Password *
+              </label>
               <div className="password-input-container">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -124,6 +210,7 @@ const EmployeeRegister = () => {
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder="Enter your password"
+                  className={errors.password ? 'error' : ''}
                   required
                 />
                 <button
@@ -132,16 +219,20 @@ const EmployeeRegister = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? '🙈' : '👁️'}
+                  {showPassword ? <FiEyeOff /> : <FiEye />}
                 </button>
               </div>
+              {errors.password && (
+                <span className="error-text">{errors.password}</span>
+              )}
             </div>
           </div>
 
           {/* Submit Button */}
           <div className="form-actions">
             <Link to="/role-selection" className="btn-secondary">
-              ← Back to Role Selection
+              <FiArrowLeft style={{marginRight: '8px'}} />
+              Back to Role Selection
             </Link>
             
             <button
@@ -156,7 +247,7 @@ const EmployeeRegister = () => {
                 </>
               ) : (
                 <>
-                  🚀 Complete Registration
+                  <FiCheck style={{fontSize: '18px'}} /> Complete Registration
                 </>
               )}
             </button>

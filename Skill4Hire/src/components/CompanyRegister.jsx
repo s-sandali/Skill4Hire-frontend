@@ -1,5 +1,15 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { 
+  FiBriefcase, 
+  FiMail, 
+  FiLock, 
+  FiEye, 
+  FiEyeOff, 
+  FiArrowLeft,
+  FiCheck,
+  FiAlertTriangle
+} from 'react-icons/fi';
 import brainLogo from '../assets/brain-logo.jpg';
 import './CompanyRegister.css';
 
@@ -13,6 +23,7 @@ const CompanyRegister = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -20,12 +31,45 @@ const CompanyRegister = () => {
       ...prev,
       [name]: value
     }));
+    
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.companyName) newErrors.companyName = 'Company name is required';
+    
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+    
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsSubmitting(true);
+    setErrors({});
     
     try {
       console.log('Company registration submitted:', formData);
@@ -33,7 +77,7 @@ const CompanyRegister = () => {
       alert('Company registration successful! Redirecting to home...');
       navigate('/');
     } catch (error) {
-      alert('Registration failed. Please try again.');
+      setErrors({ general: error.message || 'Registration failed. Please try again.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -51,10 +95,17 @@ const CompanyRegister = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="register-form">
+          {errors.general && (
+            <div className="error-message general-error">
+              <FiAlertTriangle style={{marginRight: '8px'}} />
+              {errors.general}
+            </div>
+          )}
+
           {/* Company Information Section */}
           <div className="form-section">
             <h2 className="section-title">
-              <span className="section-icon">🏢</span>
+              <FiBriefcase className="section-icon" />
               Company Registration
             </h2>
             
@@ -67,12 +118,19 @@ const CompanyRegister = () => {
                 value={formData.companyName}
                 onChange={handleInputChange}
                 placeholder="Enter your company name"
+                className={errors.companyName ? 'error' : ''}
                 required
               />
+              {errors.companyName && (
+                <span className="error-text">{errors.companyName}</span>
+              )}
             </div>
 
             <div className="form-group">
-              <label htmlFor="email">Company Email *</label>
+              <label htmlFor="email">
+                <FiMail style={{marginRight: '8px'}} />
+                Company Email *
+              </label>
               <input
                 type="email"
                 id="email"
@@ -80,12 +138,19 @@ const CompanyRegister = () => {
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="company@example.com"
+                className={errors.email ? 'error' : ''}
                 required
               />
+              {errors.email && (
+                <span className="error-text">{errors.email}</span>
+              )}
             </div>
 
             <div className="form-group">
-              <label htmlFor="password">Password *</label>
+              <label htmlFor="password">
+                <FiLock style={{marginRight: '8px'}} />
+                Password *
+              </label>
               <div className="password-input-container">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -94,6 +159,7 @@ const CompanyRegister = () => {
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder="Enter your password"
+                  className={errors.password ? 'error' : ''}
                   required
                 />
                 <button
@@ -102,16 +168,20 @@ const CompanyRegister = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? '🙈' : '👁️'}
+                  {showPassword ? <FiEyeOff /> : <FiEye />}
                 </button>
               </div>
+              {errors.password && (
+                <span className="error-text">{errors.password}</span>
+              )}
             </div>
           </div>
 
           {/* Submit Button */}
           <div className="form-actions">
             <Link to="/role-selection" className="btn-secondary">
-              ← Back to Role Selection
+              <FiArrowLeft style={{marginRight: '8px'}} />
+              Back to Role Selection
             </Link>
             
             <button
@@ -126,7 +196,7 @@ const CompanyRegister = () => {
                 </>
               ) : (
                 <>
-                  🚀 Complete Registration
+                  <FiCheck style={{fontSize: '18px'}} /> Complete Registration
                 </>
               )}
             </button>

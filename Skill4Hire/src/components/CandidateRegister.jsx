@@ -1,5 +1,15 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { 
+  FiUser, 
+  FiMail, 
+  FiLock, 
+  FiEye, 
+  FiEyeOff, 
+  FiArrowLeft,
+  FiCheck,
+  FiAlertTriangle
+} from 'react-icons/fi';
 import brainLogo from '../assets/brain-logo.jpg';
 import { authService } from '../services/authService';
 import './CandidateRegister.css';
@@ -54,35 +64,30 @@ const CandidateRegister = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  
-  if (!validateForm()) {
-    return;
-  }
-  
-  setIsSubmitting(true);
-  
-  try {
-    const response = await authService.registerCandidate(formData);
-
-    if (response.success) {
-      alert('Registration successful! Please login with your credentials.');
-      navigate('/login');
-    } else {
-      setErrors({ general: response.message || 'Registration failed. Please try again.' });
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
     }
-  } catch (error) {
-    setErrors({ general: error.message || 'Registration failed. Please try again later.' });
-  } finally {
-    setIsSubmitting(false);
-  }
-}; 
+    
+    setIsSubmitting(true);
+    
+    try {
+      const response = await authService.registerCandidate(formData);
 
+      if (response.success) {
+        alert('Registration successful! Please login with your credentials.');
+        navigate('/login');
+      } else {
+        setErrors({ general: response.message || 'Registration failed. Please try again.' });
+      }
+    } catch (error) {
+      setErrors({ general: error.message || 'Registration failed. Please try again later.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }; 
 
   return (
     <div className="candidate-register">
@@ -98,6 +103,7 @@ const CandidateRegister = () => {
         <form onSubmit={handleSubmit} className="register-form">
           {errors.general && (
             <div className="error-message general-error">
+              <FiAlertTriangle style={{marginRight: '8px'}} />
               {errors.general}
             </div>
           )}
@@ -105,7 +111,7 @@ const CandidateRegister = () => {
           {/* Personal Information Section */}
           <div className="form-section">
             <h2 className="section-title">
-              <span className="section-icon">👤</span>
+              <FiUser className="section-icon" />
               Create Account
             </h2>
             
@@ -146,7 +152,10 @@ const CandidateRegister = () => {
             </div>
 
             <div className="form-group full-width">
-              <label htmlFor="email">Email Address *</label>
+              <label htmlFor="email">
+                <FiMail style={{marginRight: '8px'}} />
+                Email Address *
+              </label>
               <input
                 type="email"
                 id="email"
@@ -163,7 +172,10 @@ const CandidateRegister = () => {
             </div>
 
             <div className="form-group full-width">
-              <label htmlFor="password">Password *</label>
+              <label htmlFor="password">
+                <FiLock style={{marginRight: '8px'}} />
+                Password *
+              </label>
               <div className="password-input-container">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -178,9 +190,9 @@ const CandidateRegister = () => {
                 <button 
                   type="button" 
                   className="password-toggle"
-                  onClick={togglePasswordVisibility}
+                  onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? "🙈" : "👁️"}
+                  {showPassword ? <FiEyeOff /> : <FiEye />}
                 </button>
               </div>
               {errors.password && (
@@ -192,7 +204,8 @@ const CandidateRegister = () => {
           {/* Submit Button */}
           <div className="form-actions">
             <Link to="/role-selection" className="btn-secondary">
-              ← Back to Role Selection
+              <FiArrowLeft style={{marginRight: '8px'}} />
+              Back to Role Selection
             </Link>
             
             <button
@@ -207,7 +220,7 @@ const CandidateRegister = () => {
                 </>
               ) : (
                 <>
-                  🚀 Create Account
+                  <FiCheck style={{fontSize: '18px'}} /> Create Account
                 </>
               )}
             </button>

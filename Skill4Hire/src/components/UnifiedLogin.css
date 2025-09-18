@@ -418,5 +418,59 @@
     flex-direction: column;
     gap: 0.25rem;
   }
+  /* Add these styles to your UnifiedLogin.css file */
+
+/* Icon styling improvements */
+.password-toggle {
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+}
+
+/* Enhanced focus states for better accessibility */
+.form-group input:focus,
+.form-group select:focus {
+  box-shadow: 0 0 0 3px rgba(0, 207, 234, 0.2);
+}
+
+/* Improved button transitions */
+.login-btn, .social-btn {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Better spacing for form elements */
+.form-group {
+  gap: 0.6rem;
+}
+
+/* Enhanced error states */
+.form-group input.error {
+  border-color: #FF6B00;
+  box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
+}
+
+/* Improved responsive design */
+@media (max-width: 480px) {
+  .login-header h1 {
+    font-size: 1.8rem;
+  }
+  
+  .login-subtitle {
+    font-size: 1rem;
+  }
+  
+  .form-options {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+}
+
 }
 

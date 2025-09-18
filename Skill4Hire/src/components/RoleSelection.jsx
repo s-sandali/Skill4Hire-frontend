@@ -1,5 +1,14 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { 
+  FiUser, 
+  FiBriefcase, 
+  FiUsers, 
+  FiSettings,
+  FiArrowLeft,
+  FiArrowRight,
+  FiCheck
+} from 'react-icons/fi';
 import brainLogo from '../assets/brain-logo.jpg';
 import './RoleSelection.css';
 
@@ -10,7 +19,7 @@ const RoleSelection = () => {
     {
       id: 'candidate',
       title: 'Candidate',
-      icon: '👤',
+      icon: <FiUser size={32} />,
       description: 'I am looking for job opportunities and want to showcase my skills',
       features: ['Create professional profile', 'Upload CV & Portfolio', 'Get matched with jobs', 'Track applications'],
       color: '#4F46E5'
@@ -18,7 +27,7 @@ const RoleSelection = () => {
     {
       id: 'company',
       title: 'Company',
-      icon: '🏢',
+      icon: <FiBriefcase size={32} />,
       description: 'I represent a company and want to find talented professionals',
       features: ['Post job openings', 'Browse candidate profiles', 'Manage applications', 'Schedule interviews'],
       color: '#059669'
@@ -26,7 +35,7 @@ const RoleSelection = () => {
     {
       id: 'employee',
       title: 'Employee',
-      icon: '👥',
+      icon: <FiUsers size={32} />,
       description: 'I am an employee and want to refer candidates or manage hiring',
       features: ['Refer candidates', 'Manage team hiring', 'Access company tools', 'Track referrals'],
       color: '#DC2626'
@@ -34,7 +43,7 @@ const RoleSelection = () => {
     {
       id: 'admin',
       title: 'Admin',
-      icon: '⚙️',
+      icon: <FiSettings size={32} />,
       description: 'I need administrative access to manage the platform',
       features: ['Platform management', 'User oversight', 'System configuration', 'Analytics dashboard'],
       color: '#7C3AED'
@@ -80,7 +89,13 @@ const RoleSelection = () => {
               </div>
               
               <div className="role-selection-indicator">
-                {selectedRole === role.id ? '✓ Selected' : 'Click to select'}
+                {selectedRole === role.id ? (
+                  <>
+                    <FiCheck style={{marginRight: '6px'}} /> Selected
+                  </>
+                ) : (
+                  'Click to select'
+                )}
               </div>
             </div>
           ))}
@@ -89,7 +104,7 @@ const RoleSelection = () => {
         {/* Action Buttons */}
         <div className="role-actions">
           <Link to="/" className="btn-secondary">
-            ← Back to Home
+            <FiArrowLeft style={{marginRight: '8px'}} /> Back to Home
           </Link>
           
           {selectedRole && (
@@ -97,21 +112,13 @@ const RoleSelection = () => {
               to={`/register/${selectedRole}`} 
               className="btn-primary"
             >
-              Continue as {roles.find(r => r.id === selectedRole)?.title} →
+              Continue as {roles.find(r => r.id === selectedRole)?.title} 
+              <FiArrowRight style={{marginLeft: '8px'}} />
             </Link>
           )}
         </div>
 
-        {/* Help Text */}
-        <div className="role-help">
-          <p>
-            <strong>Not sure which role to choose?</strong><br />
-            • <strong>Candidate:</strong> If you're looking for job opportunities<br />
-            • <strong>Company:</strong> If you're hiring for your organization<br />
-            • <strong>Employee:</strong> If you work for a company and want to refer candidates<br />
-            • <strong>Admin:</strong> If you need administrative platform access
-          </p>
-        </div>
+       
       </div>
     </div>
   );

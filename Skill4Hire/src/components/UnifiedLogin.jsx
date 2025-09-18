@@ -1,9 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { 
+  FiEye, 
+  FiEyeOff, 
+  FiLock, 
+  FiMail, 
+  FiLogIn, 
+  FiArrowLeft,
+  FiHelpCircle,
+  FiUserPlus
+} from 'react-icons/fi';
 import brainLogo from '../assets/brain-logo.jpg';
 import { authService } from '../services/authService';
 import './UnifiedLogin.css';
-
 
 const UnifiedLogin = () => {
   const [formData, setFormData] = useState({
@@ -129,12 +138,17 @@ const UnifiedLogin = () => {
           <form onSubmit={handleSubmit} className="login-form">
             {errors.general && (
               <div className="error-message general-error">
+                <FiHelpCircle style={{marginRight: '8px'}} />
                 {errors.general}
               </div>
             )}
 
             <div className="form-group">
-              <label htmlFor="email">Email Address</label>
+               <label htmlFor="email" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <FiMail style={{ color: '#4a33faff', fontSize: '20px' }} />
+
+                Email Address
+              </label>
               <input
                 type="email"
                 id="email"
@@ -151,7 +165,10 @@ const UnifiedLogin = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="password">Password</label>
+              <label htmlFor="password" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                 <FiLock style={{ color: '#4a33faff', fontSize: '20px' }} />
+                Password
+              </label>
               <div className="password-input-container">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -169,7 +186,7 @@ const UnifiedLogin = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? '🙈' : '👁️'}
+                  {showPassword ? <FiEyeOff /> : <FiEye />}
                 </button>
               </div>
               {errors.password && (
@@ -209,45 +226,27 @@ const UnifiedLogin = () => {
                 </>
               ) : (
                 <>
-                  🔐 Sign In
+                  <FiLogIn style={{fontSize: '18px'}} /> Sign In
                 </>
               )}
             </button>
           </form>
 
-          {/* Alternative Login Methods */}
-          <div className="alternative-login">
-            <div className="divider">
-              <span>or continue with</span>
-            </div>
-            
-            <div className="social-login-buttons">
-              <button className="social-btn google-btn">
-                <span className="social-icon">🔍</span>
-                Google
-              </button>
-              <button className="social-btn linkedin-btn">
-                <span className="social-icon">💼</span>
-                LinkedIn
-              </button>
-            </div>
-          </div>
+          
         </div>
 
         {/* Footer Links */}
         <div className="login-footer">
           <p>
+            <FiUserPlus style={{marginRight: '8px'}} />
             Don't have an account? 
             <Link to="/role-selection" className="register-link">
               Create one here
             </Link>
           </p>
           <div className="footer-links">
-            <Link to="/">Back to Home</Link>
-            <span>•</span>
-            <a href="#help">Help Center</a>
-            <span>•</span>
-            <a href="#privacy">Privacy Policy</a>
+            <Link to="/"><FiArrowLeft style={{marginRight: '6px'}} />Back to Home</Link>
+           
           </div>
         </div>
       </div>
