@@ -17,6 +17,7 @@ import {
   RiCalendarScheduleLine,
   RiNotification3Line
 } from 'react-icons/ri';
+import { authService } from '../services/authService';
 import './CompanyDashboard.css';
 
 const CompanyDashboard = () => {
@@ -118,10 +119,18 @@ const CompanyDashboard = () => {
     return matchesSearch && matchesFilter;
   });
 
-  const handleLogout = () => {
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('userId');
-    window.location.href = '/login';
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.log('Logout error:', error);
+    } finally {
+      // Clear local storage and redirect regardless of API call success
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('rememberedEmail');
+      window.location.href = '/login';
+    }
   };
 
   return (

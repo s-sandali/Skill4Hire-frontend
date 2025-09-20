@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { RiUserLine, RiMailLine, RiBookLine, RiBriefcaseLine, RiStarLine, RiFileTextLine, RiEditLine, RiDeleteBinLine } from 'react-icons/ri';
+import { RiUserLine, RiMailLine, RiBookLine, RiBriefcaseLine, RiStarLine, RiFileTextLine, RiEditLine, RiDeleteBinLine, RiLogoutBoxLine } from 'react-icons/ri';
 import CandidateProfileForm from './CandidateProfileForm';
+import { authService } from '../services/authService';
 import './CandidateProfilePage.css';
 
 const CandidateProfilePage = () => {
@@ -45,10 +46,53 @@ const CandidateProfilePage = () => {
     setProfiles(profiles.filter(profile => profile.id !== profileId));
   };
 
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.log('Logout error:', error);
+    } finally {
+      // Clear local storage and redirect regardless of API call success
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('rememberedEmail');
+      window.location.href = '/';
+    }
+  };
+
   return (
     <div className="candidate-profile-page">
-      <div className="profile-header">
-        <div className="profile-avatar">
+      {/* Header */}
+      <header className="dashboard-header">
+        <div className="header-content">
+          <div className="header-left">
+            <div className="logo-section">
+              <div className="logo-icon">
+                <RiUserLine />
+              </div>
+              <h1>Candidate Profile</h1>
+            </div>
+          </div>
+          <div className="header-right">
+            <div className="user-info">
+              <div className="user-avatar">
+                <RiUserLine />
+              </div>
+              <div className="user-details">
+                <span className="user-name">{sampleProfile.name}</span>
+                <span className="user-role">{sampleProfile.title}</span>
+              </div>
+            </div>
+            <button className="logout-btn" onClick={handleLogout}>
+              <RiLogoutBoxLine />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Profile Stats Section */}
+      <div className="profile-stats-section">
+        <div className="profile-avatar-large">
           <RiUserLine />
         </div>
         <div className="profile-info">
@@ -70,11 +114,11 @@ const CandidateProfilePage = () => {
           </div>
         </div>
         <div className="profile-actions">
-  <button className="btn-primary" onClick={() => setActiveTab('edit')}>
-    <RiEditLine /> Edit Profile
-  </button>
-</div>
-</div>
+          <button className="btn-primary" onClick={() => setActiveTab('edit')}>
+            <RiEditLine /> Edit Profile
+          </button>
+        </div>
+      </div>
 
       <div className="profile-tabs">
         <button 
