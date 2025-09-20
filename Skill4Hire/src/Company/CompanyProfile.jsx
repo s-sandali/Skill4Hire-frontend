@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { RiBuildingLine, RiMailLine, RiGlobalLine, RiMapPinLine, RiTeamLine, RiCalendarLine, RiUserLine, RiPhoneLine, RiEditLine, RiDeleteBinLine } from 'react-icons/ri';
+import { RiBuildingLine, RiMailLine, RiGlobalLine, RiMapPinLine, RiTeamLine, RiCalendarLine, RiUserLine, RiPhoneLine, RiEditLine, RiDeleteBinLine, RiBriefcaseLine } from 'react-icons/ri';
 import CompanyDashboard from './CompanyDashboard';
+import JobPostings from './JobPostings';
 import './CompanyProfile.css';
 
 const CompanyProfile = () => {
@@ -261,29 +262,7 @@ const CompanyProfile = () => {
         )}
 
         {activeTab === 'jobs' && (
-          <div className="jobs-tab">
-            <h2>Job Postings</h2>
-            <div className="jobs-grid">
-              <div className="job-card">
-                <h3>Senior Frontend Developer</h3>
-                <p>Remote • Full-time</p>
-                <span className="job-status active">Active</span>
-                <div className="job-stats">
-                  <span>45 Applications</span>
-                  <span>12 Shortlisted</span>
-                </div>
-              </div>
-              <div className="job-card">
-                <h3>Backend Engineer</h3>
-                <p>San Francisco, CA • Full-time</p>
-                <span className="job-status active">Active</span>
-                <div className="job-stats">
-                  <span>32 Applications</span>
-                  <span>8 Shortlisted</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <JobPostings />
         )}
 
         {activeTab === 'candidates' && (
