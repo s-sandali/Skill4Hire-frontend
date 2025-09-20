@@ -68,7 +68,7 @@ const CompanyDashboard = ({ existingProfile, onSave, onDelete }) => {
       industry,
       companySize,
       description,
-      logo,
+      logo: logoPreview, // Use logoPreview (data URL) instead of logo (File object)
       foundedYear,
       contactPerson,
       phone

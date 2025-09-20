@@ -30,8 +30,8 @@
 }
 
 .logo-image {
-  width: 150px;
-  height: 150px;
+  width: 200px;
+  height: 160px;
   object-fit: cover;
   border-radius: 12px;
   border: 2px solid #2D2D5A;
@@ -95,8 +95,8 @@
 }
 
 .logo-upload-placeholder {
-  width: 150px;
-  height: 150px;
+  width: 200px;
+  height: 160px;
   border: 2px dashed #2D2D5A;
   border-radius: 12px;
   background-color: #1B1B4D;
@@ -106,7 +106,7 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  padding: 1rem;
+  padding: 1.2rem;
   text-align: center;
 }
 
@@ -132,14 +132,15 @@
 .upload-text {
   color: #FFFFFF;
   font-weight: 600;
-  margin: 0 0 0.25rem 0;
-  font-size: 0.95rem;
+  margin: 0 0 0.4rem 0;
+  font-size: 1rem;
+  line-height: 1.2;
 }
 
 .upload-subtext {
   color: #888;
-  font-size: 0.8rem;
-  margin: 0 0 0.5rem 0;
+  font-size: 0.85rem;
+  margin: 0 0 0.6rem 0;
 }
 
 .upload-formats {
@@ -211,8 +212,8 @@
 @media (max-width: 768px) {
   .logo-image,
   .logo-upload-placeholder {
-    width: 120px;
-    height: 120px;
+    width: 160px;
+    height: 130px;
   }
   
   .upload-icon {
@@ -220,11 +221,11 @@
   }
   
   .upload-text {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
   }
   
   .upload-subtext {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
   }
   
   .upload-formats {
@@ -235,12 +236,16 @@
 @media (max-width: 480px) {
   .logo-image,
   .logo-upload-placeholder {
-    width: 100px;
-    height: 100px;
+    width: 140px;
+    height: 120px;
   }
   
   .upload-icon {
-    font-size: 1.5rem;
+    font-size: 1.8rem;
+  }
+  
+  .upload-text {
+    font-size: 0.85rem;
   }
   
   .remove-logo-btn,
