@@ -1,0 +1,368 @@
+/* Company Dashboard Styles */
+.company-dashboard {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  min-height: 100vh;
+  background-color: #0A0A3D;
+}
+
+.dashboard-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.dashboard-title {
+  color: #FFFFFF;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #00CFEA 0%, #4DB8FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dashboard-subtitle {
+  color: #888;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.company-profile-form {
+  display: flex;
+  justify-content: center;
+  max-width: 1000px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.form-card {
+  background-color: #10103D;
+  padding: 2.5rem;
+  border-radius: 12px;
+  border: 1px solid #2D2D5A;
+  width: 100%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Logo Upload Section */
+.logo-section {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.logo-label {
+  display: block;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  color: #FFFFFF;
+  font-size: 1.1rem;
+}
+
+.logo-upload-container {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+.logo-preview {
+  position: relative;
+  display: inline-block;
+}
+
+.logo-image {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 2px solid #2D2D5A;
+  background-color: #1B1B4D;
+}
+
+.remove-logo-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF6B00 0%, #FF8F33 100%);
+  color: #FFFFFF;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.remove-logo-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 3px 10px rgba(255, 107, 0, 0.4);
+}
+
+.logo-upload-placeholder {
+  width: 120px;
+  height: 120px;
+  border: 2px dashed #2D2D5A;
+  border-radius: 12px;
+  background-color: #1B1B4D;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 0 auto;
+}
+
+.logo-upload-placeholder:hover {
+  border-color: #00CFEA;
+  background-color: #2D2D5A;
+}
+
+.upload-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: #888;
+}
+
+.logo-upload-placeholder p {
+  color: #888;
+  font-size: 0.9rem;
+  margin: 0;
+  text-align: center;
+}
+
+.logo-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Form Layout */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #FFFFFF;
+  font-size: 1rem;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #2D2D5A;
+  background-color: #1B1B4D;
+  color: #FFFFFF;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  border-color: #00CFEA;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 207, 234, 0.2);
+}
+
+.form-group textarea {
+  min-height: 120px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.form-group select {
+  cursor: pointer;
+}
+
+.form-group select option {
+  background-color: #1B1B4D;
+  color: #FFFFFF;
+}
+
+/* Single column form groups */
+.form-group:last-of-type {
+  grid-column: 1 / -1;
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2.5rem;
+  gap: 1rem;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #00CFEA 0%, #4DB8FF 100%);
+  color: #0A0A3D;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+  font-size: 1rem;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 207, 234, 0.4);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #FF6B00 0%, #FF8F33 100%);
+  color: #FFFFFF;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+  font-size: 1rem;
+}
+
+.btn-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 107, 0, 0.4);
+}
+
+/* Placeholder styling */
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #888;
+  opacity: 1;
+}
+
+/* Required field indicator */
+.form-group label::after {
+  content: '';
+}
+
+.form-group label:has(+ input[required])::after,
+.form-group label:has(+ textarea[required])::after,
+.form-group label:has(+ select[required])::after {
+  content: ' *';
+  color: #FF6B00;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .company-dashboard {
+    padding: 0.5rem;
+  }
+  
+  .dashboard-title {
+    font-size: 2rem;
+  }
+  
+  .form-card {
+    padding: 1.5rem;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+  }
+  
+  .logo-image,
+  .logo-upload-placeholder {
+    width: 100px;
+    height: 100px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-title {
+    font-size: 1.8rem;
+  }
+  
+  .form-card {
+    padding: 1rem;
+  }
+  
+  .logo-image,
+  .logo-upload-placeholder {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .upload-icon {
+    font-size: 1.5rem;
+  }
+  
+  .logo-upload-placeholder p {
+    font-size: 0.8rem;
+  }
+}
+
+/* Animation for form load */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Focus styles for better accessibility */
+.logo-upload-placeholder:focus-within {
+  border-color: #00CFEA;
+  background-color: #2D2D5A;
+}
+
+/* Success state (can be used when profile is saved) */
+.form-card.success {
+  border-color: #4CAF50;
+  box-shadow: 0 10px 30px rgba(76, 175, 80, 0.2);
+}
+
+/* Error state (can be used for validation errors) */
+.form-group.error input,
+.form-group.error textarea,
+.form-group.error select {
+  border-color: #FF6B00;
+  box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.2);
+}

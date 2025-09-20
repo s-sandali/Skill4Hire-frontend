@@ -1,0 +1,257 @@
+/* Logo Upload Component Styles */
+.logo-upload {
+  margin-bottom: 1.5rem;
+}
+
+.logo-label {
+  display: block;
+  margin-bottom: 0.8rem;
+  font-weight: 600;
+  color: #FFFFFF;
+  font-size: 1.1rem;
+}
+
+.logo-upload-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.logo-upload-container.drag-active {
+  transform: scale(1.02);
+}
+
+.logo-preview {
+  position: relative;
+  display: inline-block;
+}
+
+.logo-image {
+  width: 200px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 2px solid #2D2D5A;
+  background-color: #1B1B4D;
+  transition: all 0.3s ease;
+}
+
+.logo-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.logo-preview:hover .logo-overlay {
+  opacity: 1;
+}
+
+.remove-logo-btn,
+.change-logo-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.remove-logo-btn {
+  background: linear-gradient(135deg, #FF6B00 0%, #FF8F33 100%);
+  color: #FFFFFF;
+}
+
+.remove-logo-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 5px 15px rgba(255, 107, 0, 0.4);
+}
+
+.change-logo-btn {
+  background: linear-gradient(135deg, #00CFEA 0%, #4DB8FF 100%);
+  color: #0A0A3D;
+}
+
+.change-logo-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 5px 15px rgba(0, 207, 234, 0.4);
+}
+
+.logo-upload-placeholder {
+  width: 200px;
+  height: 160px;
+  border: 2px dashed #2D2D5A;
+  border-radius: 12px;
+  background-color: #1B1B4D;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 1.2rem;
+  text-align: center;
+}
+
+.logo-upload-placeholder:hover,
+.logo-upload-container.drag-active .logo-upload-placeholder {
+  border-color: #00CFEA;
+  background-color: #2D2D5A;
+  transform: scale(1.02);
+}
+
+.upload-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  color: #888;
+  transition: color 0.3s ease;
+}
+
+.logo-upload-placeholder:hover .upload-icon,
+.logo-upload-container.drag-active .upload-icon {
+  color: #00CFEA;
+}
+
+.upload-text {
+  color: #FFFFFF;
+  font-weight: 600;
+  margin: 0 0 0.4rem 0;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.upload-subtext {
+  color: #888;
+  font-size: 0.85rem;
+  margin: 0 0 0.6rem 0;
+}
+
+.upload-formats {
+  color: #666;
+  font-size: 0.75rem;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.logo-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.logo-info {
+  background-color: rgba(77, 184, 255, 0.1);
+  border: 1px solid #4DB8FF;
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.file-name {
+  color: #4DB8FF;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+  font-size: 0.9rem;
+}
+
+.file-size {
+  color: #888;
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+/* Drag and drop feedback */
+.logo-upload-container.drag-active .logo-upload-placeholder {
+  border-color: #00CFEA;
+  background: linear-gradient(45deg, rgba(0, 207, 234, 0.1), rgba(77, 184, 255, 0.1));
+  box-shadow: 0 0 20px rgba(0, 207, 234, 0.3);
+}
+
+/* Error states */
+.logo-upload.error .logo-upload-placeholder {
+  border-color: #FF6B00;
+  background-color: rgba(255, 107, 0, 0.1);
+}
+
+.logo-upload.error .upload-icon {
+  color: #FF6B00;
+}
+
+/* Success states */
+.logo-upload.success .logo-info {
+  border-color: #4CAF50;
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
+.logo-upload.success .file-name {
+  color: #4CAF50;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .logo-image,
+  .logo-upload-placeholder {
+    width: 160px;
+    height: 130px;
+  }
+  
+  .upload-icon {
+    font-size: 2rem;
+  }
+  
+  .upload-text {
+    font-size: 0.9rem;
+  }
+  
+  .upload-subtext {
+    font-size: 0.8rem;
+  }
+  
+  .upload-formats {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-image,
+  .logo-upload-placeholder {
+    width: 140px;
+    height: 120px;
+  }
+  
+  .upload-icon {
+    font-size: 1.8rem;
+  }
+  
+  .upload-text {
+    font-size: 0.85rem;
+  }
+  
+  .remove-logo-btn,
+  .change-logo-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+}
