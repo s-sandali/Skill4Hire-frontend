@@ -77,6 +77,8 @@ const CandidateRegister = () => {
       const response = await authService.registerCandidate(formData);
 
       if (response.success) {
+        // Store the role for login redirection
+        localStorage.setItem('registeredRole', 'CANDIDATE');
         alert('Registration successful! Please login with your credentials.');
         navigate('/login');
       } else {

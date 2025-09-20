@@ -6,7 +6,9 @@ import CompanyRegister from './components/CompanyRegister.jsx'
 import EmployeeRegister from './components/EmployeeRegister.jsx'
 import AdminRegister from './components/AdminRegister.jsx'
 import UnifiedLogin from './components/UnifiedLogin.jsx'
-import EmployeeDashboard from './components/EmployeeDashboard.jsx'
+import EmployeeDashboard from './Employee/EmployeeDashboard.jsx'
+import CompanyDashboard from './Company/CompanyDashboard.jsx'
+import AdminDashboard from './Admin/AdminDashboard.jsx'
 import CandidateProfilePage from './Candidate/CandidateProfilePage.jsx';
 import './App.css'
 
@@ -21,7 +23,9 @@ function App() {
         <Route path="/register/employee" element={<EmployeeRegister />} />
         <Route path="/register/admin" element={<AdminRegister />} />
         <Route path="/login" element={<UnifiedLogin />} />
-        <Route path="/dashboard/employee" element={<EmployeeDashboard />} />
+        <Route path="/employee-dashboard" element={<EmployeeDashboard />} />
+        <Route path="/company-dashboard" element={<CompanyDashboard />} />
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/candidate-profile" element={<CandidateProfilePage />} /> 
       </Routes>
     </Router>

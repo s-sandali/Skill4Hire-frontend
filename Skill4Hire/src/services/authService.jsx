@@ -24,6 +24,36 @@ export const authService = {
     }
   },
 
+  // Company registration
+  registerCompany: async (userData) => {
+    try {
+      const response = await apiClient.post('/companies/auth/register', userData);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Registration failed');
+    }
+  },
+
+  // Employee registration
+  registerEmployee: async (userData) => {
+    try {
+      const response = await apiClient.post('/employees/auth/register', userData);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Registration failed');
+    }
+  },
+
+  // Admin registration
+  registerAdmin: async (userData) => {
+    try {
+      const response = await apiClient.post('/admins/auth/register', userData);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Registration failed');
+    }
+  },
+
   // Logout
   logout: async () => {
     try {

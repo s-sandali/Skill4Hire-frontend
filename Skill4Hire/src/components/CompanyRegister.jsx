@@ -11,6 +11,7 @@ import {
   FiAlertTriangle
 } from 'react-icons/fi';
 import brainLogo from '../assets/brain-logo.jpg';
+import { authService } from '../services/authService';
 import './CompanyRegister.css';
 
 const CompanyRegister = () => {
@@ -72,12 +73,18 @@ const CompanyRegister = () => {
     setErrors({});
     
     try {
-      console.log('Company registration submitted:', formData);
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      alert('Company registration successful! Redirecting to home...');
-      navigate('/');
+      const response = await authService.registerCompany(formData);
+      
+      if (response.success) {
+        // Store the role for login redirection
+        localStorage.setItem('registeredRole', 'COMPANY');
+        alert('Company registration successful! Please login with your credentials.');
+        navigate('/login');
+      } else {
+        setErrors({ general: response.message || 'Registration failed. Please try again.' });
+      }
     } catch (error) {
-      setErrors({ general: error.message || 'Registration failed. Please try again.' });
+      setErrors({ general: error.message || 'Registration failed. Please try again later.' });
     } finally {
       setIsSubmitting(false);
     }

@@ -1,18 +1,90 @@
 .resume-upload {
-  margin-top: 1rem;
+  margin-top: 0.5rem;
 }
 
 .resume-upload input[type="file"] {
+  width: 100%;
+  padding: 1rem;
+  border: 2px dashed #2D2D5A;
+  border-radius: 8px;
   background-color: #1B1B4D;
-  padding: 0.6rem;
-  border-radius: 6px;
-  border: 1px solid #2D2D5A;
   color: #FFFFFF;
   cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.resume-upload input[type="file"]:hover {
+  border-color: #00CFEA;
+  background-color: #2D2D5A;
+}
+
+.resume-upload input[type="file"]:focus {
+  outline: none;
+  border-color: #00CFEA;
+  box-shadow: 0 0 0 3px rgba(0, 207, 234, 0.2);
 }
 
 .resume-upload p {
   margin-top: 0.8rem;
   font-size: 0.9rem;
-  color: #4DB8FF; /* Highlight */
+  color: #4DB8FF;
+  padding: 0.5rem;
+  background-color: rgba(77, 184, 255, 0.1);
+  border-radius: 4px;
+  border-left: 3px solid #4DB8FF;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.resume-upload p::before {
+  content: "📄";
+  font-size: 1rem;
+}
+
+/* File upload area styling */
+.resume-upload {
+  position: relative;
+}
+
+.resume-upload::before {
+  content: "Click to upload resume (PDF, DOC, DOCX)";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  color: #888;
+  font-size: 0.9rem;
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+
+.resume-upload input[type="file"]:hover + *::before,
+.resume-upload input[type="file"]:focus + *::before {
+  color: #00CFEA;
+}
+
+/* Hide the default file input text */
+.resume-upload input[type="file"]::-webkit-file-upload-button {
+  display: none;
+}
+
+.resume-upload input[type="file"]::file-selector-button {
+  display: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .resume-upload input[type="file"] {
+    padding: 0.8rem;
+    font-size: 0.9rem;
+  }
+  
+  .resume-upload p {
+    font-size: 0.85rem;
+    padding: 0.4rem;
+  }
 }

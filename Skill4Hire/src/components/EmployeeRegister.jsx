@@ -13,6 +13,7 @@ import {
   FiBriefcase
 } from 'react-icons/fi';
 import brainLogo from '../assets/brain-logo.jpg';
+import { authService } from '../services/authService';
 import './EmployeeRegister.css';
 
 const EmployeeRegister = () => {
@@ -78,12 +79,18 @@ const EmployeeRegister = () => {
     setErrors({});
     
     try {
-      console.log('Employee registration submitted:', formData);
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      alert('Employee registration successful! Redirecting to home...');
-      navigate('/');
+      const response = await authService.registerEmployee(formData);
+      
+      if (response.success) {
+        // Store the role for login redirection
+        localStorage.setItem('registeredRole', 'EMPLOYEE');
+        alert('Employee registration successful! Please login with your credentials.');
+        navigate('/login');
+      } else {
+        setErrors({ general: response.message || 'Registration failed. Please try again.' });
+      }
     } catch (error) {
-      setErrors({ general: error.message || 'Registration failed. Please try again.' });
+      setErrors({ general: error.message || 'Registration failed. Please try again later.' });
     } finally {
       setIsSubmitting(false);
     }
