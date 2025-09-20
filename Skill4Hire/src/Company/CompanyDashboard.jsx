@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import LogoUpload from './LogoUpload';
 import './CompanyDashboard.css';
 
 const CompanyDashboard = ({ existingProfile, onSave, onDelete }) => {
@@ -85,35 +86,12 @@ const CompanyDashboard = ({ existingProfile, onSave, onDelete }) => {
       <form className="company-profile-form" onSubmit={handleSubmit}>
         <div className="form-card">
           {/* Logo Upload Section */}
-          <div className="logo-section">
-            <label className="logo-label">Company Logo</label>
-            <div className="logo-upload-container">
-              {logoPreview ? (
-                <div className="logo-preview">
-                  <img src={logoPreview} alt="Company Logo" className="logo-image" />
-                  <button 
-                    type="button" 
-                    className="remove-logo-btn"
-                    onClick={handleRemoveLogo}
-                  >
-                    ×
-                  </button>
-                </div>
-              ) : (
-                <div className="logo-upload-placeholder">
-                  <div className="upload-icon">📷</div>
-                  <p>Upload Company Logo</p>
-                </div>
-              )}
-              <input
-                type="file"
-                id="logo-upload"
-                accept="image/*"
-                onChange={handleLogoChange}
-                className="logo-input"
-              />
-            </div>
-          </div>
+          <LogoUpload
+            logo={logo}
+            logoPreview={logoPreview}
+            onLogoChange={handleLogoChange}
+            onLogoRemove={handleRemoveLogo}
+          />
 
           {/* Company Information */}
           <div className="form-row">
