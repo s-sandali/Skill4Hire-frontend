@@ -148,7 +148,7 @@ const LandingPage = () => {
         <div className="container">
           <div className="stats-grid">
             <div className="stat-card">
-              <h3 ref={(el) => (countersRef.current[0] = el)} data-target="10000" data-format="kplus">0+</h3>
+              <h3 ref={(el) => (countersRef.current[0] = el)} data-target="100" data-format="kplus">0+</h3>
               <p>Jobs posted monthly</p>
             </div>
             <div className="stat-card">
@@ -156,7 +156,7 @@ const LandingPage = () => {
               <p>Placement success rate</p>
             </div>
             <div className="stat-card">
-              <h3 ref={(el) => (countersRef.current[2] = el)} data-target="1000000" data-format="plain">0</h3>
+              <h3 ref={(el) => (countersRef.current[2] = el)} data-target="1000" data-format="plain">0</h3>
               <p>Talent profiles matched</p>
             </div>
             <div className="stat-card">

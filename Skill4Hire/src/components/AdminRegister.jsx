@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   FiSettings, 
   FiMail, 
@@ -11,9 +11,11 @@ import {
   FiAlertTriangle
 } from 'react-icons/fi';
 import brainLogo from '../assets/brain-logo.jpg';
+import { authService } from '../services/authService';
 import './AdminRegister.css';
 
 const AdminRegister = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -68,11 +70,18 @@ const AdminRegister = () => {
     setErrors({});
     
     try {
-      console.log('Admin registration submitted:', formData);
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      alert('Admin registration submitted! Your request is under review.');
+      const response = await authService.registerAdmin(formData);
+      
+      if (response.success) {
+        // Store the role for login redirection
+        localStorage.setItem('registeredRole', 'ADMIN');
+        alert('Admin registration successful! Please login with your credentials.');
+        navigate('/login');
+      } else {
+        setErrors({ general: response.message || 'Registration failed. Please try again.' });
+      }
     } catch (error) {
-      setErrors({ general: error.message || 'Registration failed. Please try again.' });
+      setErrors({ general: error.message || 'Registration failed. Please try again later.' });
     } finally {
       setIsSubmitting(false);
     }
