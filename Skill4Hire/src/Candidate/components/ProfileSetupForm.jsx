@@ -8,15 +8,24 @@ import "./ProfileSetupForm.css"
 
 export default function ProfileSetupForm({ candidate, onUpdate }) {
   const [formData, setFormData] = useState({
-    firstName: candidate?.firstName || "",
-    lastName: candidate?.lastName || "",
+    name: candidate?.name || "",
     email: candidate?.email || "",
-    phone: candidate?.phone || "",
+    phone: candidate?.phone || candidate?.phoneNumber || "", 
     location: candidate?.location || "",
     title: candidate?.title || "",
-    bio: candidate?.bio || "",
-    experience: candidate?.experience || "",
-    education: candidate?.education || "",
+    bio: candidate?.bio || candidate?.headline || "", 
+    // Match backend structure - objects instead of strings
+    experience: candidate?.experience || {
+      isExperienced: false,
+      role: "",
+      company: "",
+      yearsOfExperience: 0
+    },
+    education: candidate?.education || {
+      degree: "",
+      institution: "",
+      graduationYear: null
+    },
     skills: candidate?.skills || [],
     linkedin: candidate?.linkedin || "",
     github: candidate?.github || "",
@@ -33,6 +42,28 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+    }))
+  }
+
+  const handleExperienceChange = (e) => {
+    const { name, value, type, checked } = e.target
+    setFormData(prev => ({
+      ...prev,
+      experience: {
+        ...prev.experience,
+        [name]: type === 'checkbox' ? checked : value
+      }
+    }))
+  }
+
+  const handleEducationChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      education: {
+        ...prev.education,
+        [name]: value
+      }
     }))
   }
 
@@ -72,7 +103,6 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
     setIsLoading(true)
 
     try {
-      // Import candidateService here to avoid circular dependency
       const { candidateService } = await import("../../services/candidateService")
       
       // Update profile data
@@ -100,59 +130,54 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
   return (
     <form className="profile-form" onSubmit={handleSubmit}>
       <div className="form-section">
-        <h3 className="section-title">Basic Information</h3>
-        <div className="form-grid">
-          <div className="form-group">
-            <label className="form-label">First Name</label>
-            <input
-              type="text"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleInputChange}
-              className="form-input"
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Last Name</label>
-            <input
-              type="text"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleInputChange}
-              className="form-input"
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              className="form-input"
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Phone</label>
-            <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} className="form-input" />
-          </div>
-          <div className="form-group form-group-full">
-            <label className="form-label">Location</label>
-            <input
-              type="text"
-              name="location"
-              value={formData.location}
-              onChange={handleInputChange}
-              className="form-input"
-              placeholder="City, State/Country"
-            />
-          </div>
-        </div>
-      </div>
-
+  <h3 className="section-title">Basic Information</h3>
+  <div className="form-grid">
+    <div className="form-group form-group-full">
+      <label className="form-label">Full Name</label>
+      <input
+        type="text"
+        name="name"
+        value={formData.name}
+        onChange={handleInputChange}
+        className="form-input"
+        required
+        placeholder="Enter your full name"
+      />
+    </div>
+    <div className="form-group">
+      <label className="form-label">Email</label>
+      <input
+        type="email"
+        name="email"
+        value={formData.email}
+        onChange={handleInputChange}
+        className="form-input"
+        required
+      />
+    </div>
+    <div className="form-group">
+      <label className="form-label">Phone</label>
+      <input 
+        type="tel" 
+        name="phone" 
+        value={formData.phone} 
+        onChange={handleInputChange} 
+        className="form-input" 
+      />
+    </div>
+    <div className="form-group form-group-full">
+      <label className="form-label">Location</label>
+      <input
+        type="text"
+        name="location"
+        value={formData.location}
+        onChange={handleInputChange}
+        className="form-input"
+        placeholder="City, State/Country"
+      />
+    </div>
+  </div>
+</div>
       <div className="form-section">
         <h3 className="section-title">Professional Information</h3>
         <div className="form-group">
@@ -207,28 +232,97 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
       </div>
 
       <div className="form-section">
-        <h3 className="section-title">Experience & Education</h3>
-        <div className="form-group">
-          <label className="form-label">Work Experience</label>
-          <textarea
-            name="experience"
-            value={formData.experience}
-            onChange={handleInputChange}
-            className="form-textarea"
-            placeholder="Describe your work experience, including company names, positions, and key achievements..."
-            rows="4"
-          />
+        <h3 className="section-title">Experience</h3>
+        <div className="form-grid">
+          <div className="form-group">
+            <label className="form-label">
+              <input
+                type="checkbox"
+                name="isExperienced"
+                checked={formData.experience.isExperienced || false}
+                onChange={handleExperienceChange}
+              />
+              I have work experience
+            </label>
+          </div>
+          {formData.experience.isExperienced && (
+            <>
+              <div className="form-group">
+                <label className="form-label">Role/Position</label>
+                <input
+                  type="text"
+                  name="role"
+                  value={formData.experience.role || ""}
+                  onChange={handleExperienceChange}
+                  className="form-input"
+                  placeholder="e.g., Software Developer"
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Company</label>
+                <input
+                  type="text"
+                  name="company"
+                  value={formData.experience.company || ""}
+                  onChange={handleExperienceChange}
+                  className="form-input"
+                  placeholder="Company name"
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Years of Experience</label>
+                <input
+                  type="number"
+                  name="yearsOfExperience"
+                  value={formData.experience.yearsOfExperience || 0}
+                  onChange={handleExperienceChange}
+                  className="form-input"
+                  min="0"
+                />
+              </div>
+            </>
+          )}
         </div>
-        <div className="form-group">
-          <label className="form-label">Education</label>
-          <textarea
-            name="education"
-            value={formData.education}
-            onChange={handleInputChange}
-            className="form-textarea"
-            placeholder="List your educational background, degrees, certifications..."
-            rows="3"
-          />
+      </div>
+
+      <div className="form-section">
+        <h3 className="section-title">Education</h3>
+        <div className="form-grid">
+          <div className="form-group">
+            <label className="form-label">Degree</label>
+            <input
+              type="text"
+              name="degree"
+              value={formData.education.degree || ""}
+              onChange={handleEducationChange}
+              className="form-input"
+              placeholder="e.g., Bachelor of Science"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Institution</label>
+            <input
+              type="text"
+              name="institution"
+              value={formData.education.institution || ""}
+              onChange={handleEducationChange}
+              className="form-input"
+              placeholder="University or school name"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Graduation Year</label>
+            <input
+              type="number"
+              name="graduationYear"
+              value={formData.education.graduationYear || ""}
+              onChange={handleEducationChange}
+              className="form-input"
+              placeholder="e.g., 2023"
+              min="1900"
+              max="2030"
+            />
+          </div>
         </div>
       </div>
 

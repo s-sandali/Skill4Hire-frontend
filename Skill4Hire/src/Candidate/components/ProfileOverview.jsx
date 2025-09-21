@@ -12,13 +12,22 @@ export default function ProfileOverview({ candidate }) {
     if (!candidate) return 0
     
     const fields = [
-      'firstName', 'lastName', 'email', 'phone', 'location', 'title', 'bio',
+      'name', 'email', 'phone', 'location', 'title', 'bio', // Changed to name
       'experience', 'education', 'skills', 'linkedin', 'github', 'portfolio'
     ]
     
     const filledFields = fields.filter(field => {
       const value = candidate[field]
-      return value && (Array.isArray(value) ? value.length > 0 : value.toString().trim() !== '')
+      
+      // Handle different field types
+      if (Array.isArray(value)) return value.length > 0
+      if (typeof value === 'object' && value !== null) {
+        // Check if object has any non-empty values
+        return Object.values(value).some(val => 
+          val !== null && val !== undefined && val.toString().trim() !== ''
+        )
+      }
+      return value && value.toString().trim() !== ''
     }).length
     
     return Math.round((filledFields / fields.length) * 100)
@@ -42,33 +51,61 @@ export default function ProfileOverview({ candidate }) {
     }
   }, [candidate, fetchProfileCompleteness])
 
+  // Format experience for display
+  const formatExperience = (experience) => {
+    if (!experience) return "No experience listed yet."
+    
+    const { isExperienced, role, company, yearsOfExperience } = experience
+    
+    if (!isExperienced) return "No experience listed yet."
+    
+    let experienceText = ""
+    if (role) experienceText += role
+    if (company) experienceText += experienceText ? ` at ${company}` : company
+    if (yearsOfExperience) experienceText += experienceText ? ` (${yearsOfExperience} years)` : `${yearsOfExperience} years experience`
+    
+    return experienceText || "Experience details available"
+  }
+
+  // Format education for display
+  const formatEducation = (education) => {
+    if (!education) return "No education listed yet."
+    
+    const { degree, institution, graduationYear } = education
+    
+    let educationText = ""
+    if (degree) educationText += degree
+    if (institution) educationText += educationText ? ` from ${institution}` : institution
+    if (graduationYear) educationText += educationText ? `, ${graduationYear}` : `Graduated ${graduationYear}`
+    
+    return educationText || "Education details available"
+  }
+
   // Use candidate data if available, otherwise show mock data
   const profileData = candidate ? {
-      firstName: candidate.firstName || "First",
-      lastName: candidate.lastName || "Last",
+    name: candidate.name || "First Last",
       title: candidate.title || "Professional",
       location: candidate.location || "Location not specified",
       email: candidate.email || "email@example.com",
-      phone: candidate.phone || "Phone not provided",
-      bio: candidate.bio || "Complete your profile to tell employers about yourself.",
+      phone: candidate.phone || candidate.phoneNumber || "Phone not provided",
+      bio: candidate.bio || candidate.headline || "Complete your profile to tell employers about yourself.",
       skills: candidate.skills || [],
-      experience: candidate.experience || "No experience listed yet.",
-      education: candidate.education || "No education listed yet.",
+      experience: candidate.experience,
+      education: candidate.education,
       linkedin: candidate.linkedin || "",
       github: candidate.github || "",
       portfolio: candidate.portfolio || "",
-      completeness: completeness,
+      completeness: candidate.profileCompleteness || completeness,
     } : {
-      firstName: "First",
-      lastName: "Last", 
+      name: "First Last", 
       title: "Professional",
       location: "Location not specified",
       email: "email@example.com",
       phone: "Phone not provided",
       bio: "Complete your profile to tell employers about yourself.",
       skills: [],
-      experience: "No experience listed yet.",
-      education: "No education listed yet.",
+      experience: null,
+      education: null,
       linkedin: "",
       github: "",
       portfolio: "",
@@ -91,7 +128,7 @@ export default function ProfileOverview({ candidate }) {
   
             <div className="profile-basic-info">
               <h1 className="profile-name">
-                {profileData.firstName} {profileData.lastName}
+                {profileData.name}
               </h1>
               <h2 className="profile-title">{profileData.title}</h2>
               <p className="profile-location">
@@ -167,11 +204,7 @@ export default function ProfileOverview({ candidate }) {
             <h3 className="section-title">Experience</h3>
             <div className="section-content">
               <div className="experience-text">
-                {profileData.experience ? profileData.experience.split("\n").map((line, index) => (
-                  <div key={index} className={line.startsWith("•") ? "experience-bullet" : "experience-line"}>
-                    {line}
-                  </div>
-                )) : <p>No experience listed</p>}
+                {formatExperience(profileData.experience)}
               </div>
             </div>
           </div>
@@ -180,16 +213,11 @@ export default function ProfileOverview({ candidate }) {
             <h3 className="section-title">Education</h3>
             <div className="section-content">
               <div className="education-text">
-                {profileData.education ? profileData.education.split("\n").map((line, index) => (
-                  <div key={index} className="education-line">
-                    {line}
-                  </div>
-                )) : <p>No education listed</p>}
+                {formatEducation(profileData.education)}
               </div>
             </div>
           </div>
         </div>
       </div>
     )
-  }
-  
+}
