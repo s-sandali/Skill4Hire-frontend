@@ -33,7 +33,9 @@ export const candidateService = {
   // Skills Management
   addSkill: async (skill) => {
     try {
-      const response = await apiClient.post('/api/candidates/skills', { skill });
+      const response = await apiClient.post('/api/candidates/skills', null, {
+        params: { skill }
+      });
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Failed to add skill');

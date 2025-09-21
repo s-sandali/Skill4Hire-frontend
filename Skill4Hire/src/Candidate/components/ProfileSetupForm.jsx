@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import FileUpload from "./FileUpload"
 import "../base.css"
 import "../buttons.css"
 import "./ProfileSetupForm.css"
@@ -24,6 +25,8 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
 
   const [newSkill, setNewSkill] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [resumeFile, setResumeFile] = useState(null)
+  const [profilePictureFile, setProfilePictureFile] = useState(null)
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -33,21 +36,35 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
     }))
   }
 
-  const addSkill = () => {
+  const addSkill = async () => {
     if (newSkill.trim() && !formData.skills.includes(newSkill.trim())) {
-      setFormData((prev) => ({
-        ...prev,
-        skills: [...prev.skills, newSkill.trim()],
-      }))
-      setNewSkill("")
+      try {
+        const { candidateService } = await import("../../services/candidateService")
+        const updatedSkills = await candidateService.addSkill(newSkill.trim())
+        setFormData((prev) => ({
+          ...prev,
+          skills: updatedSkills,
+        }))
+        setNewSkill("")
+      } catch (error) {
+        console.error("Error adding skill:", error)
+        alert("Error adding skill. Please try again.")
+      }
     }
   }
 
-  const removeSkill = (skillToRemove) => {
-    setFormData((prev) => ({
-      ...prev,
-      skills: prev.skills.filter((skill) => skill !== skillToRemove),
-    }))
+  const removeSkill = async (skillToRemove) => {
+    try {
+      const { candidateService } = await import("../../services/candidateService")
+      const updatedSkills = await candidateService.removeSkill(skillToRemove)
+      setFormData((prev) => ({
+        ...prev,
+        skills: updatedSkills,
+      }))
+    } catch (error) {
+      console.error("Error removing skill:", error)
+      alert("Error removing skill. Please try again.")
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -57,7 +74,19 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
     try {
       // Import candidateService here to avoid circular dependency
       const { candidateService } = await import("../../services/candidateService")
+      
+      // Update profile data
       await candidateService.updateProfile(formData)
+      
+      // Upload files if selected
+      if (resumeFile) {
+        await candidateService.uploadResume(resumeFile)
+      }
+      
+      if (profilePictureFile) {
+        await candidateService.uploadProfilePicture(profilePictureFile)
+      }
+      
       if (onUpdate) onUpdate()
       alert("Profile updated successfully!")
     } catch (error) {
@@ -200,6 +229,38 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
             placeholder="List your educational background, degrees, certifications..."
             rows="3"
           />
+        </div>
+      </div>
+
+      <div className="form-section">
+        <h3 className="section-title">File Uploads</h3>
+        <div className="form-grid">
+          <div className="form-group">
+            <label className="form-label">Resume Upload</label>
+            <FileUpload
+              onFileSelect={setResumeFile}
+              accept=".pdf,.doc,.docx"
+              maxSize={5 * 1024 * 1024} // 5MB
+              label="Upload Resume"
+              description="PDF, DOC, or DOCX files only (max 5MB)"
+            />
+            {resumeFile && (
+              <p className="file-selected">Selected: {resumeFile.name}</p>
+            )}
+          </div>
+          <div className="form-group">
+            <label className="form-label">Profile Picture</label>
+            <FileUpload
+              onFileSelect={setProfilePictureFile}
+              accept="image/*"
+              maxSize={2 * 1024 * 1024} // 2MB
+              label="Upload Profile Picture"
+              description="JPG, PNG, or GIF files only (max 2MB)"
+            />
+            {profilePictureFile && (
+              <p className="file-selected">Selected: {profilePictureFile.name}</p>
+            )}
+          </div>
         </div>
       </div>
 

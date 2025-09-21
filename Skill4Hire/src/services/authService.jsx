@@ -75,6 +75,9 @@ export const authService = {
     }
   },
 
+  
+  
+  
   // Candidate registration
   registerCandidate: async (userData) => {
     try {

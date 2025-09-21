@@ -159,3 +159,11 @@
     flex-direction: column;
   }
 }
+
+/* File Upload Styles */
+.file-selected {
+  color: var(--success-color);
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  font-weight: 500;
+}

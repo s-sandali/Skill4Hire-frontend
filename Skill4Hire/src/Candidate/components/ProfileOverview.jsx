@@ -1,12 +1,49 @@
 import { Link } from "react-router-dom"
 import { FiMapPin, FiMail, FiPhone, FiEdit3, FiDownload } from "react-icons/fi"
+import { useState, useEffect, useCallback } from "react"
 import "../base.css"
 import "../buttons.css"
 import "./ProfileOverview.css"
 
 export default function ProfileOverview({ candidate }) {
-    // Use candidate data if available, otherwise show mock data
-    const profileData = candidate ? {
+  const [completeness, setCompleteness] = useState(0)
+
+  const calculateCompleteness = (candidate) => {
+    if (!candidate) return 0
+    
+    const fields = [
+      'firstName', 'lastName', 'email', 'phone', 'location', 'title', 'bio',
+      'experience', 'education', 'skills', 'linkedin', 'github', 'portfolio'
+    ]
+    
+    const filledFields = fields.filter(field => {
+      const value = candidate[field]
+      return value && (Array.isArray(value) ? value.length > 0 : value.toString().trim() !== '')
+    }).length
+    
+    return Math.round((filledFields / fields.length) * 100)
+  }
+
+  const fetchProfileCompleteness = useCallback(async () => {
+    try {
+      const { candidateService } = await import("../../services/candidateService")
+      const completenessData = await candidateService.checkProfileCompleteness()
+      setCompleteness(completenessData.completeness || 0)
+    } catch (error) {
+      console.error("Error fetching profile completeness:", error)
+      // Fallback to calculated completeness
+      setCompleteness(calculateCompleteness(candidate))
+    }
+  }, [candidate])
+
+  useEffect(() => {
+    if (candidate) {
+      fetchProfileCompleteness()
+    }
+  }, [candidate, fetchProfileCompleteness])
+
+  // Use candidate data if available, otherwise show mock data
+  const profileData = candidate ? {
       firstName: candidate.firstName || "First",
       lastName: candidate.lastName || "Last",
       title: candidate.title || "Professional",
@@ -20,7 +57,7 @@ export default function ProfileOverview({ candidate }) {
       linkedin: candidate.linkedin || "",
       github: candidate.github || "",
       portfolio: candidate.portfolio || "",
-      completeness: candidate.completeness || 0,
+      completeness: completeness,
     } : {
       firstName: "First",
       lastName: "Last", 
@@ -35,7 +72,7 @@ export default function ProfileOverview({ candidate }) {
       linkedin: "",
       github: "",
       portfolio: "",
-      completeness: 0,
+      completeness: completeness,
     }
   
     return (
