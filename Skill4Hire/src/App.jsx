@@ -9,7 +9,7 @@ import UnifiedLogin from './components/UnifiedLogin.jsx'
 import EmployeeDashboard from './Employee/EmployeeDashboard.jsx'
 import CompanyDashboard from './Company/CompanyDashboard.jsx'
 import AdminDashboard from './Admin/AdminDashboard.jsx'
-import CandidateProfilePage from './Candidate/CandidateProfilePage.jsx';
+import CandidatePage from './Candidate/CandidatePage.jsx';
 import './App.css'
 
 function App() {
@@ -26,7 +26,10 @@ function App() {
         <Route path="/employee-dashboard" element={<EmployeeDashboard />} />
         <Route path="/company-dashboard" element={<CompanyDashboard />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
-        <Route path="/candidate-profile" element={<CandidateProfilePage />} /> 
+        <Route path="/candidate-home" element={<CandidatePage />} />
+        <Route path="/candidate-dashboard" element={<CandidatePage />} />
+        <Route path="/candidate-profile" element={<CandidatePage />} />
+        <Route path="/candidate-setup" element={<CandidatePage />} />
       </Routes>
     </Router>
   )

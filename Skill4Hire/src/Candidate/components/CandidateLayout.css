@@ -1,0 +1,30 @@
+/* CandidateLayout Component Styles */
+
+.candidate-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--background-color);
+}
+
+.candidate-main {
+  flex: 1;
+  margin-left: 280px;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background-color);
+  transition: margin-left 0.3s ease;
+}
+
+.candidate-content {
+  flex: 1;
+  padding: 2rem;
+  background-color: var(--background-color);
+  min-height: calc(100vh - 80px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .candidate-main {
+    margin-left: 0;
+  }
+}

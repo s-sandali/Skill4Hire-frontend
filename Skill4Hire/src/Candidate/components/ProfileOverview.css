@@ -1,0 +1,247 @@
+/* ProfileOverview Component Styles */
+
+.profile-overview {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 1rem; /* Add padding to prevent completeness circle from being cut off */
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, var(--card-bg) 0%, var(--light-bg) 100%);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--divider-border);
+}
+
+.profile-header-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.profile-avatar-section {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-avatar-large {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--primary-accent);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+}
+
+.profile-completeness {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  background: var(--card-bg);
+  border-radius: 50%;
+  padding: 0.5rem;
+  border: 2px solid var(--primary-accent);
+  box-shadow: var(--shadow-md);
+  z-index: 10;
+}
+
+.completeness-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-accent) 0%, var(--highlight-cta) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-bg);
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.completeness-text {
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+.completeness-label {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 0.2rem;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.profile-basic-info {
+  flex: 1;
+}
+
+.profile-name {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.profile-title {
+  font-size: 1.25rem;
+  color: var(--primary-accent);
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.profile-location {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* Added gap for icon spacing */
+}
+
+.profile-contact {
+  margin-bottom: 1rem;
+}
+
+.contact-item {
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* Added gap for icon spacing */
+}
+
+.profile-links {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.profile-link {
+  color: var(--primary-accent);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.profile-link:hover {
+  color: var(--highlight-cta);
+}
+
+.profile-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.profile-sections {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.profile-section {
+  background: linear-gradient(135deg, var(--card-bg) 0%, var(--light-bg) 100%);
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--divider-border);
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.section-content {
+  color: var(--text-secondary);
+}
+
+.profile-bio {
+  line-height: 1.7;
+  font-size: 1rem;
+}
+
+.skills-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.skill-badge {
+  background: linear-gradient(135deg, var(--primary-accent) 0%, var(--highlight-cta) 100%);
+  color: var(--primary-bg);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.experience-text,
+.education-text {
+  line-height: 1.6;
+}
+
+.experience-line,
+.education-line {
+  margin-bottom: 0.5rem;
+}
+
+.experience-bullet {
+  margin-left: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .profile-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+
+  .profile-header-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+  }
+
+  .profile-avatar-section {
+    align-self: center;
+  }
+
+  .profile-actions {
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  
+  .profile-location,
+  .contact-item {
+    justify-content: center;
+  }
+
+  .profile-completeness {
+    bottom: -6px;
+    right: -6px;
+  }
+
+  .profile-name {
+    font-size: 1.75rem;
+  }
+
+  .profile-title {
+    font-size: 1.1rem;
+  }
+}

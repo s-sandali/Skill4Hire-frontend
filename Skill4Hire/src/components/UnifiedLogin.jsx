@@ -78,17 +78,14 @@ const UnifiedLogin = () => {
           localStorage.setItem('rememberedEmail', formData.email);
         }
 
-        // Determine user role (from API response or email-based logic)
-        const userRole = response.role || determineUserRole(formData.email);
-        
         // Store user info for frontend use
-        localStorage.setItem('userRole', userRole);
-        localStorage.setItem('userId', response.id || 'temp-id');
+        localStorage.setItem('userRole', response.role);
+        localStorage.setItem('userId', response.id);
 
         // Redirect based on role
-        switch (userRole) {
+        switch (response.role) {
           case 'CANDIDATE':
-            navigate('/candidate-profile');
+             navigate('/candidate-home');
             break;
           case 'COMPANY':
             navigate('/company-dashboard');
@@ -106,37 +103,7 @@ const UnifiedLogin = () => {
         setErrors({ general: response.message || 'Login failed. Please check your credentials.' });
       }
     } catch (error) {
-      // If API call fails, try to determine role from email for testing
-      const userRole = determineUserRole(formData.email);
-      
-      // Store user info for frontend use (for testing without backend)
-      localStorage.setItem('userRole', userRole);
-      localStorage.setItem('userId', 'test-user-' + Date.now());
-      
-      if (rememberMe) {
-        localStorage.setItem('rememberedEmail', formData.email);
-      }
-
-      // Redirect based on determined role (for testing)
-      switch (userRole) {
-        case 'CANDIDATE':
-          navigate('/candidate-profile');
-          break;
-        case 'COMPANY':
-          navigate('/company-dashboard');
-          break;
-        case 'EMPLOYEE':
-          navigate('/employee-dashboard');
-          break;
-        case 'ADMIN':
-          navigate('/admin-dashboard');
-          break;
-        default:
-          navigate('/');
-      }
-      
-      // Uncomment the line below to show error instead of auto-redirecting
-      // setErrors({ general: error.message || 'Login failed. Please try again later.' });
+      setErrors({ general: error.message || 'Login failed. Please try again later.' });
     } finally {
       setIsLoading(false);
     }
@@ -144,29 +111,6 @@ const UnifiedLogin = () => {
 
   const handleForgotPassword = () => {
     alert('Forgot password functionality would be implemented here');
-  };
-
-  // Helper function to determine role from email domain or stored role
-  const determineUserRole = (email) => {
-    // First check if we have a stored role from registration
-    const storedRole = localStorage.getItem('registeredRole');
-    if (storedRole) {
-      localStorage.removeItem('registeredRole'); // Clear it after use
-      return storedRole;
-    }
-
-    // Fallback: determine role from email domain patterns
-    const domain = email.split('@')[1]?.toLowerCase();
-    
-    if (domain?.includes('admin') || domain?.includes('skill4hire')) {
-      return 'ADMIN';
-    } else if (domain?.includes('company') || domain?.includes('corp') || domain?.includes('inc')) {
-      return 'COMPANY';
-    } else if (domain?.includes('hr') || domain?.includes('employee')) {
-      return 'EMPLOYEE';
-    } else {
-      return 'CANDIDATE'; // Default role
-    }
   };
 
   useEffect(() => {
