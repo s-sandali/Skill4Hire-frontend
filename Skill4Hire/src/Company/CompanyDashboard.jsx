@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import {
-  RiBuildingLine,
-  RiBriefcaseLine,
-  RiUserLine,
-  RiFileList3Line,
+import { 
+  RiBuildingLine, 
+  RiBriefcaseLine, 
+  RiUserLine, 
+  RiFileList3Line, 
   RiBarChartBoxLine,
   RiSettingsLine,
   RiLogoutBoxLine,
@@ -114,7 +114,7 @@ const CompanyDashboard = () => {
 
   const filteredApplications = applications.filter(application => {
     const matchesSearch = application.candidateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          application.jobTitle.toLowerCase().includes(searchTerm.toLowerCase());
+                         application.jobTitle.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === 'all' || application.status.toLowerCase().includes(filterStatus.toLowerCase());
     return matchesSearch && matchesFilter;
   });
@@ -165,37 +165,37 @@ const CompanyDashboard = () => {
 
       {/* Navigation Tabs */}
       <nav className="dashboard-nav">
-        <button
+        <button 
           className={`nav-tab ${activeTab === 'overview' ? 'active' : ''}`}
           onClick={() => setActiveTab('overview')}
         >
           <RiBarChartBoxLine /> Overview
         </button>
-        <button
+        <button 
           className={`nav-tab ${activeTab === 'jobs' ? 'active' : ''}`}
           onClick={() => setActiveTab('jobs')}
         >
           <RiBriefcaseLine /> Job Postings
         </button>
-        <button
+        <button 
           className={`nav-tab ${activeTab === 'applications' ? 'active' : ''}`}
           onClick={() => setActiveTab('applications')}
         >
           <RiFileList3Line /> Applications
         </button>
-        <button
+        <button 
           className={`nav-tab ${activeTab === 'candidates' ? 'active' : ''}`}
           onClick={() => setActiveTab('candidates')}
         >
           <RiUserLine /> Candidates
         </button>
-        <button
+        <button 
           className={`nav-tab ${activeTab === 'analytics' ? 'active' : ''}`}
           onClick={() => setActiveTab('analytics')}
         >
           <RiBarChartBoxLine /> Analytics
         </button>
-        <button
+        <button 
           className={`nav-tab ${activeTab === 'settings' ? 'active' : ''}`}
           onClick={() => setActiveTab('settings')}
         >
@@ -299,15 +299,15 @@ const CompanyDashboard = () => {
               <div className="tab-actions">
                 <div className="search-box">
                   <RiSearchLine />
-                  <input
-                    type="text"
+                  <input 
+                    type="text" 
                     placeholder="Search applications..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <select
-                  value={filterStatus}
+                <select 
+                  value={filterStatus} 
                   onChange={(e) => setFilterStatus(e.target.value)}
                   className="filter-select"
                 >
