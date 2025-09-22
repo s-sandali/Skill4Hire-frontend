@@ -15,7 +15,19 @@ import {
   RiEyeLine,
   RiDownloadLine,
   RiCalendarScheduleLine,
-  RiNotification3Line
+  RiNotification3Line,
+  RiUploadCloudLine,
+  RiImageLine,
+  RiGlobalLine,
+  RiPhoneLine,
+  RiMailLine,
+  RiMapPinLine,
+  RiSaveLine,
+  RiLockLine,
+  RiNotificationLine,
+  RiCheckLine,
+  RiErrorWarningLine,
+  RiLoader4Line
 } from 'react-icons/ri';
 import { authService } from '../services/authService';
 import './CompanyDashboard.css';
@@ -24,6 +36,45 @@ const CompanyDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+
+  // Company settings state
+  const [companyLogo, setCompanyLogo] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
+  const [saveStatus, setSaveStatus] = useState(''); // 'success', 'error', ''
+  const [companySettings, setCompanySettings] = useState({
+    // Basic Information
+    companyName: "TechCorp Solutions",
+    email: "hr@techcorp.com",
+    phone: "+1 (555) 123-4567",
+    website: "https://techcorp.com",
+    
+    // Address
+    address: "123 Tech Street",
+    city: "San Francisco",
+    state: "CA",
+    zipCode: "94102",
+    country: "United States",
+    
+    // Company Details
+    industry: "Technology",
+    companySize: "100-500 employees",
+    founded: "2018",
+    description: "Leading technology solutions provider specializing in innovative software development and digital transformation services.",
+    
+    // Social Media
+    linkedinUrl: "https://linkedin.com/company/techcorp",
+    twitterUrl: "https://twitter.com/techcorp",
+    
+    // Preferences
+    notifications: {
+      emailAlerts: true,
+      smsAlerts: false,
+      applicationUpdates: true,
+      weeklyReports: true
+    }
+  });
 
   // Sample data
   const [companyData] = useState({
@@ -130,6 +181,121 @@ const CompanyDashboard = () => {
       localStorage.removeItem('userId');
       localStorage.removeItem('rememberedEmail');
       window.location.href = '/login';
+    }
+  };
+
+  // Logo upload handler
+  const handleLogoUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        alert('File size must be less than 5MB');
+        return;
+      }
+      
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+
+      setCompanyLogo(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLogoPreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Settings update handler
+  const handleSettingsChange = (section, field, value) => {
+    setCompanySettings(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: value
+      }
+    }));
+    
+    // Clear any previous save messages when user makes changes
+    if (saveMessage) {
+      setSaveMessage('');
+      setSaveStatus('');
+    }
+  };
+
+  // Basic settings update handler
+  const handleBasicSettingsChange = (field, value) => {
+    setCompanySettings(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    
+    // Clear any previous save messages when user makes changes
+    if (saveMessage) {
+      setSaveMessage('');
+      setSaveStatus('');
+    }
+  };
+
+  // Save settings handler
+  const handleSaveSettings = async () => {
+    setIsSaving(true);
+    setSaveMessage('');
+    setSaveStatus('');
+    
+    try {
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Here you would typically make an API call to save the settings
+      // Example API call:
+      /*
+      const response = await fetch('/api/company/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          settings: companySettings,
+          logo: companyLogo
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save settings');
+      }
+      */
+      
+      // For now, just log the data that would be saved
+      console.log('Saving company settings:', companySettings);
+      console.log('Company logo:', companyLogo);
+      
+      // Simulate successful save
+      setSaveStatus('success');
+      setSaveMessage('Settings saved successfully!');
+      
+      // Clear message after 5 seconds
+      setTimeout(() => {
+        setSaveMessage('');
+        setSaveStatus('');
+      }, 5000);
+      
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      setSaveStatus('error');
+      setSaveMessage('Failed to save settings. Please try again.');
+      
+      // Clear error message after 8 seconds
+      setTimeout(() => {
+        setSaveMessage('');
+        setSaveStatus('');
+      }, 8000);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -449,27 +615,334 @@ const CompanyDashboard = () => {
 
         {activeTab === 'settings' && (
           <div className="settings-tab">
-            <h2>Company Settings</h2>
+            <div className="tab-header">
+              <h2>Company Settings</h2>
+              <div className="save-section">
+                {saveMessage && (
+                  <div className={`save-message ${saveStatus}`}>
+                    {saveStatus === 'success' && <RiCheckLine />}
+                    {saveStatus === 'error' && <RiErrorWarningLine />}
+                    {saveMessage}
+                  </div>
+                )}
+                <button 
+                  className={`btn-primary ${isSaving ? 'loading' : ''}`} 
+                  onClick={handleSaveSettings}
+                  disabled={isSaving}
+                >
+                  {isSaving ? (
+                    <>
+                      <RiLoader4Line className="spinning" /> Saving...
+                    </>
+                  ) : (
+                    <>
+                      <RiSaveLine /> Save All Changes
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+            
             <div className="settings-sections">
+              {/* Company Logo Section */}
               <div className="settings-section">
-                <h3>Company Information</h3>
-                <div className="setting-item">
-                  <label>Company Name</label>
-                  <input type="text" value={companyData.name} />
+                <h3><RiImageLine /> Company Logo</h3>
+                <div className="logo-upload-section">
+                  <div className="current-logo">
+                    {logoPreview ? (
+                      <img src={logoPreview} alt="Company Logo Preview" className="logo-preview" />
+                    ) : (
+                      <div className="logo-placeholder">
+                        <RiImageLine />
+                        <span>No logo uploaded</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="logo-upload-controls">
+                    <input
+                      type="file"
+                      id="logo-upload"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      style={{ display: 'none' }}
+                    />
+                    <label htmlFor="logo-upload" className="btn-secondary">
+                      <RiUploadCloudLine /> Upload Logo
+                    </label>
+                    <p className="upload-hint">
+                      Recommended: 200x200px, max 5MB (PNG, JPG, SVG)
+                    </p>
+                  </div>
                 </div>
-                <div className="setting-item">
-                  <label>Email</label>
-                  <input type="email" value={companyData.email} />
+              </div>
+
+              {/* Basic Company Information */}
+              <div className="settings-section">
+                <h3><RiBuildingLine /> Basic Information</h3>
+                <div className="settings-grid">
+                  <div className="setting-item">
+                    <label>Company Name *</label>
+                    <input 
+                      type="text" 
+                      value={companySettings.companyName}
+                      onChange={(e) => handleBasicSettingsChange('companyName', e.target.value)}
+                      placeholder="Enter company name"
+                    />
+                  </div>
+                  <div className="setting-item">
+                    <label>Industry *</label>
+                    <select 
+                      value={companySettings.industry}
+                      onChange={(e) => handleBasicSettingsChange('industry', e.target.value)}
+                    >
+                      <option value="Technology">Technology</option>
+                      <option value="Healthcare">Healthcare</option>
+                      <option value="Finance">Finance</option>
+                      <option value="Education">Education</option>
+                      <option value="Manufacturing">Manufacturing</option>
+                      <option value="Retail">Retail</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div className="setting-item">
+                    <label>Company Size</label>
+                    <select 
+                      value={companySettings.companySize}
+                      onChange={(e) => handleBasicSettingsChange('companySize', e.target.value)}
+                    >
+                      <option value="1-10 employees">1-10 employees</option>
+                      <option value="11-50 employees">11-50 employees</option>
+                      <option value="51-100 employees">51-100 employees</option>
+                      <option value="100-500 employees">100-500 employees</option>
+                      <option value="500+ employees">500+ employees</option>
+                    </select>
+                  </div>
+                  <div className="setting-item">
+                    <label>Founded Year</label>
+                    <input 
+                      type="number" 
+                      value={companySettings.founded}
+                      onChange={(e) => handleBasicSettingsChange('founded', e.target.value)}
+                      placeholder="e.g., 2018"
+                      min="1800"
+                      max={new Date().getFullYear()}
+                    />
+                  </div>
                 </div>
-                <div className="setting-item">
-                  <label>Industry</label>
-                  <input type="text" value={companyData.industry} />
+                <div className="setting-item full-width">
+                  <label>Company Description</label>
+                  <textarea 
+                    value={companySettings.description}
+                    onChange={(e) => handleBasicSettingsChange('description', e.target.value)}
+                    placeholder="Describe your company, mission, and values..."
+                    rows="4"
+                  />
                 </div>
-                <div className="setting-item">
-                  <label>Location</label>
-                  <input type="text" value={companyData.location} />
+              </div>
+
+              {/* Contact Information */}
+              <div className="settings-section">
+                <h3><RiMailLine /> Contact Information</h3>
+                <div className="settings-grid">
+                  <div className="setting-item">
+                    <label>Email Address *</label>
+                    <div className="input-with-icon">
+                      <RiMailLine />
+                      <input 
+                        type="email" 
+                        value={companySettings.email}
+                        onChange={(e) => handleBasicSettingsChange('email', e.target.value)}
+                        placeholder="company@example.com"
+                      />
+                    </div>
+                  </div>
+                  <div className="setting-item">
+                    <label>Phone Number</label>
+                    <div className="input-with-icon">
+                      <RiPhoneLine />
+                      <input 
+                        type="tel" 
+                        value={companySettings.phone}
+                        onChange={(e) => handleBasicSettingsChange('phone', e.target.value)}
+                        placeholder="+1 (555) 123-4567"
+                      />
+                    </div>
+                  </div>
+                  <div className="setting-item">
+                    <label>Website</label>
+                    <div className="input-with-icon">
+                      <RiGlobalLine />
+                      <input 
+                        type="url" 
+                        value={companySettings.website}
+                        onChange={(e) => handleBasicSettingsChange('website', e.target.value)}
+                        placeholder="https://yourcompany.com"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <button className="btn-primary">Save Changes</button>
+              </div>
+
+              {/* Address Information */}
+              <div className="settings-section">
+                <h3><RiMapPinLine /> Address</h3>
+                <div className="settings-grid">
+                  <div className="setting-item full-width">
+                    <label>Street Address</label>
+                    <input 
+                      type="text" 
+                      value={companySettings.address}
+                      onChange={(e) => handleBasicSettingsChange('address', e.target.value)}
+                      placeholder="123 Business Street"
+                    />
+                  </div>
+                  <div className="setting-item">
+                    <label>City</label>
+                    <input 
+                      type="text" 
+                      value={companySettings.city}
+                      onChange={(e) => handleBasicSettingsChange('city', e.target.value)}
+                      placeholder="San Francisco"
+                    />
+                  </div>
+                  <div className="setting-item">
+                    <label>State/Province</label>
+                    <input 
+                      type="text" 
+                      value={companySettings.state}
+                      onChange={(e) => handleBasicSettingsChange('state', e.target.value)}
+                      placeholder="CA"
+                    />
+                  </div>
+                  <div className="setting-item">
+                    <label>ZIP/Postal Code</label>
+                    <input 
+                      type="text" 
+                      value={companySettings.zipCode}
+                      onChange={(e) => handleBasicSettingsChange('zipCode', e.target.value)}
+                      placeholder="94102"
+                    />
+                  </div>
+                  <div className="setting-item">
+                    <label>Country</label>
+                    <select 
+                      value={companySettings.country}
+                      onChange={(e) => handleBasicSettingsChange('country', e.target.value)}
+                    >
+                      <option value="United States">United States</option>
+                      <option value="Canada">Canada</option>
+                      <option value="United Kingdom">United Kingdom</option>
+                      <option value="Australia">Australia</option>
+                      <option value="Germany">Germany</option>
+                      <option value="France">France</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Social Media */}
+              <div className="settings-section">
+                <h3><RiGlobalLine /> Social Media</h3>
+                <div className="settings-grid">
+                  <div className="setting-item">
+                    <label>LinkedIn URL</label>
+                    <input 
+                      type="url" 
+                      value={companySettings.linkedinUrl}
+                      onChange={(e) => handleBasicSettingsChange('linkedinUrl', e.target.value)}
+                      placeholder="https://linkedin.com/company/yourcompany"
+                    />
+                  </div>
+                  <div className="setting-item">
+                    <label>Twitter URL</label>
+                    <input 
+                      type="url" 
+                      value={companySettings.twitterUrl}
+                      onChange={(e) => handleBasicSettingsChange('twitterUrl', e.target.value)}
+                      placeholder="https://twitter.com/yourcompany"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Notification Preferences */}
+              <div className="settings-section">
+                <h3><RiNotificationLine /> Notification Preferences</h3>
+                <div className="notification-settings">
+                  <div className="notification-item">
+                    <div className="notification-info">
+                      <h4>Email Alerts</h4>
+                      <p>Receive important updates via email</p>
+                    </div>
+                    <label className="toggle-switch">
+                      <input 
+                        type="checkbox" 
+                        checked={companySettings.notifications.emailAlerts}
+                        onChange={(e) => handleSettingsChange('notifications', 'emailAlerts', e.target.checked)}
+                      />
+                      <span className="slider"></span>
+                    </label>
+                  </div>
+                  <div className="notification-item">
+                    <div className="notification-info">
+                      <h4>SMS Alerts</h4>
+                      <p>Get urgent notifications via SMS</p>
+                    </div>
+                    <label className="toggle-switch">
+                      <input 
+                        type="checkbox" 
+                        checked={companySettings.notifications.smsAlerts}
+                        onChange={(e) => handleSettingsChange('notifications', 'smsAlerts', e.target.checked)}
+                      />
+                      <span className="slider"></span>
+                    </label>
+                  </div>
+                  <div className="notification-item">
+                    <div className="notification-info">
+                      <h4>Application Updates</h4>
+                      <p>Notifications when candidates apply to your jobs</p>
+                    </div>
+                    <label className="toggle-switch">
+                      <input 
+                        type="checkbox" 
+                        checked={companySettings.notifications.applicationUpdates}
+                        onChange={(e) => handleSettingsChange('notifications', 'applicationUpdates', e.target.checked)}
+                      />
+                      <span className="slider"></span>
+                    </label>
+                  </div>
+                  <div className="notification-item">
+                    <div className="notification-info">
+                      <h4>Weekly Reports</h4>
+                      <p>Receive weekly analytics and performance reports</p>
+                    </div>
+                    <label className="toggle-switch">
+                      <input 
+                        type="checkbox" 
+                        checked={companySettings.notifications.weeklyReports}
+                        onChange={(e) => handleSettingsChange('notifications', 'weeklyReports', e.target.checked)}
+                      />
+                      <span className="slider"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Account Security */}
+              <div className="settings-section">
+                <h3><RiLockLine /> Account Security</h3>
+                <div className="security-actions">
+                  <button className="btn-secondary">
+                    <RiLockLine /> Change Password
+                  </button>
+                  <button className="btn-secondary">
+                    <RiMailLine /> Update Email
+                  </button>
+                  <button className="btn-danger">
+                    <RiDeleteBinLine /> Delete Account
+                  </button>
+                </div>
               </div>
             </div>
           </div>
