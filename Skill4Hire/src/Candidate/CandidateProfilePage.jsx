@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { RiUserLine, RiMailLine, RiBookLine, RiBriefcaseLine, RiStarLine, RiFileTextLine, RiEditLine, RiDeleteBinLine } from 'react-icons/ri';
 import CandidateProfileForm from './CandidateProfileForm';
 import './CandidateProfilePage.css';
@@ -6,6 +6,42 @@ import './CandidateProfilePage.css';
 const CandidateProfilePage = () => {
   const [profiles, setProfiles] = useState([]);
   const [activeTab, setActiveTab] = useState('profile');
+  const [applications, setApplications] = useState([]);
+  const [appsLoading, setAppsLoading] = useState(false);
+  const [appsError, setAppsError] = useState('');
+
+  // Load candidate applications when Applications tab becomes active
+  useEffect(() => {
+    const userId = localStorage.getItem('userId');
+    if (activeTab !== 'applications' || !userId) return;
+
+    let cancelled = false;
+    async function fetchApplications() {
+      setAppsLoading(true);
+      setAppsError('');
+      try {
+        const res = await (await import('../services/applicationsService')).applicationsService.getByCandidate(userId);
+        if (!cancelled) {
+          // Expecting an array of { id, jobTitle, companyName, appliedAt, status }
+          setApplications(Array.isArray(res) ? res : (res?.data ?? []));
+        }
+      } catch (err) {
+        if (!cancelled) setAppsError(err?.message || 'Failed to load applications');
+      } finally {
+        if (!cancelled) setAppsLoading(false);
+      }
+    }
+    fetchApplications();
+    return () => { cancelled = true; };
+  }, [activeTab]);
+
+  const statusToBadgeClass = (status) => {
+    const s = String(status || '').toLowerCase();
+    if (['in_review', 'in review', 'review', 'pending'].includes(s)) return 'in-review';
+    if (['interview', 'interview scheduled', 'scheduled'].includes(s)) return 'interview';
+    if (['rejected', 'not selected', 'declined'].includes(s)) return 'rejected';
+    return 'in-review';
+  };
 
   // Sample data for demonstration
   const [sampleProfile, setSampleProfile] = useState({
@@ -289,38 +325,46 @@ const CandidateProfilePage = () => {
           <div className="applications-tab">
             <h2>Your Applications</h2>
             <div className="applications-list">
-              <div className="application-item">
-                <div className="application-info">
-                  <h3>Senior Frontend Developer</h3>
-                  <p>TechInnovate Inc.</p>
-                  <span className="application-date">Applied on: Oct 15, 2023</span>
+              {appsLoading && (
+                <div className="application-item">
+                  <div className="application-info">
+                    <h3>Loading applications...</h3>
+                  </div>
                 </div>
-                <div className="application-status">
-                  <span className="status-badge in-review">In Review</span>
-                </div>
-              </div>
+              )}
 
-              <div className="application-item">
-                <div className="application-info">
-                  <h3>UI/UX Engineer</h3>
-                  <p>DesignHub</p>
-                  <span className="application-date">Applied on: Oct 10, 2023</span>
+              {!appsLoading && appsError && (
+                <div className="application-item">
+                  <div className="application-info">
+                    <h3>Could not load applications</h3>
+                    <p style={{ color: '#F44336' }}>{appsError}</p>
+                  </div>
                 </div>
-                <div className="application-status">
-                  <span className="status-badge interview">Interview Scheduled</span>
-                </div>
-              </div>
+              )}
 
-              <div className="application-item">
-                <div className="application-info">
-                  <h3>Full Stack Developer</h3>
-                  <p>StartUpVision</p>
-                  <span className="application-date">Applied on: Oct 5, 2023</span>
+              {!appsLoading && !appsError && applications?.length === 0 && (
+                <div className="application-item">
+                  <div className="application-info">
+                    <h3>No applications yet</h3>
+                    <p>Start applying to jobs to see them here.</p>
+                  </div>
                 </div>
-                <div className="application-status">
-                  <span className="status-badge rejected">Not Selected</span>
+              )}
+
+              {!appsLoading && !appsError && applications?.map((app) => (
+                <div className="application-item" key={app.id || `${app.jobId}-${app.appliedAt}`}>
+                  <div className="application-info">
+                    <h3>{app.jobTitle || app.title || 'Job'}</h3>
+                    <p>{app.companyName || app.company || 'Company'}</p>
+                    <span className="application-date">Applied on: {new Date(app.appliedAt || app.createdAt || Date.now()).toLocaleDateString()}</span>
+                  </div>
+                  <div className="application-status">
+                    <span className={`status-badge ${statusToBadgeClass(app.status)}`}>
+                      {String(app.status || 'In Review').replace(/_/g, ' ')}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
           </div>
         )}
