@@ -30,6 +30,7 @@ import {
   RiLoader4Line
 } from 'react-icons/ri';
 import { authService } from '../services/authService';
+import { companyService } from '../services/companyService';
 import './CompanyDashboard.css';
 
 const CompanyDashboard = () => {
@@ -185,27 +186,42 @@ const CompanyDashboard = () => {
   };
 
   // Logo upload handler
-  const handleLogoUpload = (event) => {
+  const handleLogoUpload = async (event) => {
     const file = event.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        alert('File size must be less than 5MB');
-        return;
-      }
-      
-      if (!file.type.startsWith('image/')) {
-        alert('Please select an image file');
-        return;
-      }
+      try {
+        // Use the companyService for validation and upload
+        await companyService.uploadLogo(file);
+        
+        setCompanyLogo(file);
+        
+        // Create preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setLogoPreview(e.target.result);
+        };
+        reader.readAsDataURL(file);
 
-      setCompanyLogo(file);
-      
-      // Create preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setLogoPreview(e.target.result);
-      };
-      reader.readAsDataURL(file);
+        // Show success message
+        setSaveStatus('success');
+        setSaveMessage('Logo uploaded successfully!');
+        
+        // Clear message after 3 seconds
+        setTimeout(() => {
+          setSaveMessage('');
+          setSaveStatus('');
+        }, 3000);
+
+      } catch (error) {
+        setSaveStatus('error');
+        setSaveMessage(error.message);
+        
+        // Clear error message after 5 seconds
+        setTimeout(() => {
+          setSaveMessage('');
+          setSaveStatus('');
+        }, 5000);
+      }
     }
   };
 
@@ -247,36 +263,45 @@ const CompanyDashboard = () => {
     setSaveStatus('');
     
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Here you would typically make an API call to save the settings
-      // Example API call:
-      /*
-      const response = await fetch('/api/company/settings', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+      // Prepare data for API
+      const settingsPayload = {
+        basicInfo: {
+          companyName: companySettings.companyName,
+          industry: companySettings.industry,
+          companySize: companySettings.companySize,
+          founded: companySettings.founded,
+          description: companySettings.description
         },
-        body: JSON.stringify({
-          settings: companySettings,
-          logo: companyLogo
-        })
-      });
+        contactInfo: {
+          email: companySettings.email,
+          phone: companySettings.phone,
+          website: companySettings.website
+        },
+        address: {
+          address: companySettings.address,
+          city: companySettings.city,
+          state: companySettings.state,
+          zipCode: companySettings.zipCode,
+          country: companySettings.country
+        },
+        socialMedia: {
+          linkedinUrl: companySettings.linkedinUrl,
+          twitterUrl: companySettings.twitterUrl
+        },
+        notifications: companySettings.notifications
+      };
+
+      // Save complete settings using the company service
+      await companyService.updateProfile(settingsPayload);
       
-      if (!response.ok) {
-        throw new Error('Failed to save settings');
+      // Upload logo if a new one was selected
+      if (companyLogo) {
+        await companyService.updateLogo(companyLogo);
       }
-      */
       
-      // For now, just log the data that would be saved
-      console.log('Saving company settings:', companySettings);
-      console.log('Company logo:', companyLogo);
-      
-      // Simulate successful save
+      // Show success message
       setSaveStatus('success');
-      setSaveMessage('Settings saved successfully!');
+      setSaveMessage('All settings saved successfully!');
       
       // Clear message after 5 seconds
       setTimeout(() => {
@@ -287,7 +312,7 @@ const CompanyDashboard = () => {
     } catch (error) {
       console.error('Error saving settings:', error);
       setSaveStatus('error');
-      setSaveMessage('Failed to save settings. Please try again.');
+      setSaveMessage(error.message || 'Failed to save settings. Please try again.');
       
       // Clear error message after 8 seconds
       setTimeout(() => {
@@ -296,6 +321,109 @@ const CompanyDashboard = () => {
       }, 8000);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  // Password change handler
+  const handlePasswordChange = async () => {
+    try {
+      // This would typically open a modal or navigate to a password change form
+      // For now, we'll show a simple prompt (in production, use a proper modal)
+      const currentPassword = prompt('Enter your current password:');
+      const newPassword = prompt('Enter new password:');
+      const confirmPassword = prompt('Confirm new password:');
+      
+      if (currentPassword && newPassword && confirmPassword) {
+        if (newPassword !== confirmPassword) {
+          throw new Error('Passwords do not match');
+        }
+        
+        await companyService.changePassword({
+          currentPassword,
+          newPassword,
+          confirmPassword
+        });
+        
+        setSaveStatus('success');
+        setSaveMessage('Password changed successfully!');
+        
+        setTimeout(() => {
+          setSaveMessage('');
+          setSaveStatus('');
+        }, 5000);
+      }
+    } catch (error) {
+      setSaveStatus('error');
+      setSaveMessage(error.message || 'Failed to change password');
+      
+      setTimeout(() => {
+        setSaveMessage('');
+        setSaveStatus('');
+      }, 5000);
+    }
+  };
+
+  // Email update handler
+  const handleEmailUpdate = async () => {
+    try {
+      const newEmail = prompt('Enter new email address:');
+      const password = prompt('Enter your password to confirm:');
+      
+      if (newEmail && password) {
+        await companyService.updateEmail({
+          newEmail,
+          password
+        });
+        
+        setSaveStatus('success');
+        setSaveMessage('Email updated successfully! Please verify your new email.');
+        
+        setTimeout(() => {
+          setSaveMessage('');
+          setSaveStatus('');
+        }, 5000);
+      }
+    } catch (error) {
+      setSaveStatus('error');
+      setSaveMessage(error.message || 'Failed to update email');
+      
+      setTimeout(() => {
+        setSaveMessage('');
+        setSaveStatus('');
+      }, 5000);
+    }
+  };
+
+  // Account deletion handler
+  const handleAccountDeletion = async () => {
+    try {
+      const confirmation = confirm('Are you sure you want to delete your account? This action cannot be undone.');
+      
+      if (confirmation) {
+        const password = prompt('Enter your password to confirm account deletion:');
+        const confirmationText = prompt('Type "DELETE" to confirm:');
+        
+        if (password && confirmationText === 'DELETE') {
+          await companyService.deleteAccount({
+            password,
+            confirmation: confirmationText
+          });
+          
+          // Redirect to login after successful deletion
+          localStorage.clear();
+          window.location.href = '/login';
+        } else if (confirmationText !== 'DELETE') {
+          throw new Error('Please type "DELETE" to confirm');
+        }
+      }
+    } catch (error) {
+      setSaveStatus('error');
+      setSaveMessage(error.message || 'Failed to delete account');
+      
+      setTimeout(() => {
+        setSaveMessage('');
+        setSaveStatus('');
+      }, 5000);
     }
   };
 
@@ -933,13 +1061,22 @@ const CompanyDashboard = () => {
               <div className="settings-section">
                 <h3><RiLockLine /> Account Security</h3>
                 <div className="security-actions">
-                  <button className="btn-secondary">
+                  <button 
+                    className="btn-secondary"
+                    onClick={handlePasswordChange}
+                  >
                     <RiLockLine /> Change Password
                   </button>
-                  <button className="btn-secondary">
+                  <button 
+                    className="btn-secondary"
+                    onClick={handleEmailUpdate}
+                  >
                     <RiMailLine /> Update Email
                   </button>
-                  <button className="btn-danger">
+                  <button 
+                    className="btn-danger"
+                    onClick={handleAccountDeletion}
+                  >
                     <RiDeleteBinLine /> Delete Account
                   </button>
                 </div>
