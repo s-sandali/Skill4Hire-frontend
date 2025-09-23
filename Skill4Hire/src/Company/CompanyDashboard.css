@@ -160,6 +160,69 @@
   background-clip: text;
 }
 
+/* Company Overview Card */
+.company-overview-card {
+  background: rgba(16, 16, 61, 0.4);
+  border: 1px solid #2D2D5A;
+  border-radius: 15px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  backdrop-filter: blur(10px);
+}
+
+.company-overview-card h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #00CFEA;
+}
+
+.company-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 0.75rem;
+}
+
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(45, 45, 90, 0.3);
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-row strong {
+  min-width: 120px;
+  color: #CCCCCC;
+  font-weight: 500;
+}
+
+.detail-row a {
+  color: #00CFEA;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.detail-row a:hover {
+  color: #4DB8FF;
+  text-decoration: underline;
+}
+
+.detail-row.description {
+  flex-direction: column;
+  grid-column: 1 / -1;
+}
+
+.detail-row.description p {
+  margin: 0.5rem 0 0 0;
+  line-height: 1.6;
+  color: #E0E0E0;
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -687,6 +750,11 @@
   flex-shrink: 0;
 }
 
+.logo-preview-container {
+  position: relative;
+  display: inline-block;
+}
+
 .logo-preview {
   width: 120px;
   height: 120px;
@@ -694,6 +762,35 @@
   border-radius: 12px;
   border: 2px solid #2D2D5A;
   background: #1B1B4D;
+  transition: all 0.3s ease;
+}
+
+.logo-preview-container:hover .logo-preview {
+  border-color: #4DB8FF;
+}
+
+.remove-logo-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  background: #FF4757;
+  border: 2px solid #FFFFFF;
+  border-radius: 50%;
+  color: #FFFFFF;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.remove-logo-btn:hover {
+  background: #FF3742;
+  transform: scale(1.1);
 }
 
 .logo-placeholder {
@@ -708,6 +805,12 @@
   gap: 0.5rem;
   color: #888;
   background: #1B1B4D;
+  transition: all 0.3s ease;
+}
+
+.logo-placeholder:hover {
+  border-color: #4DB8FF;
+  color: #4DB8FF;
 }
 
 .logo-placeholder svg {
@@ -720,6 +823,19 @@
 
 .logo-upload-controls .btn-secondary {
   margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.logo-upload-controls .btn-secondary.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.logo-upload-controls .btn-secondary:hover:not(.disabled) {
+  background: #4DB8FF;
+  border-color: #4DB8FF;
+  transform: translateY(-2px);
 }
 
 .upload-hint {
@@ -988,4 +1104,37 @@ input:checked + .slider:before {
   border-color: #bd2130;
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+}
+
+/* Loading Spinner */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 1rem;
+}
+
+.loading-spinner {
+  font-size: 3rem;
+  color: #00CFEA;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-container p {
+  font-size: 1.1rem;
+  color: #CCCCCC;
 }

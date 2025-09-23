@@ -1,10 +1,23 @@
 "use client"
 
-import { FiMenu, FiSearch, FiBell, FiMessageCircle } from "react-icons/fi"
+import { FiMenu, FiSearch, FiBell, FiMessageCircle, FiLogOut } from "react-icons/fi"
+import { useNavigate } from "react-router-dom"
+import { authService } from "../../services/authService"
 import "../base.css"
 import "./CandidateHeader.css"
 
 export default function CandidateHeader({ onMenuClick }) {
+  const navigate = useNavigate()
+
+  const handleLogout = async () => {
+    try {
+      await authService.logout()
+    } catch {
+      // ignore errors, proceed to navigate
+    } finally {
+      navigate('/login')
+    }
+  }
   return (
     <header className="header">
       <div className="header-content">
@@ -21,6 +34,9 @@ export default function CandidateHeader({ onMenuClick }) {
           </button>
           <button className="header-btn">
             <FiMessageCircle size={18} />
+          </button>
+          <button className="header-btn" onClick={handleLogout} title="Log out">
+            <FiLogOut size={18} />
           </button>
           <div className="header-profile">
             <img src="/professional-headshot.png" alt="Profile" className="profile-avatar" />

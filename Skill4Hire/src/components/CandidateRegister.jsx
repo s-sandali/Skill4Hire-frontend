@@ -77,6 +77,7 @@ const CandidateRegister = () => {
       const response = await authService.registerCandidate(formData);
 
       if (response.success) {
+        localStorage.setItem('registeredRole', 'CANDIDATE');
         alert('Registration successful! Please login with your credentials.');
         navigate('/login');
       } else {

@@ -1,14 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
-  FiEye, 
-  FiEyeOff, 
-  FiLock, 
-  FiMail, 
-  FiLogIn, 
-  FiArrowLeft,
-  FiHelpCircle,
-  FiUserPlus
+  FiEye, FiEyeOff, FiLock, FiMail, FiLogIn, FiArrowLeft,
+  FiHelpCircle, FiUserPlus, FiUser, FiBriefcase, FiUsers, FiSettings
 } from 'react-icons/fi';
 import brainLogo from '../assets/brain-logo.jpg';
 import { authService } from '../services/authService';
@@ -17,7 +11,8 @@ import './UnifiedLogin.css';
 const UnifiedLogin = () => {
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
+    password: '',
+    role: 'CANDIDATE'
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -25,6 +20,13 @@ const UnifiedLogin = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+
+  const roles = [
+    { value: 'CANDIDATE', label: 'Candidate', icon: FiUser, available: true },
+    { value: 'COMPANY', label: 'Company', icon: FiBriefcase, available: true },
+    { value: 'EMPLOYEE', label: 'Employee', icon: FiUsers, available: true },
+    { value: 'ADMIN', label: 'Admin', icon: FiSettings, available: true }
+  ];
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -56,6 +58,8 @@ const UnifiedLogin = () => {
       newErrors.password = 'Password must be at least 6 characters';
     }
     
+    // All roles are now available
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -71,20 +75,38 @@ const UnifiedLogin = () => {
     setErrors({});
     
     try {
-      const response = await authService.login(formData.email, formData.password);
+      let response;
+      
+      // Use specific login method based on selected role
+      switch (formData.role) {
+        case 'CANDIDATE':
+          response = await authService.loginCandidate(formData.email, formData.password);
+          break;
+        case 'COMPANY':
+          response = await authService.loginCompany(formData.email, formData.password);
+          break;
+        case 'EMPLOYEE':
+          response = await authService.loginEmployee(formData.email, formData.password);
+          break;
+        case 'ADMIN':
+          response = await authService.loginAdmin(formData.email, formData.password);
+          break;
+        default:
+          response = await authService.loginCandidate(formData.email, formData.password);
+      }
+      
       if (response.success) {
         if (rememberMe) {
           localStorage.setItem('rememberedEmail', formData.email);
         }
 
-        // Store user info for frontend use
         localStorage.setItem('userRole', response.role);
         localStorage.setItem('userId', response.id);
 
         // Redirect based on role
         switch (response.role) {
           case 'CANDIDATE':
-             navigate('/candidate-home');
+            navigate('/candidate-home');
             break;
           case 'COMPANY':
             navigate('/company-dashboard');
@@ -108,6 +130,7 @@ const UnifiedLogin = () => {
     }
   };
 
+  // FIX: Define handleForgotPassword function
   const handleForgotPassword = () => {
     alert('Forgot password functionality would be implemented here');
   };
@@ -117,6 +140,13 @@ const UnifiedLogin = () => {
     if (rememberedEmail) {
       setFormData(prev => ({ ...prev, email: rememberedEmail }));
       setRememberMe(true);
+    }
+
+    // Preselect role based on most recent registration
+    const registeredRole = localStorage.getItem('registeredRole');
+    if (registeredRole) {
+      setFormData(prev => ({ ...prev, role: registeredRole }));
+      localStorage.removeItem('registeredRole');
     }
   }, []);
 
@@ -142,10 +172,32 @@ const UnifiedLogin = () => {
               </div>
             )}
 
+            {/* Role Selection */}
             <div className="form-group">
-               <label htmlFor="email" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <FiMail style={{ color: '#4a33faff', fontSize: '20px' }} />
+              <label htmlFor="role">Sign in as</label>
+              <select
+                id="role"
+                name="role"
+                value={formData.role}
+                onChange={handleInputChange}
+                className={errors.role ? 'error' : ''}
+              >
+                {roles.map(role => (
+                  <option 
+                    key={role.value} 
+                    value={role.value}
+                  >
+                    {role.label}
+                  </option>
+                ))}
+              </select>
+              {errors.role && <span className="error-text">{errors.role}</span>}
+            </div>
 
+            {/* Email Field */}
+            <div className="form-group">
+              <label htmlFor="email" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <FiMail style={{ color: '#4a33faff', fontSize: '20px' }} />
                 Email Address
               </label>
               <input
@@ -158,14 +210,13 @@ const UnifiedLogin = () => {
                 className={errors.email ? 'error' : ''}
                 autoComplete="email"
               />
-              {errors.email && (
-                <span className="error-text">{errors.email}</span>
-              )}
+              {errors.email && <span className="error-text">{errors.email}</span>}
             </div>
 
+            {/* Password Field */}
             <div className="form-group">
               <label htmlFor="password" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                 <FiLock style={{ color: '#4a33faff', fontSize: '20px' }} />
+                <FiLock style={{ color: '#4a33faff', fontSize: '20px' }} />
                 Password
               </label>
               <div className="password-input-container">
@@ -183,16 +234,14 @@ const UnifiedLogin = () => {
                   type="button"
                   className="password-toggle"
                   onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <FiEyeOff /> : <FiEye />}
                 </button>
               </div>
-              {errors.password && (
-                <span className="error-text">{errors.password}</span>
-              )}
+              {errors.password && <span className="error-text">{errors.password}</span>}
             </div>
 
+            {/* Remember Me & Forgot Password */}
             <div className="form-options">
               <label className="checkbox-container">
                 <input
@@ -204,20 +253,17 @@ const UnifiedLogin = () => {
                 Remember me
               </label>
               
-              <button
-                type="button"
-                className="forgot-password"
+              <button 
+                type="button" 
+                className="forgot-password" 
                 onClick={handleForgotPassword}
               >
                 Forgot Password?
               </button>
             </div>
 
-            <button
-              type="submit"
-              className="login-btn"
-              disabled={isLoading}
-            >
+            {/* Submit Button */}
+            <button type="submit" className="login-btn" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <span className="loading-spinner"></span>
@@ -230,8 +276,6 @@ const UnifiedLogin = () => {
               )}
             </button>
           </form>
-
-          
         </div>
 
         {/* Footer Links */}
@@ -239,13 +283,10 @@ const UnifiedLogin = () => {
           <p>
             <FiUserPlus style={{marginRight: '8px'}} />
             Don't have an account? 
-            <Link to="/role-selection" className="register-link">
-              Create one here
-            </Link>
+            <Link to="/role-selection" className="register-link">Create one here</Link>
           </p>
           <div className="footer-links">
             <Link to="/"><FiArrowLeft style={{marginRight: '6px'}} />Back to Home</Link>
-           
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   FiSettings, 
+  FiUser,
   FiMail, 
   FiLock, 
   FiEye, 
@@ -17,6 +18,7 @@ import './AdminRegister.css';
 const AdminRegister = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
+    adminName: '',  // ← ADD THIS FIELD
     email: '',
     password: ''
   });
@@ -42,6 +44,11 @@ const AdminRegister = () => {
 
   const validateForm = () => {
     const newErrors = {};
+
+    // ADD ADMIN NAME VALIDATION
+    if (!formData.adminName) {
+      newErrors.adminName = 'Admin name is required';
+    }
     
     if (!formData.email) {
       newErrors.email = 'Email is required';
@@ -118,6 +125,27 @@ const AdminRegister = () => {
               <FiSettings className="section-icon" />
               Admin Registration
             </h2>
+
+            {/* ADD ADMIN NAME FIELD */}
+            <div className="form-group">
+              <label htmlFor="adminName">
+                <FiUser style={{marginRight: '8px'}} />
+                Admin Name *
+              </label>
+              <input
+                type="text"
+                id="adminName"
+                name="adminName"
+                value={formData.adminName}
+                onChange={handleInputChange}
+                placeholder="Enter your full name"
+                className={errors.adminName ? 'error' : ''}
+                required
+              />
+              {errors.adminName && (
+                <span className="error-text">{errors.adminName}</span>
+              )}
+            </div>
 
             <div className="form-group">
               <label htmlFor="email">

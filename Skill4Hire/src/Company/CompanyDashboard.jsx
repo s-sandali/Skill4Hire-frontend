@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   RiBuildingLine, 
   RiBriefcaseLine, 
@@ -27,7 +27,8 @@ import {
   RiNotificationLine,
   RiCheckLine,
   RiErrorWarningLine,
-  RiLoader4Line
+  RiLoader4Line,
+  RiCloseLine
 } from 'react-icons/ri';
 import { authService } from '../services/authService';
 import { companyService } from '../services/companyService';
@@ -37,6 +38,7 @@ const CompanyDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [isLoading, setIsLoading] = useState(true);
 
   // Company settings state
   const [companyLogo, setCompanyLogo] = useState(null);
@@ -46,27 +48,28 @@ const CompanyDashboard = () => {
   const [saveStatus, setSaveStatus] = useState(''); // 'success', 'error', ''
   const [companySettings, setCompanySettings] = useState({
     // Basic Information
-    companyName: "TechCorp Solutions",
-    email: "hr@techcorp.com",
-    phone: "+1 (555) 123-4567",
-    website: "https://techcorp.com",
+    companyName: "",
+    email: "",
+    phone: "",
+    website: "",
     
     // Address
-    address: "123 Tech Street",
-    city: "San Francisco",
-    state: "CA",
-    zipCode: "94102",
-    country: "United States",
+    address: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    country: "",
     
     // Company Details
-    industry: "Technology",
-    companySize: "100-500 employees",
-    founded: "2018",
-    description: "Leading technology solutions provider specializing in innovative software development and digital transformation services.",
+    industry: "",
+    companySize: "",
+    founded: "",
+    description: "",
     
     // Social Media
-    linkedinUrl: "https://linkedin.com/company/techcorp",
-    twitterUrl: "https://twitter.com/techcorp",
+    linkedinUrl: "",
+    twitterUrl: "",
+    facebookUrl: "",
     
     // Preferences
     notifications: {
@@ -185,44 +188,178 @@ const CompanyDashboard = () => {
     }
   };
 
+  // Load company profile data
+  const loadCompanyProfile = async () => {
+    try {
+      setIsLoading(true);
+      console.log('🔄 Loading company profile...');
+      
+      // Debug: Check authentication status
+      console.log('🔍 Current userRole from localStorage:', localStorage.getItem('userRole'));
+      console.log('🔍 Current userId from localStorage:', localStorage.getItem('userId'));
+      console.log('🔍 Current cookies:', document.cookie);
+      
+      const profileData = await companyService.getProfile();
+      console.log('📦 Raw profile data from API:', profileData);
+      
+      // Check if we got data
+      if (!profileData) {
+        console.log('❌ No profile data received');
+        return;
+      }
+      
+      // Map the database fields to your frontend state
+      const mappedSettings = {
+        companyName: profileData.name || "",
+        email: profileData.email || "",
+        phone: profileData.phone || "",
+        website: profileData.website || "",
+        address: profileData.address || "",
+        city: profileData.city || "",
+        state: profileData.state || "",
+        zipCode: profileData.zipCode || "",
+        country: profileData.country || "",
+        industry: profileData.industry || "",
+        companySize: profileData.companySize || "",
+        founded: profileData.founded || "",
+        description: profileData.description || "",
+        linkedinUrl: profileData.linkedin || "",
+        twitterUrl: profileData.twitter || "",
+        facebookUrl: profileData.facebook || "",
+        notifications: {
+          emailAlerts: true,
+          smsAlerts: false,
+          applicationUpdates: true,
+          jobAlerts: true,
+          weeklyReports: false
+        }
+      };
+      
+      console.log('🎯 Mapped settings:', mappedSettings);
+      setCompanySettings(mappedSettings);
+
+      // Set logo if available
+      if (profileData.logo) {
+        setLogoPreview(profileData.logo);
+        console.log('🖼️ Logo set:', profileData.logo);
+      }
+      
+      console.log('✅ Profile loaded successfully');
+      
+    } catch (error) {
+      console.error('❌ Failed to load company profile:', error);
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      console.error('Error headers:', error.response?.headers);
+      console.error('Error details:', error.response?.data || error.message);
+      
+      if (error.response?.status === 403) {
+        console.error('🚫 Authentication issue - you may need to login again');
+        setSaveMessage('Authentication failed. Please login again.');
+        setSaveStatus('error');
+        // Optionally redirect to login
+        // window.location.href = '/login';
+      } else {
+        setSaveMessage('Failed to load company profile: ' + error.message);
+        setSaveStatus('error');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load profile data when component mounts
+  useEffect(() => {
+    loadCompanyProfile();
+  }, []);
+
   // Logo upload handler
   const handleLogoUpload = async (event) => {
     const file = event.target.files[0];
-    if (file) {
-      try {
-        // Use the companyService for validation and upload
-        await companyService.uploadLogo(file);
-        
-        setCompanyLogo(file);
-        
-        // Create preview
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setLogoPreview(e.target.result);
-        };
-        reader.readAsDataURL(file);
+    if (!file) return;
 
-        // Show success message
-        setSaveStatus('success');
-        setSaveMessage('Logo uploaded successfully!');
-        
-        // Clear message after 3 seconds
-        setTimeout(() => {
-          setSaveMessage('');
-          setSaveStatus('');
-        }, 3000);
-
-      } catch (error) {
+    try {
+      // Validate file type
+      const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'];
+      if (!allowedTypes.includes(file.type)) {
         setSaveStatus('error');
-        setSaveMessage(error.message);
-        
-        // Clear error message after 5 seconds
-        setTimeout(() => {
-          setSaveMessage('');
-          setSaveStatus('');
-        }, 5000);
+        setSaveMessage('Please upload a valid image file (PNG, JPG, SVG)');
+        return;
       }
+
+      // Validate file size (5MB max)
+      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      if (file.size > maxSize) {
+        setSaveStatus('error');
+        setSaveMessage('File size must be less than 5MB');
+        return;
+      }
+
+      // Show uploading status
+      setIsSaving(true);
+      setSaveMessage('Uploading logo...');
+      setSaveStatus('');
+
+      console.log('📤 Uploading logo:', file.name, 'Size:', file.size, 'Type:', file.type);
+
+      // Upload to backend
+      const response = await companyService.uploadLogo(file);
+      console.log('✅ Logo upload response:', response);
+      
+      // Store the file for local state
+      setCompanyLogo(file);
+      
+      // Create preview immediately
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLogoPreview(e.target.result);
+        console.log('🖼️ Logo preview set');
+      };
+      reader.readAsDataURL(file);
+
+      // If backend returns a logo URL, use that instead
+      if (response && response.logoUrl) {
+        setLogoPreview(response.logoUrl);
+        console.log('🔗 Using backend logo URL:', response.logoUrl);
+      }
+
+      // Show success message
+      setSaveStatus('success');
+      setSaveMessage('Logo uploaded successfully!');
+      
+      // Clear message after 3 seconds
+      setTimeout(() => {
+        setSaveMessage('');
+        setSaveStatus('');
+        setIsSaving(false);
+      }, 3000);
+
+    } catch (error) {
+      console.error('❌ Logo upload failed:', error);
+      setSaveStatus('error');
+      setSaveMessage(error.message || 'Failed to upload logo');
+      setIsSaving(false);
+      
+      // Clear error message after 5 seconds
+      setTimeout(() => {
+        setSaveMessage('');
+        setSaveStatus('');
+      }, 5000);
     }
+  };
+
+  // Remove logo handler
+  const handleRemoveLogo = () => {
+    setCompanyLogo(null);
+    setLogoPreview(null);
+    setSaveStatus('success');
+    setSaveMessage('Logo removed');
+    
+    // Clear message after 2 seconds
+    setTimeout(() => {
+      setSaveMessage('');
+      setSaveStatus('');
+    }, 2000);
   };
 
   // Settings update handler
@@ -263,31 +400,24 @@ const CompanyDashboard = () => {
     setSaveStatus('');
     
     try {
-      // Prepare data for API
+      // Prepare data for API - FLATTEN the structure to match backend expectations
       const settingsPayload = {
-        basicInfo: {
-          companyName: companySettings.companyName,
-          industry: companySettings.industry,
-          companySize: companySettings.companySize,
-          founded: companySettings.founded,
-          description: companySettings.description
-        },
-        contactInfo: {
-          email: companySettings.email,
-          phone: companySettings.phone,
-          website: companySettings.website
-        },
-        address: {
-          address: companySettings.address,
-          city: companySettings.city,
-          state: companySettings.state,
-          zipCode: companySettings.zipCode,
-          country: companySettings.country
-        },
-        socialMedia: {
-          linkedinUrl: companySettings.linkedinUrl,
-          twitterUrl: companySettings.twitterUrl
-        },
+        name: companySettings.companyName,
+        industry: companySettings.industry,
+        companySize: companySettings.companySize,
+        founded: companySettings.founded,
+        description: companySettings.description,
+        email: companySettings.email,
+        phone: companySettings.phone,
+        website: companySettings.website,
+        address: companySettings.address,
+        city: companySettings.city,
+        state: companySettings.state,
+        zipCode: companySettings.zipCode,
+        country: companySettings.country,
+        facebook: companySettings.facebookUrl || '',
+        linkedin: companySettings.linkedinUrl || '',
+        twitter: companySettings.twitterUrl || '',
         notifications: companySettings.notifications
       };
 
@@ -429,6 +559,15 @@ const CompanyDashboard = () => {
 
   return (
     <div className="company-dashboard">
+      {isLoading ? (
+        <div className="loading-container">
+          <div className="loading-spinner">
+            <RiLoader4Line className="spin" />
+          </div>
+          <p>Loading company profile...</p>
+        </div>
+      ) : (
+        <>
       {/* Header */}
       <header className="dashboard-header">
         <div className="header-content">
@@ -446,8 +585,8 @@ const CompanyDashboard = () => {
                 <RiBuildingLine />
               </div>
               <div className="user-details">
-                <span className="user-name">{companyData.name}</span>
-                <span className="user-role">{companyData.industry}</span>
+                <span className="user-name">{companySettings.companyName || companyData.name}</span>
+                <span className="user-role">{companySettings.industry || companyData.industry}</span>
               </div>
             </div>
             <button className="logout-btn" onClick={handleLogout}>
@@ -501,7 +640,46 @@ const CompanyDashboard = () => {
       <main className="dashboard-main">
         {activeTab === 'overview' && (
           <div className="overview-tab">
-            <h2>Welcome back, {companyData.name}!</h2>
+            <h2>Welcome back, {companySettings.companyName || companyData.name}!</h2>
+            
+            {/* Company Information Overview */}
+            <div className="company-overview-card">
+              <h3>Company Profile</h3>
+              <div className="company-details">
+                <div className="detail-row">
+                  <strong>Company Name:</strong> {companySettings.companyName || 'Not set'}
+                </div>
+                <div className="detail-row">
+                  <strong>Industry:</strong> {companySettings.industry || 'Not specified'}
+                </div>
+                <div className="detail-row">
+                  <strong>Company Size:</strong> {companySettings.companySize || 'Not specified'}
+                </div>
+                <div className="detail-row">
+                  <strong>Founded:</strong> {companySettings.founded || 'Not specified'}
+                </div>
+                <div className="detail-row">
+                  <strong>Website:</strong> {companySettings.website ? (
+                    <a href={companySettings.website} target="_blank" rel="noopener noreferrer">
+                      {companySettings.website}
+                    </a>
+                  ) : 'Not set'}
+                </div>
+                <div className="detail-row">
+                  <strong>Location:</strong> {
+                    [companySettings.city, companySettings.state, companySettings.country]
+                      .filter(Boolean).join(', ') || 'Not specified'
+                  }
+                </div>
+                {companySettings.description && (
+                  <div className="detail-row description">
+                    <strong>Description:</strong>
+                    <p>{companySettings.description}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="stats-grid">
               <div className="stat-card">
                 <div className="stat-icon">
@@ -778,7 +956,17 @@ const CompanyDashboard = () => {
                 <div className="logo-upload-section">
                   <div className="current-logo">
                     {logoPreview ? (
-                      <img src={logoPreview} alt="Company Logo Preview" className="logo-preview" />
+                      <div className="logo-preview-container">
+                        <img src={logoPreview} alt="Company Logo Preview" className="logo-preview" />
+                        <button 
+                          type="button" 
+                          className="remove-logo-btn"
+                          onClick={handleRemoveLogo}
+                          title="Remove logo"
+                        >
+                          <RiCloseLine />
+                        </button>
+                      </div>
                     ) : (
                       <div className="logo-placeholder">
                         <RiImageLine />
@@ -790,12 +978,24 @@ const CompanyDashboard = () => {
                     <input
                       type="file"
                       id="logo-upload"
-                      accept="image/*"
+                      accept="image/png,image/jpeg,image/jpg,image/svg+xml"
                       onChange={handleLogoUpload}
                       style={{ display: 'none' }}
+                      disabled={isSaving}
                     />
-                    <label htmlFor="logo-upload" className="btn-secondary">
-                      <RiUploadCloudLine /> Upload Logo
+                    <label 
+                      htmlFor="logo-upload" 
+                      className={`btn-secondary ${isSaving ? 'disabled' : ''}`}
+                    >
+                      {isSaving ? (
+                        <>
+                          <RiLoader4Line className="spinning" /> Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <RiUploadCloudLine /> {logoPreview ? 'Change Logo' : 'Upload Logo'}
+                        </>
+                      )}
                     </label>
                     <p className="upload-hint">
                       Recommended: 200x200px, max 5MB (PNG, JPG, SVG)
@@ -1085,6 +1285,8 @@ const CompanyDashboard = () => {
           </div>
         )}
       </main>
+        </>
+      )}
     </div>
   );
 };

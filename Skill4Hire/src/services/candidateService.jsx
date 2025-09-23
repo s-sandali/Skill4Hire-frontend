@@ -57,11 +57,7 @@ export const candidateService = {
       const formData = new FormData();
       formData.append('resume', file);
       
-      const response = await apiClient.post('/api/candidates/upload/resume', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await apiClient.post('/api/candidates/upload/resume', formData);
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Failed to upload resume');
@@ -73,11 +69,7 @@ export const candidateService = {
       const formData = new FormData();
       formData.append('profilePicture', file);
       
-      const response = await apiClient.post('/api/candidates/upload/profile-picture', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await apiClient.post('/api/candidates/upload/profile-picture', formData);
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Failed to upload profile picture');

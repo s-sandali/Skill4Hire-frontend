@@ -1,7 +1,6 @@
 import apiClient from '../utils/axiosConfig';
 
 export const companyService = {
-  // Profile Management
   getProfile: async () => {
     try {
       const response = await apiClient.get('/api/companies/profile');
@@ -13,155 +12,61 @@ export const companyService = {
 
   updateProfile: async (profileData) => {
     try {
-      const response = await apiClient.put('/api/companies/profile', profileData);
+      // profileData must be flat and match CompanyProfileDTO exactly
+      // Example:
+      // { name, description, phone, website, address, facebook, linkedin, twitter, logo }
+      const response = await apiClient.put('/api/companies/profile', profileData, {
+        headers: { 'Content-Type': 'application/json' },
+      });
       return response.data;
     } catch (error) {
+      console.error("Error saving settings:", error.response?.data || error);
       throw new Error(error.response?.data?.message || 'Failed to update company profile');
     }
   },
 
-  // Company Logo Management
   uploadLogo: async (file) => {
     try {
-      // Validate file before upload
-      if (!file) {
-        throw new Error('No file selected');
-      }
-      
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        throw new Error('File size must be less than 5MB');
-      }
-      
-      if (!file.type.startsWith('image/')) {
-        throw new Error('Please select an image file');
-      }
-
       const formData = new FormData();
-      formData.append('logo', file);
-      
-      const response = await apiClient.post('/api/companies/logo/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+      formData.append('file', file);
+      const response = await apiClient.post('/api/companies/upload/logo', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || error.message || 'Failed to upload logo');
+      throw new Error(error.response?.data?.message || 'Error uploading logo');
     }
   },
 
-  updateLogo: async (file) => {
+  changePassword: async (oldPassword, newPassword) => {
     try {
-      if (!file) {
-        throw new Error('No file selected');
-      }
-      
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        throw new Error('File size must be less than 5MB');
-      }
-      
-      if (!file.type.startsWith('image/')) {
-        throw new Error('Please select an image file');
-      }
-
-      const formData = new FormData();
-      formData.append('logo', file);
-      
-      const response = await apiClient.put('/api/companies/logo/update', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+      const response = await apiClient.post('/api/companies/change-password', {
+        oldPassword,
+        newPassword
       });
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || error.message || 'Failed to update logo');
+      throw new Error(error.response?.data?.message || 'Error changing password');
     }
   },
 
-  removeLogo: async () => {
+  updateEmail: async (newEmail) => {
     try {
-      const response = await apiClient.delete('/api/companies/logo/remove');
-      return response.data;
-    } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to remove logo');
-    }
-  },
-
-  getLogo: async () => {
-    try {
-      const response = await apiClient.get('/api/companies/logo');
-      return response.data;
-    } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch logo');
-    }
-  },
-
-  // Notification Preferences
-  getNotificationPreferences: async () => {
-    try {
-      const response = await apiClient.get('/api/companies/notifications/preferences');
-      return response.data;
-    } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch notification preferences');
-    }
-  },
-
-  updateNotificationPreferences: async (preferences) => {
-    try {
-      const response = await apiClient.put('/api/companies/notifications/preferences', preferences);
-      return response.data;
-    } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to update notification preferences');
-    }
-  },
-
-  // Account Security
-  changePassword: async (passwordData) => {
-    try {
-      const response = await apiClient.put('/api/companies/password/change', {
-        currentPassword: passwordData.currentPassword,
-        newPassword: passwordData.newPassword,
-        confirmPassword: passwordData.confirmPassword
+      const response = await apiClient.post('/api/companies/update-email', {
+        newEmail
       });
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to change password');
+      throw new Error(error.response?.data?.message || 'Error updating email');
     }
   },
 
-  updateEmail: async (emailData) => {
+  deleteAccount: async () => {
     try {
-      const response = await apiClient.put('/api/companies/email/update', {
-        newEmail: emailData.newEmail,
-        password: emailData.password
-      });
+      const response = await apiClient.delete('/api/companies/delete-account');
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to update email');
-    }
-  },
-
-  deleteAccount: async (confirmationData) => {
-    try {
-      const response = await apiClient.delete('/api/companies/account', {
-        data: {
-          password: confirmationData.password,
-          confirmation: confirmationData.confirmation
-        }
-      });
-      return response.data;
-    } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to delete account');
-    }
-  },
-
-  // Enable/disable two-factor authentication
-  updateTwoFactor: async (twoFactorData) => {
-    try {
-      const response = await apiClient.put('/api/companies/two-factor', twoFactorData);
-      return response.data;
-    } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to update two-factor authentication');
+      throw new Error(error.response?.data?.message || 'Error deleting account');
     }
   }
 };
