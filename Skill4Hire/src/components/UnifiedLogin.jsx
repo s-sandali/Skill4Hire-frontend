@@ -72,7 +72,6 @@ const UnifiedLogin = () => {
     
     try {
       const response = await authService.login(formData.email, formData.password);
-      
       if (response.success) {
         if (rememberMe) {
           localStorage.setItem('rememberedEmail', formData.email);
