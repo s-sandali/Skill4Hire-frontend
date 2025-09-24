@@ -18,7 +18,7 @@ import './AdminRegister.css';
 const AdminRegister = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    adminName: '',  // GÂ… ADD THIS FIELD
+    adminName: '',  // ‚Üê ADD THIS FIELD
     email: '',
     password: ''
   });
