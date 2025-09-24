@@ -1,5 +1,4 @@
 import apiClient from '../utils/axiosConfig';
-
 export const authService = {
   // Unified login - determines role and calls appropriate endpoint
   login: async (email, password) => {

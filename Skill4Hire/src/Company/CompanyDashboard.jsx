@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   RiBuildingLine, 
   RiBriefcaseLine, 
@@ -15,15 +15,70 @@ import {
   RiEyeLine,
   RiDownloadLine,
   RiCalendarScheduleLine,
-  RiNotification3Line
+  RiNotification3Line,
+  RiUploadCloudLine,
+  RiImageLine,
+  RiGlobalLine,
+  RiPhoneLine,
+  RiMailLine,
+  RiMapPinLine,
+  RiSaveLine,
+  RiLockLine,
+  RiNotificationLine,
+  RiCheckLine,
+  RiErrorWarningLine,
+  RiLoader4Line,
+  RiCloseLine
 } from 'react-icons/ri';
 import { authService } from '../services/authService';
+import { companyService } from '../services/companyService';
 import './CompanyDashboard.css';
 
 const CompanyDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Company settings state
+  const [companyLogo, setCompanyLogo] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
+  const [saveStatus, setSaveStatus] = useState(''); // 'success', 'error', ''
+  const [companySettings, setCompanySettings] = useState({
+    // Basic Information
+    companyName: "",
+    email: "",
+    phone: "",
+    website: "",
+    
+    // Address
+    address: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    country: "",
+    
+    // Company Details
+    industry: "",
+    companySize: "",
+    founded: "",
+    description: "",
+    
+    // Social Media
+    linkedinUrl: "",
+    twitterUrl: "",
+    facebookUrl: "",
+    
+    // Preferences
+    notifications: {
+      emailAlerts: true,
+      smsAlerts: false,
+      applicationUpdates: true,
+      weeklyReports: true
+    }
+  });
 
   // Sample data
   const [companyData] = useState({
@@ -133,8 +188,386 @@ const CompanyDashboard = () => {
     }
   };
 
+  // Load company profile data
+  const loadCompanyProfile = async () => {
+    try {
+      setIsLoading(true);
+      console.log('🔄 Loading company profile...');
+      
+      // Debug: Check authentication status
+      console.log('🔍 Current userRole from localStorage:', localStorage.getItem('userRole'));
+      console.log('🔍 Current userId from localStorage:', localStorage.getItem('userId'));
+      console.log('🔍 Current cookies:', document.cookie);
+      
+      const profileData = await companyService.getProfile();
+      console.log('📦 Raw profile data from API:', profileData);
+      
+      // Check if we got data
+      if (!profileData) {
+        console.log('❌ No profile data received');
+        return;
+      }
+      
+      // Map the database fields to your frontend state
+      const mappedSettings = {
+        companyName: profileData.name || "",
+        email: profileData.email || "",
+        phone: profileData.phone || "",
+        website: profileData.website || "",
+        address: profileData.address || "",
+        city: profileData.city || "",
+        state: profileData.state || "",
+        zipCode: profileData.zipCode || "",
+        country: profileData.country || "",
+        industry: profileData.industry || "",
+        companySize: profileData.companySize || "",
+        founded: profileData.founded || "",
+        description: profileData.description || "",
+        linkedinUrl: profileData.linkedin || "",
+        twitterUrl: profileData.twitter || "",
+        facebookUrl: profileData.facebook || "",
+        notifications: {
+          emailAlerts: true,
+          smsAlerts: false,
+          applicationUpdates: true,
+          jobAlerts: true,
+          weeklyReports: false
+        }
+      };
+      
+      console.log('🎯 Mapped settings:', mappedSettings);
+      setCompanySettings(mappedSettings);
+
+      // Set logo if available
+      if (profileData.logo) {
+        setLogoPreview(profileData.logo);
+        console.log('🖼️ Logo set:', profileData.logo);
+      }
+      
+      console.log('✅ Profile loaded successfully');
+      
+    } catch (error) {
+      console.error('❌ Failed to load company profile:', error);
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      console.error('Error headers:', error.response?.headers);
+      console.error('Error details:', error.response?.data || error.message);
+      
+      if (error.response?.status === 403) {
+        console.error('🚫 Authentication issue - you may need to login again');
+        setSaveMessage('Authentication failed. Please login again.');
+        setSaveStatus('error');
+        // Optionally redirect to login
+        // window.location.href = '/login';
+      } else {
+        setSaveMessage('Failed to load company profile: ' + error.message);
+        setSaveStatus('error');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load profile data when component mounts
+  useEffect(() => {
+    loadCompanyProfile();
+  }, []);
+
+  // Logo upload handler
+  const handleLogoUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+      // Validate file type
+      const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'];
+      if (!allowedTypes.includes(file.type)) {
+        setSaveStatus('error');
+        setSaveMessage('Please upload a valid image file (PNG, JPG, SVG)');
+        return;
+      }
+
+      // Validate file size (5MB max)
+      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      if (file.size > maxSize) {
+        setSaveStatus('error');
+        setSaveMessage('File size must be less than 5MB');
+        return;
+      }
+
+      // Show uploading status
+      setIsSaving(true);
+      setSaveMessage('Uploading logo...');
+      setSaveStatus('');
+
+      console.log('📤 Uploading logo:', file.name, 'Size:', file.size, 'Type:', file.type);
+
+      // Upload to backend
+      const response = await companyService.uploadLogo(file);
+      console.log('✅ Logo upload response:', response);
+      
+      // Store the file for local state
+      setCompanyLogo(file);
+      
+      // Create preview immediately
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLogoPreview(e.target.result);
+        console.log('🖼️ Logo preview set');
+      };
+      reader.readAsDataURL(file);
+
+      // If backend returns a logo URL, use that instead
+      if (response && response.logoUrl) {
+        setLogoPreview(response.logoUrl);
+        console.log('🔗 Using backend logo URL:', response.logoUrl);
+      }
+
+      // Show success message
+      setSaveStatus('success');
+      setSaveMessage('Logo uploaded successfully!');
+      
+      // Clear message after 3 seconds
+      setTimeout(() => {
+        setSaveMessage('');
+        setSaveStatus('');
+        setIsSaving(false);
+      }, 3000);
+
+    } catch (error) {
+      console.error('❌ Logo upload failed:', error);
+      setSaveStatus('error');
+      setSaveMessage(error.message || 'Failed to upload logo');
+      setIsSaving(false);
+      
+      // Clear error message after 5 seconds
+      setTimeout(() => {
+        setSaveMessage('');
+        setSaveStatus('');
+      }, 5000);
+    }
+  };
+
+  // Remove logo handler
+  const handleRemoveLogo = () => {
+    setCompanyLogo(null);
+    setLogoPreview(null);
+    setSaveStatus('success');
+    setSaveMessage('Logo removed');
+    
+    // Clear message after 2 seconds
+    setTimeout(() => {
+      setSaveMessage('');
+      setSaveStatus('');
+    }, 2000);
+  };
+
+  // Settings update handler
+  const handleSettingsChange = (section, field, value) => {
+    setCompanySettings(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: value
+      }
+    }));
+    
+    // Clear any previous save messages when user makes changes
+    if (saveMessage) {
+      setSaveMessage('');
+      setSaveStatus('');
+    }
+  };
+
+  // Basic settings update handler
+  const handleBasicSettingsChange = (field, value) => {
+    setCompanySettings(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    
+    // Clear any previous save messages when user makes changes
+    if (saveMessage) {
+      setSaveMessage('');
+      setSaveStatus('');
+    }
+  };
+
+  // Save settings handler
+  const handleSaveSettings = async () => {
+    setIsSaving(true);
+    setSaveMessage('');
+    setSaveStatus('');
+    
+    try {
+      // Prepare data for API - FLATTEN the structure to match backend expectations
+      const settingsPayload = {
+        name: companySettings.companyName,
+        industry: companySettings.industry,
+        companySize: companySettings.companySize,
+        founded: companySettings.founded,
+        description: companySettings.description,
+        email: companySettings.email,
+        phone: companySettings.phone,
+        website: companySettings.website,
+        address: companySettings.address,
+        city: companySettings.city,
+        state: companySettings.state,
+        zipCode: companySettings.zipCode,
+        country: companySettings.country,
+        facebook: companySettings.facebookUrl || '',
+        linkedin: companySettings.linkedinUrl || '',
+        twitter: companySettings.twitterUrl || '',
+        notifications: companySettings.notifications
+      };
+
+      // Save complete settings using the company service
+      await companyService.updateProfile(settingsPayload);
+      
+      // Upload logo if a new one was selected
+      if (companyLogo) {
+        await companyService.updateLogo(companyLogo);
+      }
+      
+      // Show success message
+      setSaveStatus('success');
+      setSaveMessage('All settings saved successfully!');
+      
+      // Clear message after 5 seconds
+      setTimeout(() => {
+        setSaveMessage('');
+        setSaveStatus('');
+      }, 5000);
+      
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      setSaveStatus('error');
+      setSaveMessage(error.message || 'Failed to save settings. Please try again.');
+      
+      // Clear error message after 8 seconds
+      setTimeout(() => {
+        setSaveMessage('');
+        setSaveStatus('');
+      }, 8000);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Password change handler
+  const handlePasswordChange = async () => {
+    try {
+      // This would typically open a modal or navigate to a password change form
+      // For now, we'll show a simple prompt (in production, use a proper modal)
+      const currentPassword = prompt('Enter your current password:');
+      const newPassword = prompt('Enter new password:');
+      const confirmPassword = prompt('Confirm new password:');
+      
+      if (currentPassword && newPassword && confirmPassword) {
+        if (newPassword !== confirmPassword) {
+          throw new Error('Passwords do not match');
+        }
+        
+        await companyService.changePassword({
+          currentPassword,
+          newPassword,
+          confirmPassword
+        });
+        
+        setSaveStatus('success');
+        setSaveMessage('Password changed successfully!');
+        
+        setTimeout(() => {
+          setSaveMessage('');
+          setSaveStatus('');
+        }, 5000);
+      }
+    } catch (error) {
+      setSaveStatus('error');
+      setSaveMessage(error.message || 'Failed to change password');
+      
+      setTimeout(() => {
+        setSaveMessage('');
+        setSaveStatus('');
+      }, 5000);
+    }
+  };
+
+  // Email update handler
+  const handleEmailUpdate = async () => {
+    try {
+      const newEmail = prompt('Enter new email address:');
+      const password = prompt('Enter your password to confirm:');
+      
+      if (newEmail && password) {
+        await companyService.updateEmail({
+          newEmail,
+          password
+        });
+        
+        setSaveStatus('success');
+        setSaveMessage('Email updated successfully! Please verify your new email.');
+        
+        setTimeout(() => {
+          setSaveMessage('');
+          setSaveStatus('');
+        }, 5000);
+      }
+    } catch (error) {
+      setSaveStatus('error');
+      setSaveMessage(error.message || 'Failed to update email');
+      
+      setTimeout(() => {
+        setSaveMessage('');
+        setSaveStatus('');
+      }, 5000);
+    }
+  };
+
+  // Account deletion handler
+  const handleAccountDeletion = async () => {
+    try {
+      const confirmation = confirm('Are you sure you want to delete your account? This action cannot be undone.');
+      
+      if (confirmation) {
+        const password = prompt('Enter your password to confirm account deletion:');
+        const confirmationText = prompt('Type "DELETE" to confirm:');
+        
+        if (password && confirmationText === 'DELETE') {
+          await companyService.deleteAccount({
+            password,
+            confirmation: confirmationText
+          });
+          
+          // Redirect to login after successful deletion
+          localStorage.clear();
+          window.location.href = '/login';
+        } else if (confirmationText !== 'DELETE') {
+          throw new Error('Please type "DELETE" to confirm');
+        }
+      }
+    } catch (error) {
+      setSaveStatus('error');
+      setSaveMessage(error.message || 'Failed to delete account');
+      
+      setTimeout(() => {
+        setSaveMessage('');
+        setSaveStatus('');
+      }, 5000);
+    }
+  };
+
   return (
     <div className="company-dashboard">
+      {isLoading ? (
+        <div className="loading-container">
+          <div className="loading-spinner">
+            <RiLoader4Line className="spin" />
+          </div>
+          <p>Loading company profile...</p>
+        </div>
+      ) : (
+        <>
       {/* Header */}
       <header className="dashboard-header">
         <div className="header-content">
@@ -152,8 +585,8 @@ const CompanyDashboard = () => {
                 <RiBuildingLine />
               </div>
               <div className="user-details">
-                <span className="user-name">{companyData.name}</span>
-                <span className="user-role">{companyData.industry}</span>
+                <span className="user-name">{companySettings.companyName || companyData.name}</span>
+                <span className="user-role">{companySettings.industry || companyData.industry}</span>
               </div>
             </div>
             <button className="logout-btn" onClick={handleLogout}>
@@ -207,7 +640,46 @@ const CompanyDashboard = () => {
       <main className="dashboard-main">
         {activeTab === 'overview' && (
           <div className="overview-tab">
-            <h2>Welcome back, {companyData.name}!</h2>
+            <h2>Welcome back, {companySettings.companyName || companyData.name}!</h2>
+            
+            {/* Company Information Overview */}
+            <div className="company-overview-card">
+              <h3>Company Profile</h3>
+              <div className="company-details">
+                <div className="detail-row">
+                  <strong>Company Name:</strong> {companySettings.companyName || 'Not set'}
+                </div>
+                <div className="detail-row">
+                  <strong>Industry:</strong> {companySettings.industry || 'Not specified'}
+                </div>
+                <div className="detail-row">
+                  <strong>Company Size:</strong> {companySettings.companySize || 'Not specified'}
+                </div>
+                <div className="detail-row">
+                  <strong>Founded:</strong> {companySettings.founded || 'Not specified'}
+                </div>
+                <div className="detail-row">
+                  <strong>Website:</strong> {companySettings.website ? (
+                    <a href={companySettings.website} target="_blank" rel="noopener noreferrer">
+                      {companySettings.website}
+                    </a>
+                  ) : 'Not set'}
+                </div>
+                <div className="detail-row">
+                  <strong>Location:</strong> {
+                    [companySettings.city, companySettings.state, companySettings.country]
+                      .filter(Boolean).join(', ') || 'Not specified'
+                  }
+                </div>
+                {companySettings.description && (
+                  <div className="detail-row description">
+                    <strong>Description:</strong>
+                    <p>{companySettings.description}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="stats-grid">
               <div className="stat-card">
                 <div className="stat-icon">
@@ -449,32 +921,372 @@ const CompanyDashboard = () => {
 
         {activeTab === 'settings' && (
           <div className="settings-tab">
-            <h2>Company Settings</h2>
+            <div className="tab-header">
+              <h2>Company Settings</h2>
+              <div className="save-section">
+                {saveMessage && (
+                  <div className={`save-message ${saveStatus}`}>
+                    {saveStatus === 'success' && <RiCheckLine />}
+                    {saveStatus === 'error' && <RiErrorWarningLine />}
+                    {saveMessage}
+                  </div>
+                )}
+                <button 
+                  className={`btn-primary ${isSaving ? 'loading' : ''}`} 
+                  onClick={handleSaveSettings}
+                  disabled={isSaving}
+                >
+                  {isSaving ? (
+                    <>
+                      <RiLoader4Line className="spinning" /> Saving...
+                    </>
+                  ) : (
+                    <>
+                      <RiSaveLine /> Save All Changes
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+            
             <div className="settings-sections">
+              {/* Company Logo Section */}
               <div className="settings-section">
-                <h3>Company Information</h3>
-                <div className="setting-item">
-                  <label>Company Name</label>
-                  <input type="text" value={companyData.name} />
+                <h3><RiImageLine /> Company Logo</h3>
+                <div className="logo-upload-section">
+                  <div className="current-logo">
+                    {logoPreview ? (
+                      <div className="logo-preview-container">
+                        <img src={logoPreview} alt="Company Logo Preview" className="logo-preview" />
+                        <button 
+                          type="button" 
+                          className="remove-logo-btn"
+                          onClick={handleRemoveLogo}
+                          title="Remove logo"
+                        >
+                          <RiCloseLine />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="logo-placeholder">
+                        <RiImageLine />
+                        <span>No logo uploaded</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="logo-upload-controls">
+                    <input
+                      type="file"
+                      id="logo-upload"
+                      accept="image/png,image/jpeg,image/jpg,image/svg+xml"
+                      onChange={handleLogoUpload}
+                      style={{ display: 'none' }}
+                      disabled={isSaving}
+                    />
+                    <label 
+                      htmlFor="logo-upload" 
+                      className={`btn-secondary ${isSaving ? 'disabled' : ''}`}
+                    >
+                      {isSaving ? (
+                        <>
+                          <RiLoader4Line className="spinning" /> Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <RiUploadCloudLine /> {logoPreview ? 'Change Logo' : 'Upload Logo'}
+                        </>
+                      )}
+                    </label>
+                    <p className="upload-hint">
+                      Recommended: 200x200px, max 5MB (PNG, JPG, SVG)
+                    </p>
+                  </div>
                 </div>
-                <div className="setting-item">
-                  <label>Email</label>
-                  <input type="email" value={companyData.email} />
+              </div>
+
+              {/* Basic Company Information */}
+              <div className="settings-section">
+                <h3><RiBuildingLine /> Basic Information</h3>
+                <div className="settings-grid">
+                  <div className="setting-item">
+                    <label>Company Name *</label>
+                    <input 
+                      type="text" 
+                      value={companySettings.companyName}
+                      onChange={(e) => handleBasicSettingsChange('companyName', e.target.value)}
+                      placeholder="Enter company name"
+                    />
+                  </div>
+                  <div className="setting-item">
+                    <label>Industry *</label>
+                    <select 
+                      value={companySettings.industry}
+                      onChange={(e) => handleBasicSettingsChange('industry', e.target.value)}
+                    >
+                      <option value="Technology">Technology</option>
+                      <option value="Healthcare">Healthcare</option>
+                      <option value="Finance">Finance</option>
+                      <option value="Education">Education</option>
+                      <option value="Manufacturing">Manufacturing</option>
+                      <option value="Retail">Retail</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div className="setting-item">
+                    <label>Company Size</label>
+                    <select 
+                      value={companySettings.companySize}
+                      onChange={(e) => handleBasicSettingsChange('companySize', e.target.value)}
+                    >
+                      <option value="1-10 employees">1-10 employees</option>
+                      <option value="11-50 employees">11-50 employees</option>
+                      <option value="51-100 employees">51-100 employees</option>
+                      <option value="100-500 employees">100-500 employees</option>
+                      <option value="500+ employees">500+ employees</option>
+                    </select>
+                  </div>
+                  <div className="setting-item">
+                    <label>Founded Year</label>
+                    <input 
+                      type="number" 
+                      value={companySettings.founded}
+                      onChange={(e) => handleBasicSettingsChange('founded', e.target.value)}
+                      placeholder="e.g., 2018"
+                      min="1800"
+                      max={new Date().getFullYear()}
+                    />
+                  </div>
                 </div>
-                <div className="setting-item">
-                  <label>Industry</label>
-                  <input type="text" value={companyData.industry} />
+                <div className="setting-item full-width">
+                  <label>Company Description</label>
+                  <textarea 
+                    value={companySettings.description}
+                    onChange={(e) => handleBasicSettingsChange('description', e.target.value)}
+                    placeholder="Describe your company, mission, and values..."
+                    rows="4"
+                  />
                 </div>
-                <div className="setting-item">
-                  <label>Location</label>
-                  <input type="text" value={companyData.location} />
+              </div>
+
+              {/* Contact Information */}
+              <div className="settings-section">
+                <h3><RiMailLine /> Contact Information</h3>
+                <div className="settings-grid">
+                  <div className="setting-item">
+                    <label>Email Address *</label>
+                    <div className="input-with-icon">
+                      <RiMailLine />
+                      <input 
+                        type="email" 
+                        value={companySettings.email}
+                        onChange={(e) => handleBasicSettingsChange('email', e.target.value)}
+                        placeholder="company@example.com"
+                      />
+                    </div>
+                  </div>
+                  <div className="setting-item">
+                    <label>Phone Number</label>
+                    <div className="input-with-icon">
+                      <RiPhoneLine />
+                      <input 
+                        type="tel" 
+                        value={companySettings.phone}
+                        onChange={(e) => handleBasicSettingsChange('phone', e.target.value)}
+                        placeholder="+1 (555) 123-4567"
+                      />
+                    </div>
+                  </div>
+                  <div className="setting-item">
+                    <label>Website</label>
+                    <div className="input-with-icon">
+                      <RiGlobalLine />
+                      <input 
+                        type="url" 
+                        value={companySettings.website}
+                        onChange={(e) => handleBasicSettingsChange('website', e.target.value)}
+                        placeholder="https://yourcompany.com"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <button className="btn-primary">Save Changes</button>
+              </div>
+
+              {/* Address Information */}
+              <div className="settings-section">
+                <h3><RiMapPinLine /> Address</h3>
+                <div className="settings-grid">
+                  <div className="setting-item full-width">
+                    <label>Street Address</label>
+                    <input 
+                      type="text" 
+                      value={companySettings.address}
+                      onChange={(e) => handleBasicSettingsChange('address', e.target.value)}
+                      placeholder="123 Business Street"
+                    />
+                  </div>
+                  <div className="setting-item">
+                    <label>City</label>
+                    <input 
+                      type="text" 
+                      value={companySettings.city}
+                      onChange={(e) => handleBasicSettingsChange('city', e.target.value)}
+                      placeholder="San Francisco"
+                    />
+                  </div>
+                  <div className="setting-item">
+                    <label>State/Province</label>
+                    <input 
+                      type="text" 
+                      value={companySettings.state}
+                      onChange={(e) => handleBasicSettingsChange('state', e.target.value)}
+                      placeholder="CA"
+                    />
+                  </div>
+                  <div className="setting-item">
+                    <label>ZIP/Postal Code</label>
+                    <input 
+                      type="text" 
+                      value={companySettings.zipCode}
+                      onChange={(e) => handleBasicSettingsChange('zipCode', e.target.value)}
+                      placeholder="94102"
+                    />
+                  </div>
+                  <div className="setting-item">
+                    <label>Country</label>
+                    <select 
+                      value={companySettings.country}
+                      onChange={(e) => handleBasicSettingsChange('country', e.target.value)}
+                    >
+                      <option value="United States">United States</option>
+                      <option value="Canada">Canada</option>
+                      <option value="United Kingdom">United Kingdom</option>
+                      <option value="Australia">Australia</option>
+                      <option value="Germany">Germany</option>
+                      <option value="France">France</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Social Media */}
+              <div className="settings-section">
+                <h3><RiGlobalLine /> Social Media</h3>
+                <div className="settings-grid">
+                  <div className="setting-item">
+                    <label>LinkedIn URL</label>
+                    <input 
+                      type="url" 
+                      value={companySettings.linkedinUrl}
+                      onChange={(e) => handleBasicSettingsChange('linkedinUrl', e.target.value)}
+                      placeholder="https://linkedin.com/company/yourcompany"
+                    />
+                  </div>
+                  <div className="setting-item">
+                    <label>Twitter URL</label>
+                    <input 
+                      type="url" 
+                      value={companySettings.twitterUrl}
+                      onChange={(e) => handleBasicSettingsChange('twitterUrl', e.target.value)}
+                      placeholder="https://twitter.com/yourcompany"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Notification Preferences */}
+              <div className="settings-section">
+                <h3><RiNotificationLine /> Notification Preferences</h3>
+                <div className="notification-settings">
+                  <div className="notification-item">
+                    <div className="notification-info">
+                      <h4>Email Alerts</h4>
+                      <p>Receive important updates via email</p>
+                    </div>
+                    <label className="toggle-switch">
+                      <input 
+                        type="checkbox" 
+                        checked={companySettings.notifications.emailAlerts}
+                        onChange={(e) => handleSettingsChange('notifications', 'emailAlerts', e.target.checked)}
+                      />
+                      <span className="slider"></span>
+                    </label>
+                  </div>
+                  <div className="notification-item">
+                    <div className="notification-info">
+                      <h4>SMS Alerts</h4>
+                      <p>Get urgent notifications via SMS</p>
+                    </div>
+                    <label className="toggle-switch">
+                      <input 
+                        type="checkbox" 
+                        checked={companySettings.notifications.smsAlerts}
+                        onChange={(e) => handleSettingsChange('notifications', 'smsAlerts', e.target.checked)}
+                      />
+                      <span className="slider"></span>
+                    </label>
+                  </div>
+                  <div className="notification-item">
+                    <div className="notification-info">
+                      <h4>Application Updates</h4>
+                      <p>Notifications when candidates apply to your jobs</p>
+                    </div>
+                    <label className="toggle-switch">
+                      <input 
+                        type="checkbox" 
+                        checked={companySettings.notifications.applicationUpdates}
+                        onChange={(e) => handleSettingsChange('notifications', 'applicationUpdates', e.target.checked)}
+                      />
+                      <span className="slider"></span>
+                    </label>
+                  </div>
+                  <div className="notification-item">
+                    <div className="notification-info">
+                      <h4>Weekly Reports</h4>
+                      <p>Receive weekly analytics and performance reports</p>
+                    </div>
+                    <label className="toggle-switch">
+                      <input 
+                        type="checkbox" 
+                        checked={companySettings.notifications.weeklyReports}
+                        onChange={(e) => handleSettingsChange('notifications', 'weeklyReports', e.target.checked)}
+                      />
+                      <span className="slider"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Account Security */}
+              <div className="settings-section">
+                <h3><RiLockLine /> Account Security</h3>
+                <div className="security-actions">
+                  <button 
+                    className="btn-secondary"
+                    onClick={handlePasswordChange}
+                  >
+                    <RiLockLine /> Change Password
+                  </button>
+                  <button 
+                    className="btn-secondary"
+                    onClick={handleEmailUpdate}
+                  >
+                    <RiMailLine /> Update Email
+                  </button>
+                  <button 
+                    className="btn-danger"
+                    onClick={handleAccountDeletion}
+                  >
+                    <RiDeleteBinLine /> Delete Account
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         )}
       </main>
+        </>
+      )}
     </div>
   );
 };
