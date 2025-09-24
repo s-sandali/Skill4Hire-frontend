@@ -29,6 +29,7 @@ function App() {
         <Route path="/candidate-home" element={<CandidatePage />} />
         <Route path="/candidate-dashboard" element={<CandidatePage />} />
         <Route path="/candidate-profile" element={<CandidatePage />} />
+        <Route path="/candidate-applications" element={<CandidatePage />} />
         <Route path="/candidate-setup" element={<CandidatePage />} />
       </Routes>
     </Router>
