@@ -55,7 +55,8 @@ export const candidateService = {
       const response = await apiClient.post('/api/candidates/skills', null, {
         params: { skill } // Matches backend @RequestParam("skill")
       });
-      return response.data;
+      const data = response.data;
+      return Array.isArray(data) ? data : (data?.skills ?? []);
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Failed to add skill');
     }
@@ -64,7 +65,8 @@ export const candidateService = {
   removeSkill: async (skill) => {
     try {
       const response = await apiClient.delete(`/api/candidates/skills/${encodeURIComponent(skill)}`);
-      return response.data;
+      const data = response.data;
+      return Array.isArray(data) ? data : (data?.skills ?? []);
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Failed to remove skill');
     }

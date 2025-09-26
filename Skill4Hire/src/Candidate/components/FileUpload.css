@@ -59,3 +59,39 @@
   text-align: center;
 }
 
+/* Selected files display */
+.file-upload-selected {
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.file-upload-name {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.file-upload-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.file-upload-item {
+  background: var(--card-bg);
+  border: 1px solid var(--divider-border);
+  color: var(--text-secondary);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+}
+
+.file-upload-clear {
+  margin-left: auto;
+}
+
