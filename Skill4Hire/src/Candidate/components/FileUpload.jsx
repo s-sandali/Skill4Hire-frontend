@@ -9,31 +9,24 @@ export default function FileUpload({
   maxSize = 5 * 1024 * 1024, // 5MB default
   label = "Choose File",
   description = "Drag and drop or click to select",
+  allowedTypes = [] // Add allowed types for better validation
 }) {
-  const [isDragOver, setIsDragOver] = useState(false)
-  const [error, setError] = useState("")
-  const fileInputRef = useRef(null)
-
   const validateFile = (file) => {
+    // Size validation
     if (file.size > maxSize) {
       setError(`File size must be less than ${Math.round(maxSize / 1024 / 1024)}MB`)
       return false
     }
 
-    if (accept !== "*/*") {
-      const acceptedTypes = accept.split(",").map((type) => type.trim())
-      const fileType = file.type
+    // Type validation
+    if (accept !== "*/*" && allowedTypes.length > 0) {
       const fileExtension = "." + file.name.split(".").pop().toLowerCase()
-
-      const isValidType = acceptedTypes.some(
-        (type) =>
-          type === fileType ||
-          type === fileExtension ||
-          (type.endsWith("/*") && fileType.startsWith(type.replace("/*", ""))),
+      const isValidType = allowedTypes.some(type => 
+        type === file.type || fileExtension === type
       )
 
       if (!isValidType) {
-        setError(`File type not supported. Accepted types: ${accept}`)
+        setError(`File type not supported. Accepted types: ${allowedTypes.join(", ")}`)
         return false
       }
     }
@@ -41,7 +34,6 @@ export default function FileUpload({
     setError("")
     return true
   }
-
   const handleFileSelect = (file) => {
     if (validateFile(file)) {
       onFileSelect(file)
