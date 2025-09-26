@@ -17,10 +17,10 @@ export const candidateService = {
       const backendProfileData = {
         name: profileData.name,
         email: profileData.email,
-        phoneNumber: profileData.phone,
+        phoneNumber: profileData.phoneNumber || profileData.phone,
         location: profileData.location,
         title: profileData.title,
-        headline: profileData.bio, // Map bio to headline
+        headline: profileData.headline || profileData.bio,
         skills: profileData.skills,
         education: profileData.education,
         experience: profileData.experience,
