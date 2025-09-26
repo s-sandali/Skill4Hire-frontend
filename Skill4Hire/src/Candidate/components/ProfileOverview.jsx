@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom"
-import { FiMapPin, FiMail, FiPhone, FiBook, FiBriefcase, FiEdit3, FiDownload } from "react-icons/fi"
+import { FiMapPin, FiMail, FiPhone, FiEdit3, FiDownload } from "react-icons/fi"
 import { useState, useEffect, useCallback } from "react"
 import "../base.css"
 import "../buttons.css"
@@ -8,19 +8,35 @@ import "./ProfileOverview.css"
 export default function ProfileOverview({ candidate }) {
   const [completeness, setCompleteness] = useState(0)
 
+  const fetchProfileCompleteness = useCallback(async () => {
+    try {
+      const { candidateService } = await import("../../services/candidateService")
+      const completenessData = await candidateService.checkProfileCompleteness()
+      // Backend returns { completeness: number, message: string }
+      setCompleteness(completenessData.completeness || 0)
+    } catch (error) {
+      console.error("Error fetching profile completeness:", error)
+      // Fallback to calculated completeness
+      setCompleteness(calculateCompleteness(candidate))
+    }
+  }, [candidate])
+
+  // Update the fallback calculation to match backend fields
   const calculateCompleteness = (candidate) => {
     if (!candidate) return 0
     
     const fields = [
       'name', 'email', 'phoneNumber', 'location', 'title', 'headline',
-      'experience', 'education', 'skills', 'resumePath'
+      'skills', 'education', 'experience', 'resumePath', 'profilePicturePath'
     ]
     
     const filledFields = fields.filter(field => {
       const value = candidate[field]
       
+      // Handle different field types
       if (Array.isArray(value)) return value.length > 0
       if (typeof value === 'object' && value !== null) {
+        // Check if embedded object has content
         return Object.values(value).some(val => 
           val !== null && val !== undefined && val.toString().trim() !== ''
         )
@@ -31,28 +47,19 @@ export default function ProfileOverview({ candidate }) {
     return Math.round((filledFields / fields.length) * 100)
   }
 
-  const fetchProfileCompleteness = useCallback(async () => {
-    try {
-      const { candidateService } = await import("../../services/candidateService")
-      const completenessData = await candidateService.checkProfileCompleteness()
-      setCompleteness(completenessData.completeness || completenessData.completenessPercentage || 0)
-    } catch (error) {
-      console.error("Error fetching profile completeness:", error)
-      setCompleteness(calculateCompleteness(candidate))
-    }
-  }, [candidate])
-
   useEffect(() => {
     if (candidate) {
       fetchProfileCompleteness()
     }
   }, [candidate, fetchProfileCompleteness])
 
-  // Format experience for display using backend DTO structure
+  // Format experience for display - match backend structure
   const formatExperience = (experience) => {
-    if (!experience || !experience.isExperienced) return "No experience listed yet."
+    if (!experience) return "No experience listed yet."
     
-    const { role, company, yearsOfExperience } = experience
+    const { isExperienced, role, company, yearsOfExperience } = experience
+    
+    if (!isExperienced) return "No experience listed yet."
     
     let experienceText = ""
     if (role) experienceText += role
@@ -62,7 +69,7 @@ export default function ProfileOverview({ candidate }) {
     return experienceText || "Experience details available"
   }
 
-  // Format education for display using backend DTO structure
+  // Format education for display - match backend structure
   const formatEducation = (education) => {
     if (!education) return "No education listed yet."
     
@@ -76,29 +83,44 @@ export default function ProfileOverview({ candidate }) {
     return educationText || "Education details available"
   }
 
-  // Use candidate data if available, properly mapped to backend DTO
+  // Use candidate data with backend field names
   const profileData = candidate ? {
     name: candidate.name || "First Last",
     title: candidate.title || "Professional",
     location: candidate.location || "Location not specified",
     email: candidate.email || "email@example.com",
-    phoneNumber: candidate.phoneNumber || "Phone not provided",
-    headline: candidate.headline || "Complete your profile to tell employers about yourself.",
+    phone: candidate.phoneNumber || "Phone not provided", // Use phoneNumber from backend
+    bio: candidate.headline || "Complete your profile to tell employers about yourself.", // headline from backend
     skills: candidate.skills || [],
     experience: candidate.experience,
     education: candidate.education,
-    profileCompleteness: candidate.profileCompleteness || completeness,
+    resumePath: candidate.resumePath,
+    profilePicturePath: candidate.profilePicturePath,
+    completeness: candidate.profileCompleteness || completeness,
   } : {
     name: "First Last", 
     title: "Professional",
     location: "Location not specified",
     email: "email@example.com",
-    phoneNumber: "Phone not provided",
-    headline: "Complete your profile to tell employers about yourself.",
+    phone: "Phone not provided",
+    bio: "Complete your profile to tell employers about yourself.",
     skills: [],
     experience: null,
     education: null,
-    profileCompleteness: completeness,
+    resumePath: null,
+    profilePicturePath: null,
+    completeness: completeness,
+  }
+
+  // Add resume download functionality
+  const handleDownloadResume = () => {
+    if (profileData.resumePath) {
+      // Construct the full URL to the resume file
+      const resumeUrl = `http://localhost:8080/uploads/resumes/${profileData.resumePath}`
+      window.open(resumeUrl, '_blank')
+    } else {
+      alert('No resume available for download')
+    }
   }
 
   return (
@@ -106,17 +128,27 @@ export default function ProfileOverview({ candidate }) {
       <div className="profile-header">
         <div className="profile-header-content">
           <div className="profile-avatar-section">
-            <img src="/professional-headshot.png" alt="Profile" className="profile-avatar-large" />
+            {/* Use profile picture from backend if available */}
+            <img 
+              src={profileData.profilePicturePath 
+                ? `http://localhost:8080/uploads/profile-pictures/${profileData.profilePicturePath}`
+                : "/professional-headshot.png"
+              } 
+              alt="Profile" 
+              className="profile-avatar-large" 
+            />
             <div className="profile-completeness">
               <div className="completeness-circle">
-                <span className="completeness-text">{profileData.profileCompleteness}%</span>
+                <span className="completeness-text">{profileData.completeness}%</span>
               </div>
               <div className="completeness-label">Complete</div>
             </div>
           </div>
 
           <div className="profile-basic-info">
-            <h1 className="profile-name">{profileData.name}</h1>
+            <h1 className="profile-name">
+              {profileData.name}
+            </h1>
             <h2 className="profile-title">{profileData.title}</h2>
             <p className="profile-location">
               <FiMapPin className="profile-icon" size={16} />
@@ -130,9 +162,11 @@ export default function ProfileOverview({ candidate }) {
               </div>
               <div className="contact-item">
                 <FiPhone className="profile-icon" size={16} />
-                {profileData.phoneNumber}
+                {profileData.phone}
               </div>
             </div>
+
+            {/* Remove social links since they're not in backend */}
           </div>
         </div>
 
@@ -141,7 +175,7 @@ export default function ProfileOverview({ candidate }) {
             <FiEdit3 size={16} />
             Edit Profile
           </Link>
-          <button className="btn btn-secondary">
+          <button className="btn btn-secondary" onClick={handleDownloadResume}>
             <FiDownload size={16} />
             Download Resume
           </button>
@@ -152,7 +186,7 @@ export default function ProfileOverview({ candidate }) {
         <div className="profile-section">
           <h3 className="section-title">About</h3>
           <div className="section-content">
-            <p className="profile-bio">{profileData.headline}</p>
+            <p className="profile-bio">{profileData.bio}</p>
           </div>
         </div>
 
@@ -160,21 +194,17 @@ export default function ProfileOverview({ candidate }) {
           <h3 className="section-title">Skills</h3>
           <div className="section-content">
             <div className="skills-grid">
-              {profileData.skills && profileData.skills.length > 0 ? 
-                profileData.skills.map((skill, index) => (
-                  <span key={index} className="skill-badge">{skill}</span>
-                )) : 
-                <p>No skills listed</p>
-              }
+              {profileData.skills && profileData.skills.length > 0 ? profileData.skills.map((skill, index) => (
+                <span key={index} className="skill-badge">
+                  {skill}
+                </span>
+              )) : <p>No skills listed</p>}
             </div>
           </div>
         </div>
 
         <div className="profile-section">
-          <h3 className="section-title">
-            <FiBriefcase className="section-icon" size={18} />
-            Experience
-          </h3>
+          <h3 className="section-title">Experience</h3>
           <div className="section-content">
             <div className="experience-text">
               {formatExperience(profileData.experience)}
@@ -183,16 +213,23 @@ export default function ProfileOverview({ candidate }) {
         </div>
 
         <div className="profile-section">
-          <h3 className="section-title">
-            <FiBook className="section-icon" size={18} />
-            Education
-          </h3>
+          <h3 className="section-title">Education</h3>
           <div className="section-content">
             <div className="education-text">
               {formatEducation(profileData.education)}
             </div>
           </div>
         </div>
+
+        {/* Add resume status section */}
+        {profileData.resumePath && (
+          <div className="profile-section">
+            <h3 className="section-title">Resume</h3>
+            <div className="section-content">
+              <p>Resume is available for download</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
