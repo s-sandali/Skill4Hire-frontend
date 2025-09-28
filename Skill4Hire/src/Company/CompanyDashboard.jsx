@@ -28,7 +28,8 @@ import {
   RiCheckLine,
   RiErrorWarningLine,
   RiLoader4Line,
-  RiCloseLine
+  RiCloseLine,
+  RiRefreshLine
 } from 'react-icons/ri';
 import { authService } from '../services/authService';
 import { companyService } from '../services/companyService';
@@ -47,9 +48,10 @@ const CompanyDashboard = () => {
   const [jobsLoading, setJobsLoading] = useState(false);
   const [showJobForm, setShowJobForm] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
-  const [viewingJob, setViewingJob] = useState(null);
   const [jobError, setJobError] = useState('');
-  const [jobToDelete, setJobToDelete] = useState(null); 
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [showJobDetails, setShowJobDetails] = useState(false);
+
   // Company settings state
   const [companyLogo, setCompanyLogo] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
@@ -143,21 +145,21 @@ const CompanyDashboard = () => {
     try {
       setJobsLoading(true);
       setJobError('');
-      console.log('🔄 Loading job postings...');
+      console.log('Loading job postings...');
       
       const jobs = await jobService.getAll();
-      console.log('📦 Loaded jobs:', jobs);
+      console.log('Loaded jobs:', jobs);
       
       setJobPostings(jobs || []);
     } catch (error) {
-      console.error('❌ Failed to load job postings:', error);
+      console.error('Failed to load job postings:', error);
       setJobError('Failed to load job postings: ' + (error.response?.data?.message || error.message));
     } finally {
       setJobsLoading(false);
     }
   };
 
-  // Handle job deletion
+  // Handle job deletion with confirmation
   const handleDeleteJob = async (jobId) => {
     if (!window.confirm('Are you sure you want to delete this job posting? This action cannot be undone.')) {
       return;
@@ -170,9 +172,9 @@ const CompanyDashboard = () => {
       // Remove from local state
       setJobPostings(prevJobs => prevJobs.filter(job => job.id !== jobId));
       
-      console.log('✅ Job deleted successfully');
+      console.log('Job deleted successfully');
     } catch (error) {
-      console.error('❌ Failed to delete job:', error);
+      console.error('Failed to delete job:', error);
       setJobError('Failed to delete job: ' + (error.response?.data?.message || error.message));
     } finally {
       setJobsLoading(false);
@@ -181,24 +183,14 @@ const CompanyDashboard = () => {
 
   // Handle job creation/editing
   const handleJobSave = async (savedJob) => {
-    console.log('✅ Job saved:', savedJob);
+    console.log('Job saved:', savedJob);
     
-    // Refresh job list to show the new/updated job
+    // Refresh job list
     await loadJobPostings();
     
-    // Close form and clear editing state
+    // Close form
     setShowJobForm(false);
     setEditingJob(null);
-    
-    // Show success message
-    setSaveStatus('success');
-    setSaveMessage(editingJob ? 'Job updated successfully!' : 'Job created successfully!');
-    
-    // Clear message after 3 seconds
-    setTimeout(() => {
-      setSaveMessage('');
-      setSaveStatus('');
-    }, 3000);
   };
 
   // Handle job form cancel
@@ -207,14 +199,31 @@ const CompanyDashboard = () => {
     setEditingJob(null);
   };
 
-  // Handle viewing job details
-  const handleViewJob = (job) => {
-    setViewingJob(job);
+  // Handle creating new job
+  const handleCreateNewJob = () => {
+    console.log('Creating new job');
+    setEditingJob(null); // Clear any existing editing job
+    setShowJobForm(true);
   };
 
-  // Close job details modal
+  // Handle editing existing job
+  const handleEditJob = (job) => {
+    console.log('Editing job:', job);
+    setEditingJob(job);
+    setShowJobForm(true);
+  };
+
+  // Handle viewing job details
+  const handleViewJobDetails = (job) => {
+    console.log('Viewing job details:', job);
+    setSelectedJob(job);
+    setShowJobDetails(true);
+  };
+
+  // Handle closing job details
   const handleCloseJobDetails = () => {
-    setViewingJob(null);
+    setSelectedJob(null);
+    setShowJobDetails(false);
   };
 
   // Format job status for display
@@ -259,13 +268,13 @@ const CompanyDashboard = () => {
   const loadCompanyProfile = async () => {
     try {
       setIsLoading(true);
-      console.log('🔄 Loading company profile...');
+      console.log('Loading company profile...');
       
       const profileData = await companyService.getProfile();
-      console.log('📦 Raw profile data from API:', profileData);
+      console.log('Raw profile data from API:', profileData);
       
       if (!profileData) {
-        console.log('❌ No profile data received');
+        console.log('No profile data received');
         return;
       }
       
@@ -302,7 +311,7 @@ const CompanyDashboard = () => {
       }
       
     } catch (error) {
-      console.error('❌ Failed to load company profile:', error);
+      console.error('Failed to load company profile:', error);
       if (error.response?.status === 403) {
         setSaveMessage('Authentication failed. Please login again.');
         setSaveStatus('error');
@@ -323,7 +332,7 @@ const CompanyDashboard = () => {
 
   // Load jobs when jobs tab is selected
   useEffect(() => {
-    if (activeTab === 'jobs' && jobPostings.length === 0) {
+    if (activeTab === 'jobs' && jobPostings.length === 0 && !jobsLoading) {
       loadJobPostings();
     }
   }, [activeTab]);
@@ -376,7 +385,7 @@ const CompanyDashboard = () => {
       }, 3000);
 
     } catch (error) {
-      console.error('❌ Logo upload failed:', error);
+      console.error('Logo upload failed:', error);
       setSaveStatus('error');
       setSaveMessage(error.message || 'Failed to upload logo');
       setIsSaving(false);
@@ -746,25 +755,26 @@ const CompanyDashboard = () => {
                 {showJobForm ? (
                   <JobForm
                     jobId={editingJob?.id}
-                   initialJob={editingJob}   
+                    initialJob={editingJob}
                     onSave={handleJobSave}
-                  onCancel={handleJobFormCancel}
+                    onCancel={handleJobFormCancel}
                   />
                 ) : (
                   <>
                     <div className="tab-header">
                       <h2>Job Postings</h2>
-                      <div className="save-section">
-                        {saveMessage && (
-                          <div className={`save-message ${saveStatus}`}>
-                            {saveStatus === 'success' && <RiCheckLine />}
-                            {saveStatus === 'error' && <RiErrorWarningLine />}
-                            {saveMessage}
-                          </div>
-                        )}
+                      <div className="header-actions">
+                        <button 
+                          className="btn-secondary"
+                          onClick={loadJobPostings}
+                          disabled={jobsLoading}
+                          title="Refresh job postings"
+                        >
+                          <RiRefreshLine />
+                        </button>
                         <button 
                           className="btn-primary"
-                          onClick={() => setShowJobForm(true)}
+                          onClick={handleCreateNewJob}
                           disabled={jobsLoading}
                         >
                           <RiAddLine /> Post New Job
@@ -774,7 +784,15 @@ const CompanyDashboard = () => {
 
                     {jobError && (
                       <div className="error-message">
+                        <RiErrorWarningLine />
                         {jobError}
+                        <button 
+                          className="retry-btn"
+                          onClick={loadJobPostings}
+                          disabled={jobsLoading}
+                        >
+                          Retry
+                        </button>
                       </div>
                     )}
 
@@ -792,7 +810,7 @@ const CompanyDashboard = () => {
                         <p>Create your first job posting to start attracting candidates.</p>
                         <button 
                           className="btn-primary"
-                          onClick={() => setShowJobForm(true)}
+                          onClick={handleCreateNewJob}
                         >
                           <RiAddLine /> Post Your First Job
                         </button>
@@ -820,17 +838,13 @@ const CompanyDashboard = () => {
                             <div className="job-actions">
                               <button 
                                 className="btn-primary"
-                                onClick={() => handleViewJob(job)}
+                                onClick={() => handleViewJobDetails(job)}
                               >
                                 <RiEyeLine /> View Details
                               </button>
                               <button 
                                 className="btn-secondary"
-                                onClick={() => {
-                                  console.log('🔧 Editing job:', job);
-                                  setEditingJob(job);
-                                  setShowJobForm(true);
-                                }}
+                                onClick={() => handleEditJob(job)}
                               >
                                 <RiEditLine /> Edit
                               </button>
@@ -848,73 +862,95 @@ const CompanyDashboard = () => {
                     )}
 
                     {/* Job Details Modal */}
-                    {viewingJob && (
+                    {showJobDetails && selectedJob && (
                       <div className="modal-overlay" onClick={handleCloseJobDetails}>
-                        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        <div className="job-details-modal" onClick={(e) => e.stopPropagation()}>
                           <div className="modal-header">
-                            <h2>{viewingJob.title}</h2>
+                            <h2>{selectedJob.title}</h2>
                             <button className="close-btn" onClick={handleCloseJobDetails}>
                               <RiCloseLine />
                             </button>
                           </div>
-                          <div className="modal-body">
-                            <div className="job-detail-section">
-                              <h3>Job Information</h3>
-                              <div className="detail-grid">
-                                <div className="detail-item">
-                                  <strong>Job Type:</strong> {viewingJob.type}
-                                </div>
-                                <div className="detail-item">
-                                  <strong>Location:</strong> {viewingJob.location}
-                                </div>
-                                {viewingJob.salary && (
-                                  <div className="detail-item">
-                                    <strong>Salary:</strong> ${viewingJob.salary.toLocaleString()} per year
-                                  </div>
-                                )}
-                                {viewingJob.experience && (
-                                  <div className="detail-item">
-                                    <strong>Experience Required:</strong> {viewingJob.experience} years
-                                  </div>
-                                )}
-                                {viewingJob.deadline && (
-                                  <div className="detail-item">
-                                    <strong>Application Deadline:</strong> {new Date(viewingJob.deadline).toLocaleDateString()}
-                                  </div>
-                                )}
-                                <div className="detail-item">
-                                  <strong>Status:</strong> 
-                                  <span className={`status-badge ${getJobStatusClass(viewingJob)}`}>
-                                    {formatJobStatus(viewingJob)}
-                                  </span>
-                                </div>
+                          <div className="modal-content">
+                            <div className="job-info-grid">
+                              <div className="info-item">
+                                <strong>Job Type:</strong>
+                                <span>{selectedJob.type}</span>
                               </div>
+                              <div className="info-item">
+                                <strong>Location:</strong>
+                                <span>{selectedJob.location}</span>
+                              </div>
+                              <div className="info-item">
+                                <strong>Status:</strong>
+                                <span className={`status-badge ${getJobStatusClass(selectedJob)}`}>
+                                  {formatJobStatus(selectedJob)}
+                                </span>
+                              </div>
+                              {selectedJob.salary && (
+                                <div className="info-item">
+                                  <strong>Salary:</strong>
+                                  <span>${selectedJob.salary.toLocaleString()}</span>
+                                </div>
+                              )}
+                              {selectedJob.experience && (
+                                <div className="info-item">
+                                  <strong>Experience Required:</strong>
+                                  <span>{selectedJob.experience} years</span>
+                                </div>
+                              )}
+                              {selectedJob.deadline && (
+                                <div className="info-item">
+                                  <strong>Application Deadline:</strong>
+                                  <span>{new Date(selectedJob.deadline).toLocaleDateString()}</span>
+                                </div>
+                              )}
+                              {selectedJob.createdAt && (
+                                <div className="info-item">
+                                  <strong>Posted Date:</strong>
+                                  <span>{new Date(selectedJob.createdAt).toLocaleDateString()}</span>
+                                </div>
+                              )}
+                              {selectedJob.updatedAt && (
+                                <div className="info-item">
+                                  <strong>Last Updated:</strong>
+                                  <span>{new Date(selectedJob.updatedAt).toLocaleDateString()}</span>
+                                </div>
+                              )}
                             </div>
-                            
-                            <div className="job-detail-section">
+                            <div className="description-section">
                               <h3>Job Description</h3>
                               <div className="job-description-full">
-                                {viewingJob.description}
+                                {selectedJob.description.split('\n').map((paragraph, index) => (
+                                  <p key={index}>{paragraph}</p>
+                                ))}
                               </div>
                             </div>
-                            
-                            {viewingJob.createdAt && (
-                              <div className="job-detail-section">
-                                <h3>Posting Information</h3>
-                                <p><strong>Posted on:</strong> {new Date(viewingJob.createdAt).toLocaleDateString()}</p>
-                                {viewingJob.updatedAt && viewingJob.updatedAt !== viewingJob.createdAt && (
-                                  <p><strong>Last updated:</strong> {new Date(viewingJob.updatedAt).toLocaleDateString()}</p>
-                                )}
+                            {selectedJob.company && (
+                              <div className="company-section">
+                                <h3>Company Information</h3>
+                                <div className="company-info">
+                                  <p><strong>Company:</strong> {selectedJob.company.name || companySettings.companyName}</p>
+                                  {selectedJob.company.industry && (
+                                    <p><strong>Industry:</strong> {selectedJob.company.industry}</p>
+                                  )}
+                                  {selectedJob.company.website && (
+                                    <p><strong>Website:</strong> 
+                                      <a href={selectedJob.company.website} target="_blank" rel="noopener noreferrer">
+                                        {selectedJob.company.website}
+                                      </a>
+                                    </p>
+                                  )}
+                                </div>
                               </div>
                             )}
                           </div>
-                          <div className="modal-footer">
+                          <div className="modal-actions">
                             <button 
-                              className="btn-secondary"
+                              className="btn-primary"
                               onClick={() => {
-                                setEditingJob(viewingJob);
-                                setViewingJob(null);
-                                setShowJobForm(true);
+                                handleCloseJobDetails();
+                                handleEditJob(selectedJob);
                               }}
                             >
                               <RiEditLine /> Edit Job
@@ -923,12 +959,12 @@ const CompanyDashboard = () => {
                               className="btn-danger"
                               onClick={() => {
                                 handleCloseJobDetails();
-                                handleDeleteJob(viewingJob.id);
+                                handleDeleteJob(selectedJob.id);
                               }}
                             >
                               <RiDeleteBinLine /> Delete Job
                             </button>
-                            <button className="btn-primary" onClick={handleCloseJobDetails}>
+                            <button className="btn-secondary" onClick={handleCloseJobDetails}>
                               Close
                             </button>
                           </div>
@@ -1199,6 +1235,7 @@ const CompanyDashboard = () => {
                           value={companySettings.industry}
                           onChange={(e) => handleBasicSettingsChange('industry', e.target.value)}
                         >
+                          <option value="">Select Industry</option>
                           <option value="Technology">Technology</option>
                           <option value="Healthcare">Healthcare</option>
                           <option value="Finance">Finance</option>
@@ -1214,6 +1251,7 @@ const CompanyDashboard = () => {
                           value={companySettings.companySize}
                           onChange={(e) => handleBasicSettingsChange('companySize', e.target.value)}
                         >
+                          <option value="">Select Size</option>
                           <option value="1-10 employees">1-10 employees</option>
                           <option value="11-50 employees">11-50 employees</option>
                           <option value="51-100 employees">51-100 employees</option>
@@ -1333,6 +1371,7 @@ const CompanyDashboard = () => {
                           value={companySettings.country}
                           onChange={(e) => handleBasicSettingsChange('country', e.target.value)}
                         >
+                          <option value="">Select Country</option>
                           <option value="United States">United States</option>
                           <option value="Canada">Canada</option>
                           <option value="United Kingdom">United Kingdom</option>
@@ -1365,6 +1404,15 @@ const CompanyDashboard = () => {
                           value={companySettings.twitterUrl}
                           onChange={(e) => handleBasicSettingsChange('twitterUrl', e.target.value)}
                           placeholder="https://twitter.com/yourcompany"
+                        />
+                      </div>
+                      <div className="setting-item">
+                        <label>Facebook URL</label>
+                        <input 
+                          type="url" 
+                          value={companySettings.facebookUrl}
+                          onChange={(e) => handleBasicSettingsChange('facebookUrl', e.target.value)}
+                          placeholder="https://facebook.com/yourcompany"
                         />
                       </div>
                     </div>

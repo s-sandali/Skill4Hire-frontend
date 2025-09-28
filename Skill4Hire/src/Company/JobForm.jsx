@@ -1,4 +1,4 @@
-// src/components/JobForm.jsx
+// src/components/JobForm.jsx - Improved version with debugging
 import { useState, useEffect } from "react";
 import { jobService } from "../services/jobService";
 import {
@@ -27,7 +27,11 @@ const JobForm = ({ jobId, initialJob, onSave, onCancel }) => {
 
   // Hydrate form when editing or reset when creating
   useEffect(() => {
-    if (initialJob) {
+    console.log('🔄 JobForm useEffect - jobId:', jobId, 'initialJob:', initialJob);
+    
+    if (initialJob && jobId) {
+      // Editing mode - populate form with existing job data
+      console.log('✏️ Setting form for editing:', initialJob);
       setJob({
         title: initialJob.title || "",
         description: initialJob.description || "",
@@ -40,6 +44,8 @@ const JobForm = ({ jobId, initialJob, onSave, onCancel }) => {
           : "",
       });
     } else {
+      // Creating mode - reset form
+      console.log('➕ Resetting form for creation');
       setJob({
         title: "",
         description: "",
@@ -63,6 +69,8 @@ const JobForm = ({ jobId, initialJob, onSave, onCancel }) => {
     e.preventDefault();
     try {
       setLoading(true);
+
+      // Build the job data payload
       const jobData = {
         title: job.title.trim(),
         description: job.description.trim(),
@@ -72,6 +80,9 @@ const JobForm = ({ jobId, initialJob, onSave, onCancel }) => {
         experience: job.experience ? parseInt(job.experience) : null,
         deadline: job.deadline,
       };
+
+      console.log("📦 Sending job payload:", jobData);
+
       let result;
       if (jobId) {
         result = await jobService.update(jobId, jobData);
@@ -80,12 +91,18 @@ const JobForm = ({ jobId, initialJob, onSave, onCancel }) => {
         result = await jobService.create(jobData);
         setSuccess("Job created successfully!");
       }
+
       if (onSave) onSave(result);
       setTimeout(() => {
         if (onCancel) onCancel();
       }, 1500);
     } catch (err) {
-      setError(err.message || "Failed to save job");
+      console.error("❌ Job save error:", err);
+      const errorMessage = err.response?.data?.message || 
+                          err.response?.data || 
+                          err.message || 
+                          "Failed to save job";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
