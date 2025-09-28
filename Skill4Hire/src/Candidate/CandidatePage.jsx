@@ -5,6 +5,7 @@ import { useLocation } from "react-router-dom"
 import CandidateLayout from "./components/CandidateLayout.jsx"
 import CandidateHome from "./CandidateHome.jsx"
 import ProfileOverview from "./components/ProfileOverview.jsx"
+import Applications from "./components/Applications.jsx"
 import ProfileSetupForm from "./components/ProfileSetupForm.jsx"
 import { candidateService } from "../services/candidateService"
 import "./base.css"
@@ -38,6 +39,8 @@ export default function CandidatePage() {
       return <DashboardView candidate={candidate} />
     } else if (path === "/candidate-profile") {
       return <ProfileOverview candidate={candidate} />
+    } else if (path === "/candidate-applications") {
+      return <Applications />
     } else if (path === "/candidate-setup") {
       return <SetupView candidate={candidate} onUpdate={fetchCandidateProfile} />
     } else if (path === "/candidate-home") {

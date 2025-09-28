@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { jobService } from "../services/jobService";
+import { useNavigate } from "react-router-dom";
 
 const JobPostings = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const loadJobs = async () => {
     try {
@@ -38,7 +40,10 @@ const JobPostings = () => {
     <div className="max-w-5xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-white">Job Postings</h2>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-md">
+        <button
+          onClick={() => navigate("/jobs/new")}
+          className="bg-blue-600 text-white px-4 py-2 rounded-md"
+        >
           + New Job
         </button>
       </div>
@@ -80,7 +85,10 @@ const JobPostings = () => {
               </div>
 
               <div className="flex gap-3 mt-4">
-                <button className="bg-yellow-500 text-white px-3 py-1 rounded-md text-sm">
+                <button
+                  onClick={() => navigate(`/jobs/edit/${job.id}`)}
+                  className="bg-yellow-500 text-white px-3 py-1 rounded-md text-sm"
+                >
                   Edit
                 </button>
                 <button

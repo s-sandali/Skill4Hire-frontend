@@ -1,112 +1,231 @@
+// src/components/JobForm.jsx
 import { useState, useEffect } from "react";
 import { jobService } from "../services/jobService";
-import { useNavigate, useParams } from "react-router-dom";
+import {
+  RiSaveLine,
+  RiCloseLine,
+  RiLoader4Line,
+  RiErrorWarningLine,
+  RiCheckLine,
+  RiBriefcaseLine,
+} from "react-icons/ri";
 
-const JobForm = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
+const JobForm = ({ jobId, initialJob, onSave, onCancel }) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const [job, setJob] = useState({
     title: "",
     description: "",
-    type: "",
+    type: "FULL_TIME",
     location: "",
     salary: "",
     experience: "",
     deadline: "",
   });
 
+  // Hydrate form when editing or reset when creating
   useEffect(() => {
-    if (id) {
-      jobService.getById(id).then(setJob);
+    if (initialJob) {
+      setJob({
+        title: initialJob.title || "",
+        description: initialJob.description || "",
+        type: initialJob.type || "FULL_TIME",
+        location: initialJob.location || "",
+        salary: initialJob.salary ? initialJob.salary.toString() : "",
+        experience: initialJob.experience ? initialJob.experience.toString() : "",
+        deadline: initialJob.deadline
+          ? new Date(initialJob.deadline).toISOString().split("T")[0]
+          : "",
+      });
+    } else {
+      setJob({
+        title: "",
+        description: "",
+        type: "FULL_TIME",
+        location: "",
+        salary: "",
+        experience: "",
+        deadline: "",
+      });
     }
-  }, [id]);
+  }, [jobId, initialJob]);
 
   const handleChange = (e) => {
-    setJob({ ...job, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setJob((prev) => ({ ...prev, [name]: value }));
+    setError("");
+    setSuccess("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (id) {
-        await jobService.update(id, job);
+      setLoading(true);
+      const jobData = {
+        title: job.title.trim(),
+        description: job.description.trim(),
+        type: job.type,
+        location: job.location.trim(),
+        salary: job.salary ? parseFloat(job.salary) : null,
+        experience: job.experience ? parseInt(job.experience) : null,
+        deadline: job.deadline,
+      };
+      let result;
+      if (jobId) {
+        result = await jobService.update(jobId, jobData);
+        setSuccess("Job updated successfully!");
       } else {
-        await jobService.create(job);
+        result = await jobService.create(jobData);
+        setSuccess("Job created successfully!");
       }
-      navigate("/jobs");
+      if (onSave) onSave(result);
+      setTimeout(() => {
+        if (onCancel) onCancel();
+      }, 1500);
     } catch (err) {
-      console.error("Failed to save job:", err);
+      setError(err.message || "Failed to save job");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-gray-900 text-white rounded-md shadow-md">
-      <h2 className="text-xl font-bold mb-4">{id ? "Edit Job" : "Create Job"}</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          name="title"
-          value={job.title}
-          onChange={handleChange}
-          placeholder="Job Title"
-          className="w-full p-2 rounded bg-gray-800 border border-gray-700"
-          required
-        />
-        <textarea
-          name="description"
-          value={job.description}
-          onChange={handleChange}
-          placeholder="Job Description"
-          className="w-full p-2 rounded bg-gray-800 border border-gray-700"
-          required
-        />
-        <input
-          name="type"
-          value={job.type}
-          onChange={handleChange}
-          placeholder="Job Type"
-          className="w-full p-2 rounded bg-gray-800 border border-gray-700"
-          required
-        />
-        <input
-          name="location"
-          value={job.location}
-          onChange={handleChange}
-          placeholder="Location"
-          className="w-full p-2 rounded bg-gray-800 border border-gray-700"
-          required
-        />
-        <input
-          type="number"
-          name="salary"
-          value={job.salary}
-          onChange={handleChange}
-          placeholder="Salary"
-          className="w-full p-2 rounded bg-gray-800 border border-gray-700"
-          required
-        />
-        <input
-          type="number"
-          name="experience"
-          value={job.experience}
-          onChange={handleChange}
-          placeholder="Experience (years)"
-          className="w-full p-2 rounded bg-gray-800 border border-gray-700"
-        />
-        <input
-          type="date"
-          name="deadline"
-          value={job.deadline}
-          onChange={handleChange}
-          className="w-full p-2 rounded bg-gray-800 border border-gray-700"
-          required
-        />
+    <div className="job-form-container">
+      <div className="job-form-header">
+        <div className="form-title">
+          <RiBriefcaseLine />
+          <h2>{jobId ? "Edit Job Posting" : "Create New Job Posting"}</h2>
+        </div>
         <button
-          type="submit"
-          className="bg-green-600 px-4 py-2 rounded text-white font-semibold"
+          className="close-form-btn"
+          onClick={onCancel}
+          disabled={loading}
         >
-          {id ? "Update Job" : "Create Job"}
+          <RiCloseLine />
         </button>
+      </div>
+
+      {error && (
+        <div className="form-message error">
+          <RiErrorWarningLine /> {error}
+        </div>
+      )}
+      {success && (
+        <div className="form-message success">
+          <RiCheckLine /> {success}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="job-form">
+        <div className="form-grid">
+          <div className="form-group">
+            <label htmlFor="title">Job Title *</label>
+            <input
+              type="text"
+              id="title"
+              name="title"
+              value={job.title}
+              onChange={handleChange}
+              placeholder="Enter job title"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="type">Job Type *</label>
+            <select
+              id="type"
+              name="type"
+              value={job.type}
+              onChange={handleChange}
+            >
+              <option value="FULL_TIME">Full Time</option>
+              <option value="PART_TIME">Part Time</option>
+              <option value="CONTRACT">Contract</option>
+              <option value="INTERNSHIP">Internship</option>
+              <option value="FREELANCE">Freelance</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="location">Location *</label>
+            <input
+              type="text"
+              id="location"
+              name="location"
+              value={job.location}
+              onChange={handleChange}
+              placeholder="Enter location"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="deadline">Application Deadline *</label>
+            <input
+              type="date"
+              id="deadline"
+              name="deadline"
+              value={job.deadline}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="salary">Salary ($)</label>
+            <input
+              type="number"
+              id="salary"
+              name="salary"
+              value={job.salary}
+              onChange={handleChange}
+              placeholder="e.g., 60000"
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="experience">Experience (years)</label>
+            <input
+              type="number"
+              id="experience"
+              name="experience"
+              value={job.experience}
+              onChange={handleChange}
+              placeholder="e.g., 3"
+            />
+          </div>
+
+          <div className="form-group full-width">
+            <label htmlFor="description">Job Description *</label>
+            <textarea
+              id="description"
+              name="description"
+              value={job.description}
+              onChange={handleChange}
+              placeholder="Enter job description"
+              rows="5"
+              required
+            />
+          </div>
+        </div>
+
+        <div className="form-actions">
+          <button type="submit" className="btn-primary" disabled={loading}>
+            {loading ? <RiLoader4Line className="spinning" /> : <RiSaveLine />}
+            {jobId ? "Update Job" : "Create Job"}
+          </button>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={onCancel}
+            disabled={loading}
+          >
+            Cancel
+          </button>
+        </div>
       </form>
     </div>
   );

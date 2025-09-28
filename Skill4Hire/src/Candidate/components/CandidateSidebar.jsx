@@ -20,7 +20,7 @@ export default function CandidateSidebar({ isOpen, onClose }) {
     { href: "/candidate-dashboard", label: "Dashboard", icon: FiBarChart2 },
     { href: "/candidate-profile", label: "Profile", icon: FiUser },
     { href: "/candidate-setup", label: "Edit Profile", icon: FiEdit3 },
-    { href: "#", label: "Applications", icon: FiFileText, disabled: true },
+    { href: "/candidate-applications", label: "Applications", icon: FiFileText },
     { href: "#", label: "Job Recommendations", icon: FiStar, disabled: true },
     { href: "#", label: "Notifications", icon: FiBell, disabled: true },
   ]
