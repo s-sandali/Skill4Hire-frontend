@@ -83,22 +83,48 @@ const ProfileOverview = ({ candidate }) => {
     return <div className="no-profile">Please complete your profile setup.</div>
   }
 
+  // Format experience for display using backend DTO structure
+  const formatExperience = (experience) => {
+    if (!experience || !experience.isExperienced) return "No experience listed yet."
+    
+    const { role, company, yearsOfExperience } = experience
+    
+    let experienceText = ""
+    if (role) experienceText += role
+    if (company) experienceText += experienceText ? ` at ${company}` : company
+    if (yearsOfExperience) experienceText += experienceText ? ` (${yearsOfExperience} years)` : `${yearsOfExperience} years experience`
+    
+    return experienceText || "Experience details available"
+  }
+
+  // Format education for display using backend DTO structure
+  const formatEducation = (education) => {
+    if (!education) return "No education listed yet."
+    
+    const { degree, institution, graduationYear } = education
+    
+    let educationText = ""
+    if (degree) educationText += degree
+    if (institution) educationText += educationText ? ` from ${institution}` : institution
+    if (graduationYear) educationText += educationText ? `, ${graduationYear}` : `Graduated ${graduationYear}`
+    
+    return educationText || "Education details available"
+  }
+
   return (
     <div className="profile-overview">
       <div className="profile-header">
         <div className="profile-image">
-          {candidate.profilePicture ? (
-            <img src={candidate.profilePicture || "/placeholder.svg"} alt="Profile" />
+          {candidate.profilePicturePath ? (
+            <img src={candidate.profilePicturePath || "/placeholder.svg"} alt="Profile" />
           ) : (
-            <div className="profile-placeholder">{candidate.firstName?.[0]}</div>
+            <div className="profile-placeholder">{candidate.name?.[0] || "U"}</div>
           )}
         </div>
         <div className="profile-info">
-          <h1>
-            {candidate.firstName} {candidate.lastName}
-          </h1>
-          <p className="profile-title">{candidate.jobTitle || "Job Seeker"}</p>
-          <p className="profile-location">{candidate.location}</p>
+          <h1>{candidate.name || "Candidate Name"}</h1>
+          <p className="profile-title">{candidate.title || "Job Seeker"}</p>
+          <p className="profile-location">{candidate.location || "Location not specified"}</p>
         </div>
       </div>
 
@@ -115,7 +141,7 @@ const ProfileOverview = ({ candidate }) => {
       <div className="profile-sections">
         <div className="section">
           <h3>About</h3>
-          <p>{candidate.bio || "No bio provided"}</p>
+          <p>{candidate.headline || candidate.bio || "No bio provided"}</p>
         </div>
 
         <div className="section">
@@ -125,18 +151,18 @@ const ProfileOverview = ({ candidate }) => {
               <span key={index} className="skill-tag">
                 {skill}
               </span>
-            ))}
+            )) || <p>No skills listed</p>}
           </div>
         </div>
 
         <div className="section">
           <h3>Experience</h3>
-          <p>{candidate.experience || "No experience listed"}</p>
+          <p>{formatExperience(candidate.experience)}</p>
         </div>
 
         <div className="section">
           <h3>Education</h3>
-          <p>{candidate.education || "No education listed"}</p>
+          <p>{formatEducation(candidate.education)}</p>
         </div>
       </div>
     </div>
@@ -145,15 +171,23 @@ const ProfileOverview = ({ candidate }) => {
 
 const EditProfile = ({ candidate, onUpdate }) => {
   const [formData, setFormData] = useState({
-    firstName: candidate?.firstName || "",
-    lastName: candidate?.lastName || "",
+    name: candidate?.name || "",
     email: candidate?.email || "",
-    phone: candidate?.phone || "",
+    phoneNumber: candidate?.phoneNumber || "",
     location: candidate?.location || "",
-    jobTitle: candidate?.jobTitle || "",
-    bio: candidate?.bio || "",
-    experience: candidate?.experience || "",
-    education: candidate?.education || "",
+    title: candidate?.title || "",
+    headline: candidate?.headline || candidate?.bio || "",
+    experience: candidate?.experience || {
+      isExperienced: false,
+      role: "",
+      company: "",
+      yearsOfExperience: 0
+    },
+    education: candidate?.education || {
+      degree: "",
+      institution: "",
+      graduationYear: null
+    },
     skills: candidate?.skills || [],
   })
   const [newSkill, setNewSkill] = useState("")
@@ -166,21 +200,55 @@ const EditProfile = ({ candidate, onUpdate }) => {
     })
   }
 
-  const addSkill = () => {
+  const handleExperienceChange = (e) => {
+    const { name, value, type, checked } = e.target
+    setFormData(prev => ({
+      ...prev,
+      experience: {
+        ...prev.experience,
+        [name]: type === 'checkbox' ? checked : value
+      }
+    }))
+  }
+
+  const handleEducationChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      education: {
+        ...prev.education,
+        [name]: value
+      }
+    }))
+  }
+
+  const addSkill = async () => {
     if (newSkill.trim() && !formData.skills.includes(newSkill.trim())) {
-      setFormData({
-        ...formData,
-        skills: [...formData.skills, newSkill.trim()],
-      })
-      setNewSkill("")
+      try {
+        const updatedSkills = await candidateService.addSkill(newSkill.trim())
+        setFormData({
+          ...formData,
+          skills: updatedSkills,
+        })
+        setNewSkill("")
+      } catch (error) {
+        console.error("Error adding skill:", error)
+        alert("Error adding skill. Please try again.")
+      }
     }
   }
 
-  const removeSkill = (skillToRemove) => {
-    setFormData({
-      ...formData,
-      skills: formData.skills.filter((skill) => skill !== skillToRemove),
-    })
+  const removeSkill = async (skillToRemove) => {
+    try {
+      const updatedSkills = await candidateService.removeSkill(skillToRemove)
+      setFormData({
+        ...formData,
+        skills: updatedSkills,
+      })
+    } catch (error) {
+      console.error("Error removing skill:", error)
+      alert("Error removing skill. Please try again.")
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -202,15 +270,9 @@ const EditProfile = ({ candidate, onUpdate }) => {
     <div className="edit-profile">
       <h2>Edit Profile</h2>
       <form onSubmit={handleSubmit} className="profile-form">
-        <div className="form-row">
-          <div className="form-group">
-            <label>First Name</label>
-            <input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} required />
-          </div>
-          <div className="form-group">
-            <label>Last Name</label>
-            <input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} required />
-          </div>
+        <div className="form-group">
+          <label>Full Name</label>
+          <input type="text" name="name" value={formData.name} onChange={handleInputChange} required />
         </div>
 
         <div className="form-row">
@@ -220,7 +282,7 @@ const EditProfile = ({ candidate, onUpdate }) => {
           </div>
           <div className="form-group">
             <label>Phone</label>
-            <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} />
+            <input type="tel" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} />
           </div>
         </div>
 
@@ -231,22 +293,97 @@ const EditProfile = ({ candidate, onUpdate }) => {
 
         <div className="form-group">
           <label>Job Title</label>
-          <input type="text" name="jobTitle" value={formData.jobTitle} onChange={handleInputChange} />
+          <input type="text" name="title" value={formData.title} onChange={handleInputChange} />
         </div>
 
         <div className="form-group">
-          <label>Bio</label>
-          <textarea name="bio" value={formData.bio} onChange={handleInputChange} rows="4" />
+          <label>Professional Bio (Headline)</label>
+          <textarea name="headline" value={formData.headline} onChange={handleInputChange} rows="4" />
         </div>
 
-        <div className="form-group">
-          <label>Experience</label>
-          <textarea name="experience" value={formData.experience} onChange={handleInputChange} rows="4" />
+        <div className="form-section">
+          <h3>Experience</h3>
+          <div className="form-group">
+            <label>
+              <input
+                type="checkbox"
+                name="isExperienced"
+                checked={formData.experience.isExperienced || false}
+                onChange={handleExperienceChange}
+              />
+              I have work experience
+            </label>
+          </div>
+          {formData.experience.isExperienced && (
+            <>
+              <div className="form-group">
+                <label>Role/Position</label>
+                <input
+                  type="text"
+                  name="role"
+                  value={formData.experience.role || ""}
+                  onChange={handleExperienceChange}
+                  placeholder="e.g., Software Developer"
+                />
+              </div>
+              <div className="form-group">
+                <label>Company</label>
+                <input
+                  type="text"
+                  name="company"
+                  value={formData.experience.company || ""}
+                  onChange={handleExperienceChange}
+                  placeholder="Company name"
+                />
+              </div>
+              <div className="form-group">
+                <label>Years of Experience</label>
+                <input
+                  type="number"
+                  name="yearsOfExperience"
+                  value={formData.experience.yearsOfExperience || 0}
+                  onChange={handleExperienceChange}
+                  min="0"
+                />
+              </div>
+            </>
+          )}
         </div>
 
-        <div className="form-group">
-          <label>Education</label>
-          <textarea name="education" value={formData.education} onChange={handleInputChange} rows="4" />
+        <div className="form-section">
+          <h3>Education</h3>
+          <div className="form-group">
+            <label>Degree</label>
+            <input
+              type="text"
+              name="degree"
+              value={formData.education.degree || ""}
+              onChange={handleEducationChange}
+              placeholder="e.g., Bachelor of Science"
+            />
+          </div>
+          <div className="form-group">
+            <label>Institution</label>
+            <input
+              type="text"
+              name="institution"
+              value={formData.education.institution || ""}
+              onChange={handleEducationChange}
+              placeholder="University or school name"
+            />
+          </div>
+          <div className="form-group">
+            <label>Graduation Year</label>
+            <input
+              type="number"
+              name="graduationYear"
+              value={formData.education.graduationYear || ""}
+              onChange={handleEducationChange}
+              placeholder="e.g., 2023"
+              min="1900"
+              max="2030"
+            />
+          </div>
         </div>
 
         <div className="form-group">
