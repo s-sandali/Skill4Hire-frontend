@@ -10,10 +10,10 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
   const [formData, setFormData] = useState({
     name: candidate?.name || "",
     email: candidate?.email || "",
-    phone: candidate?.phone || candidate?.phoneNumber || "", 
+    phoneNumber: candidate?.phoneNumber || "",
     location: candidate?.location || "",
     title: candidate?.title || "",
-    bio: candidate?.bio || candidate?.headline || "", 
+    headline: candidate?.headline || candidate?.bio || "", 
     // Match backend structure - objects instead of strings
     experience: candidate?.experience || {
       isExperienced: false,
@@ -99,85 +99,119 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsLoading(true)
-
+    e.preventDefault();
+    setIsLoading(true);
+  
     try {
-      const { candidateService } = await import("../../services/candidateService")
+      const { candidateService } = await import("../../services/candidateService");
       
-      // Update profile data
-      await candidateService.updateProfile(formData)
+      // First update profile data
+      const profileDataToSend = {
+        ...formData,
+        phoneNumber: formData.phoneNumber,
+        headline: formData.headline
+      };
       
-      // Upload files if selected
+      console.log("Updating profile data...");
+      await candidateService.updateProfile(profileDataToSend);
+      
+      // Upload files sequentially with proper error handling
       if (resumeFile) {
-        await candidateService.uploadResume(resumeFile)
+        console.log("Uploading resume file:", resumeFile.name);
+        try {
+          const resumeResponse = await candidateService.uploadResume(resumeFile);
+          console.log("Resume upload successful:", resumeResponse);
+        } catch (uploadError) {
+          console.error("Resume upload failed:", uploadError);
+          alert(`Resume upload failed: ${uploadError.message}. Profile was saved but resume was not uploaded.`);
+        }
       }
       
       if (profilePictureFile) {
-        await candidateService.uploadProfilePicture(profilePictureFile)
+        console.log("Uploading profile picture:", profilePictureFile.name);
+        try {
+          const profilePicResponse = await candidateService.uploadProfilePicture(profilePictureFile);
+          console.log("Profile picture upload successful:", profilePicResponse);
+        } catch (uploadError) {
+          console.error("Profile picture upload failed:", uploadError);
+          alert(`Profile picture upload failed: ${uploadError.message}. Profile was saved but picture was not uploaded.`);
+        }
       }
       
-      if (onUpdate) onUpdate()
-      alert("Profile updated successfully!")
+      // Refresh profile data after all uploads are complete
+      if (onUpdate) {
+        console.log("Refreshing profile data after file uploads...");
+        // Force a complete refresh by calling the update callback
+        await onUpdate();
+      }
+      
+      alert("Profile updated successfully!");
+      
+      // Reset file states
+      setResumeFile(null);
+      setProfilePictureFile(null);
+      
     } catch (error) {
-      console.error("Error updating profile:", error)
-      alert("Error updating profile. Please try again.")
+      console.error("Error updating profile:", error);
+      alert(`Error updating profile: ${error.message}`);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
   return (
     <form className="profile-form" onSubmit={handleSubmit}>
       <div className="form-section">
-  <h3 className="section-title">Basic Information</h3>
-  <div className="form-grid">
-    <div className="form-group form-group-full">
-      <label className="form-label">Full Name</label>
-      <input
-        type="text"
-        name="name"
-        value={formData.name}
-        onChange={handleInputChange}
-        className="form-input"
-        required
-        placeholder="Enter your full name"
-      />
-    </div>
-    <div className="form-group">
-      <label className="form-label">Email</label>
-      <input
-        type="email"
-        name="email"
-        value={formData.email}
-        onChange={handleInputChange}
-        className="form-input"
-        required
-      />
-    </div>
-    <div className="form-group">
-      <label className="form-label">Phone</label>
-      <input 
-        type="tel" 
-        name="phone" 
-        value={formData.phone} 
-        onChange={handleInputChange} 
-        className="form-input" 
-      />
-    </div>
-    <div className="form-group form-group-full">
-      <label className="form-label">Location</label>
-      <input
-        type="text"
-        name="location"
-        value={formData.location}
-        onChange={handleInputChange}
-        className="form-input"
-        placeholder="City, State/Country"
-      />
-    </div>
-  </div>
-</div>
+        <h3 className="section-title">Basic Information</h3>
+        <div className="form-grid">
+          <div className="form-group form-group-full">
+            <label className="form-label">Full Name</label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              className="form-input"
+              required
+              placeholder="Enter your full name"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              className="form-input"
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Phone</label>
+            <input 
+              type="tel" 
+              name="phoneNumber" 
+              value={formData.phoneNumber} 
+              onChange={handleInputChange} 
+              className="form-input" 
+              placeholder="Enter your phone number"
+            />
+          </div>
+          <div className="form-group form-group-full">
+            <label className="form-label">Location</label>
+            <input
+              type="text"
+              name="location"
+              value={formData.location}
+              onChange={handleInputChange}
+              className="form-input"
+              placeholder="City, State/Country"
+            />
+          </div>
+        </div>
+      </div>
+
       <div className="form-section">
         <h3 className="section-title">Professional Information</h3>
         <div className="form-group">
@@ -194,8 +228,8 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
         <div className="form-group">
           <label className="form-label">Professional Bio</label>
           <textarea
-            name="bio"
-            value={formData.bio}
+            name="headline"
+            value={formData.headline}
             onChange={handleInputChange}
             className="form-textarea"
             placeholder="Tell employers about yourself, your experience, and what you're looking for..."
@@ -235,7 +269,7 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
         <h3 className="section-title">Experience</h3>
         <div className="form-grid">
           <div className="form-group">
-            <label className="form-label">
+            <label className="form-label checkbox-label">
               <input
                 type="checkbox"
                 name="isExperienced"
@@ -332,27 +366,37 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
           <div className="form-group">
             <label className="form-label">Resume Upload</label>
             <FileUpload
-              onFileSelect={setResumeFile}
-              accept=".pdf,.doc,.docx"
+              onFileSelect={(file) => {
+                console.log("Resume file selected:", file);
+                setResumeFile(file);
+              }}
+              accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               maxSize={5 * 1024 * 1024} // 5MB
               label="Upload Resume"
               description="PDF, DOC, or DOCX files only (max 5MB)"
             />
             {resumeFile && (
-              <p className="file-selected">Selected: {resumeFile.name}</p>
+              <p className="file-selected">
+                Selected: {resumeFile.name} ({(resumeFile.size / 1024 / 1024).toFixed(2)} MB)
+              </p>
             )}
           </div>
           <div className="form-group">
             <label className="form-label">Profile Picture</label>
             <FileUpload
-              onFileSelect={setProfilePictureFile}
-              accept="image/*"
+              onFileSelect={(file) => {
+                console.log("Profile picture selected:", file);
+                setProfilePictureFile(file);
+              }}
+              accept="image/*,.jpg,.jpeg,.png,.gif"
               maxSize={2 * 1024 * 1024} // 2MB
               label="Upload Profile Picture"
               description="JPG, PNG, or GIF files only (max 2MB)"
             />
             {profilePictureFile && (
-              <p className="file-selected">Selected: {profilePictureFile.name}</p>
+              <p className="file-selected">
+                Selected: {profilePictureFile.name} ({(profilePictureFile.size / 1024 / 1024).toFixed(2)} MB)
+              </p>
             )}
           </div>
         </div>
@@ -360,41 +404,7 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
 
       <div className="form-section">
         <h3 className="section-title">Links & Portfolio</h3>
-        <div className="form-grid">
-          <div className="form-group">
-            <label className="form-label">LinkedIn Profile</label>
-            <input
-              type="url"
-              name="linkedin"
-              value={formData.linkedin}
-              onChange={handleInputChange}
-              className="form-input"
-              placeholder="https://linkedin.com/in/yourprofile"
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">GitHub Profile</label>
-            <input
-              type="url"
-              name="github"
-              value={formData.github}
-              onChange={handleInputChange}
-              className="form-input"
-              placeholder="https://github.com/yourusername"
-            />
-          </div>
-          <div className="form-group form-group-full">
-            <label className="form-label">Portfolio Website</label>
-            <input
-              type="url"
-              name="portfolio"
-              value={formData.portfolio}
-              onChange={handleInputChange}
-              className="form-input"
-              placeholder="https://yourportfolio.com"
-            />
-          </div>
-        </div>
+        
       </div>
 
       <div className="form-actions">
