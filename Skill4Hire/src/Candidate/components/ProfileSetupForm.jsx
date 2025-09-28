@@ -141,10 +141,8 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
       // Refresh profile data after all uploads are complete
       if (onUpdate) {
         console.log("Refreshing profile data after file uploads...");
-        // Add a small delay to ensure backend has processed the files
-        setTimeout(() => {
-          onUpdate();
-        }, 1000);
+        // Force a complete refresh by calling the update callback
+        await onUpdate();
       }
       
       alert("Profile updated successfully!");
@@ -404,7 +402,10 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
         </div>
       </div>
 
-      
+      <div className="form-section">
+        <h3 className="section-title">Links & Portfolio</h3>
+        
+      </div>
 
       <div className="form-actions">
         <button type="submit" className="btn btn-primary btn-large" disabled={isLoading}>
