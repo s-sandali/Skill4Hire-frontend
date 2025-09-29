@@ -174,7 +174,8 @@ const EmployeeDashboard = () => {
           {activeTab === "dashboard" && (
               <div className="dash-wrap">
                 <div className="dash-hero cardish">
-                  <h1 className="dash-title">Welcome back</h1>
+                  <h1 className="dash-title">Welcome back, {employeeData.name}!</h1>
+
                   <p className="dash-sub">Here's your overview.</p>
                 </div>
 
