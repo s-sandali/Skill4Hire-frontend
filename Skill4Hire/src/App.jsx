@@ -35,6 +35,7 @@ function App() {
         <Route path="/candidate-dashboard" element={<CandidatePage />} />
         <Route path="/candidate-profile" element={<CandidatePage />} />
         <Route path="/candidate-setup" element={<CandidatePage />} />
+        <Route path="/candidate-applications" element={<CandidatePage />} />
          <Route path="/jobs" element={<JobPostings />} />
         <Route path="/jobs/create" element={<JobForm />} />
         <Route path="/jobs/edit/:id" element={<JobForm />} />
@@ -44,3 +45,4 @@ function App() {
 }
 
 export default App
+

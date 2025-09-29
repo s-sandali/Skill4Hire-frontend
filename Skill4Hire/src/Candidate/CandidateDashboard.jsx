@@ -432,14 +432,69 @@ const EditProfile = ({ candidate, onUpdate }) => {
 }
 
 const ApplicationTracking = () => {
+  const sampleApplications = [
+    {
+      id: 1,
+      role: "Frontend Developer",
+      company: "TechNova Labs",
+      location: "Remote - North America",
+      appliedOn: "Sep 12, 2025",
+      status: "Applied",
+      statusDetail: "Recruiter is reviewing your profile. We'll update you within 3 business days.",
+    },
+    {
+      id: 2,
+      role: "UI/UX Designer",
+      company: "BrightPixel Studio",
+      location: "Austin, TX",
+      appliedOn: "Aug 29, 2025",
+      status: "Shortlisted",
+      statusDetail: "You have been shortlisted. The hiring manager will reach out to schedule an interview.",
+    },
+    {
+      id: 3,
+      role: "Full Stack Engineer",
+      company: "CloudScale Inc.",
+      location: "New York, NY",
+      appliedOn: "Aug 18, 2025",
+      status: "Rejected",
+      statusDetail: "Thank you for applying. The team moved forward with another candidate at this time.",
+    },
+  ]
+
+  const statusClassMap = {
+    Applied: "status-applied",
+    Shortlisted: "status-shortlisted",
+    Rejected: "status-rejected",
+  }
+
   return (
     <div className="application-tracking">
       <h2>Application Tracking</h2>
-      <p className="coming-soon">This feature is coming soon!</p>
+      <p className="section-subtitle">Sample view showing how your job applications will appear once tracking is live.</p>
+      <div className="application-grid">
+        {sampleApplications.map((application) => (
+          <div key={application.id} className="application-card">
+            <div className="application-header">
+              <div>
+                <h3>{application.role}</h3>
+                <p className="application-company">{application.company}</p>
+              </div>
+              <span className={`status-pill ${statusClassMap[application.status] || "status-default"}`}>
+                {application.status}
+              </span>
+            </div>
+            <div className="application-meta">
+              <span>{application.location}</span>
+              <span>Applied on {application.appliedOn}</span>
+            </div>
+            <p className="status-detail">{application.statusDetail}</p>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
-
 const JobRecommendations = () => {
   return (
     <div className="job-recommendations">
@@ -459,3 +514,4 @@ const Notifications = () => {
 }
 
 export default CandidateDashboard
+
