@@ -10,7 +10,12 @@ import EmployeeDashboard from './Employee/EmployeeDashboard.jsx'
 import CompanyDashboard from './Company/CompanyDashboard.jsx'
 import AdminDashboard from './Admin/AdminDashboard.jsx'
 import CandidatePage from './Candidate/CandidatePage.jsx';
+import JobPostings from "./Company/JobPostings.jsx";
+import JobForm from "./Company/JobForm.jsx";
 import './App.css'
+
+
+
 
 function App() {
   return (
@@ -29,8 +34,10 @@ function App() {
         <Route path="/candidate-home" element={<CandidatePage />} />
         <Route path="/candidate-dashboard" element={<CandidatePage />} />
         <Route path="/candidate-profile" element={<CandidatePage />} />
-        <Route path="/candidate-applications" element={<CandidatePage />} />
         <Route path="/candidate-setup" element={<CandidatePage />} />
+         <Route path="/jobs" element={<JobPostings />} />
+        <Route path="/jobs/create" element={<JobForm />} />
+        <Route path="/jobs/edit/:id" element={<JobForm />} />
       </Routes>
     </Router>
   )

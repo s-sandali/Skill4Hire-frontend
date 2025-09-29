@@ -1,5 +1,56 @@
 /* Dashboard Component Styles */
 
+.candidate-dashboard {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+}
+
+.dashboard-sidebar {
+  background: var(--card-bg);
+  border-right: 1px solid var(--divider-border);
+  padding: 1.5rem 1rem;
+}
+
+.sidebar-header {
+  padding: 0 0.5rem 1rem 0.5rem;
+  border-bottom: 1px solid var(--divider-border);
+  margin-bottom: 1rem;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.nav-item {
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: 1px solid var(--divider-border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-item:hover {
+  background: var(--light-bg);
+  border-color: var(--primary-accent);
+}
+
+.nav-item.active {
+  background: linear-gradient(135deg, var(--card-bg) 0%, var(--light-bg) 100%);
+  border-color: var(--primary-accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.dashboard-content {
+  padding: 2rem;
+}
+
 .dashboard {
   max-width: 1200px;
   margin: 0 auto;
@@ -168,6 +219,16 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .candidate-dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
   .dashboard {
     padding: 1rem;
   }
