@@ -622,7 +622,11 @@
 
 /* Activity list contrast */
 .candidate-dashboard .activity-title { color: var(--text-inverse) !important; }
-.candidate-dashboard .activity-time { color: rgba(255,255,255,0.75) !important; }
+.candidate-dashboard .activity-time { color: rgba(255,255,255,0.85) !important; }
+
+/* Also ensure visibility in the generic dashboard wrapper */
+.dashboard .activity-title { color: #ffffff !important; }
+.dashboard .activity-time { color: rgba(255,255,255,0.85) !important; }
 
 /* Application card contrast */
 .candidate-dashboard .application-card h3 { color: var(--text-primary) !important; }
