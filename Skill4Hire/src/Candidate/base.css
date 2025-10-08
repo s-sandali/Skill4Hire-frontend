@@ -1,62 +1,62 @@
 
-/* Base CSS for Candidate Portal - Professional Dark Theme */
+/* Base CSS for Candidate Portal - Professional Light Theme */
 
 :root {
   /* Primary Colors */
-  --primary-bg: #0A0A3D;
-  --primary-accent: #00CFEA;
-  --primary-text: #FFFFFF;
-  
-  /* Secondary Colors */
-  --highlight-cta: #4DB8FF;
-  --hover-state: #B2FFFF;
-  --warning-alert: #FF6B00;
-  --success: #F2E94E;
-  
+  --primary-bg: #ffffff; /* used for text on primary surfaces */
+  --primary-accent: #2563EB; /* refined blue */
+  --primary-text: #111827;
+
+  /* Secondary Accent Shades */
+  --highlight-cta: #3B82F6; /* lighter accent */
+  --hover-state: #93C5FD;   /* hover tint */
+  --warning-alert: #F59E0B;
+  --success: #10B981;
+
   /* Neutral Colors */
-  --light-bg: #1B1B4D;
-  --card-bg: #10103D;
-  --divider-border: #2D2D5A;
-  --disabled-text: #A1A1B3;
-  
+  --light-bg: #F7FAFC;   /* light panel/section */
+  --card-bg: #FFFFFF;    /* card surfaces */
+  --divider-border: #E5E7EB;
+  --disabled-text: #9CA3AF;
+
   /* Additional Professional Colors */
-  --primary-color: #00CFEA;
-  --primary-hover: #00B8D4;
-  --primary-light: #4DB8FF;
-  --primary-dark: #0099B8;
-  
+  --primary-color: #2563EB;
+  --primary-hover: #1D4ED8;
+  --primary-light: #60A5FA;
+  --primary-dark: #1E40AF;
+
   /* Background Colors */
-  --background-color: #0A0A3D;
-  --background-secondary: #1B1B4D;
-  --background-tertiary: #10103D;
-  --surface-color: #1B1B4D;
-  --card-color: #10103D;
-  
+  --background-color: #FFFFFF;         /* page background */
+  --background-secondary: #F8FAFC;     /* subtle alt bg */
+  --background-tertiary: #F1F5F9;      /* hover rows, etc. */
+  --surface-color: #FFFFFF;
+  --card-color: #FFFFFF;
+
   /* Text Colors */
-  --text-primary: #FFFFFF;
-  --text-secondary: #B2FFFF;
-  --text-muted: #A1A1B3;
-  --text-inverse: #0A0A3D;
-  
+  --text-primary: #111827;
+  --text-secondary: #4B5563;
+  --text-muted: #6B7280;
+  --text-inverse: #FFFFFF;
+
   /* Border Colors */
-  --border-color: #2D2D5A;
-  --border-light: #4A4A6B;
-  --border-focus: #00CFEA;
-  
+  --border-color: #E5E7EB;
+  --border-light: #ECEFF3;
+  --border-focus: #2563EB;
+
   /* Status Colors */
-  --success-color: #F2E94E;
-  --success-hover: #E6D942;
-  --error-color: #FF6B00;
-  --error-hover: #E55A00;
-  --warning-color: #FF6B00;
-  --warning-hover: #E55A00;
-  
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.4);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.4);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 10px 10px -5px rgb(0 0 0 / 0.3);
-  
+  --success-color: #10B981;
+  --success-hover: #0EA371;
+  --error-color: #EF4444;
+  --error-hover: #DC2626;
+  --warning-color: #F59E0B;
+  --warning-hover: #D97706;
+
+  /* Shadows (subtle for light UI) */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.06);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.08);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.12), 0 10px 10px -5px rgb(0 0 0 / 0.08);
+
   /* Border Radius */
   --radius: 8px;
   --radius-sm: 4px;

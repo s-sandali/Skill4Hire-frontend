@@ -61,6 +61,77 @@
   margin-bottom: 2rem;
 }
 
+/* Promo / Tip banner */
+.promo-banner {
+  position: relative;
+  background: linear-gradient(135deg, var(--primary-accent) 0%, var(--highlight-cta) 100%);
+  color: var(--text-inverse);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.promo-banner::after {
+  content: '';
+  position: absolute;
+  top: -30%;
+  right: -10%;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  filter: blur(2px);
+}
+
+.promo-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.promo-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.promo-text { flex: 1; }
+.promo-title { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.25rem; }
+.promo-desc { opacity: 0.95; }
+
+.promo-action {
+  background: #ffffff;
+  color: var(--primary-accent);
+  border: 1px solid rgba(255,255,255,0.7);
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  transition: transform .15s ease, box-shadow .2s ease;
+}
+
+.promo-action:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+
+.promo-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: rgba(255,255,255,0.18);
+  color: #ffffff;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .dashboard-title {
   font-size: 2.5rem;
   font-weight: 700;
@@ -241,7 +312,7 @@
 }
 
 .application-card {
-  background: rgba(16, 16, 61, 0.8);
+  background: var(--card-bg);
   border: 1px solid var(--divider-border);
   border-radius: var(--radius);
   padding: 1.5rem;
@@ -345,3 +416,214 @@
 }
 
 
+/* Candidate dashboard color refresh */
+.candidate-dashboard {
+  background: var(--background-secondary);
+  color: var(--text-primary);
+}
+
+.dashboard-content {
+  background: var(--background-secondary);
+}
+
+.dashboard-sidebar {
+  background: linear-gradient(180deg, #0f1f46 0%, #152b5b 100%);
+  border-right: 1px solid rgba(21, 43, 91, 0.25);
+}
+
+.sidebar-header {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-header h2 {
+  color: #ffffff;
+}
+
+.nav-item {
+  border-color: rgba(255, 255, 255, 0.08);
+  color: rgba(240, 244, 255, 0.78);
+}
+
+.nav-item:hover,
+.nav-item:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: transparent;
+  color: #ffffff;
+}
+
+.nav-item.active {
+  background: #ffffff;
+  color: #152b5b;
+  border-color: transparent;
+}
+
+.dashboard-card {
+  background: var(--card-bg);
+  border-color: var(--divider-border);
+}
+
+.dashboard-card::before {
+  background: linear-gradient(90deg, var(--primary-accent) 0%, var(--highlight-cta) 100%);
+}
+
+.card-title {
+  color: var(--text-primary);
+}
+
+.card-content {
+  color: var(--text-secondary);
+}
+
+.progress-circle {
+  border-color: var(--primary-accent);
+  background: rgba(37, 99, 235, 0.10);
+  color: var(--primary-accent);
+}
+
+.progress-circle::after {
+  border-color: rgba(37, 99, 235, 0.35);
+}
+
+.progress-bar {
+  background: var(--background-tertiary);
+}
+
+.progress-fill {
+  background: linear-gradient(90deg, var(--primary-accent) 0%, var(--highlight-cta) 100%);
+}
+
+.candidate-dashboard .profile-header {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--divider-border);
+  box-shadow: var(--shadow-lg);
+  color: var(--text-primary);
+}
+
+.candidate-dashboard .profile-header h1 {
+  color: var(--text-primary);
+}
+
+.candidate-dashboard .profile-header .profile-title,
+.candidate-dashboard .profile-header .profile-location {
+  color: var(--text-secondary);
+}
+
+.profile-placeholder {
+  background: linear-gradient(135deg, var(--primary-accent) 0%, var(--highlight-cta) 100%);
+  color: var(--text-inverse);
+}
+
+.profile-title {
+  color: var(--text-secondary);
+}
+
+.profile-location {
+  color: var(--text-muted);
+}
+
+.candidate-dashboard .profile-stats .stat-card,
+.candidate-dashboard .profile-sections .section,
+.candidate-dashboard .application-tracking,
+.candidate-dashboard .job-recommendations,
+.candidate-dashboard .notifications,
+.candidate-dashboard .edit-profile {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--divider-border);
+  box-shadow: var(--shadow-md);
+}
+
+.section h3,
+.application-tracking h2,
+.job-recommendations h2,
+.notifications h2 {
+  color: var(--text-primary);
+}
+
+.section p,
+.section-subtitle,
+.application-company,
+.application-meta,
+.status-detail,
+.coming-soon {
+  color: var(--text-secondary);
+}
+
+.skills-list p {
+  color: var(--text-muted);
+}
+
+.skill-tag {
+  background: rgba(37, 99, 235, 0.10);
+  color: var(--text-primary);
+}
+
+.skill-tag button {
+  color: var(--primary-accent);
+}
+
+.skills-input button,
+.save-button {
+  background: linear-gradient(135deg, var(--primary-accent) 0%, var(--highlight-cta) 100%);
+  color: var(--text-inverse);
+}
+
+.application-card {
+  background: var(--card-bg);
+  border: 1px solid var(--divider-border);
+}
+
+.status-pill {
+  color: var(--text-inverse);
+}
+
+.status-default {
+  background: var(--text-muted);
+}
+
+.status-applied {
+  background: linear-gradient(135deg, var(--primary-accent) 0%, var(--highlight-cta) 100%);
+}
+
+.status-shortlisted {
+  background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+}
+
+.status-rejected {
+  background: linear-gradient(135deg, #EF4444 0%, #F87171 100%);
+}
+
+.loading {
+  background: var(--background-secondary);
+  color: var(--text-secondary);
+}
+
+
+
+/* High-contrast readability overrides */
+.dashboard .dashboard-card { color: #ffffff; }
+.dashboard .dashboard-card .card-title { color: #ffffff !important; }
+.dashboard .dashboard-card .card-description { color: rgba(255,255,255,0.85) !important; }
+.dashboard .stat-number { color: var(--highlight-cta) !important; }
+.dashboard .progress-text { color: #ffffff !important; }
+
+.candidate-dashboard .dashboard-card { color: var(--text-inverse); }
+.candidate-dashboard .dashboard-card .card-title { color: var(--text-inverse) !important; }
+.candidate-dashboard .dashboard-card .card-description { color: rgba(255,255,255,0.85) !important; }
+.candidate-dashboard .dashboard-card .stat-number { color: var(--primary-accent) !important; }
+.candidate-dashboard .dashboard-card .progress-text { color: var(--text-inverse) !important; }
+
+/* Avoid gradient text on dashboard section headings for clarity */
+.dashboard .section-title {
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  -webkit-text-fill-color: initial !important;
+  color: var(--text-primary) !important;
+}
+
+/* Activity list contrast */
+.candidate-dashboard .activity-title { color: var(--text-inverse) !important; }
+.candidate-dashboard .activity-time { color: rgba(255,255,255,0.75) !important; }
+
+/* Application card contrast */
+.candidate-dashboard .application-card h3 { color: var(--text-primary) !important; }
+.candidate-dashboard .application-meta { color: var(--text-secondary) !important; }

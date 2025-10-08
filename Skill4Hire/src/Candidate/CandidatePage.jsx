@@ -61,18 +61,30 @@ export default function CandidatePage() {
   return <CandidateLayout>{getCurrentView()}</CandidateLayout>
 }
 
-const DashboardView = ({ candidate }) => {
-  return (
-    <div className="dashboard">
-      <div className="dashboard-header">
-        <h1 className="dashboard-title">Dashboard</h1>
-        <p className="dashboard-subtitle">Welcome back! Here's your career overview.</p>
-      </div>
+  const DashboardView = ({ candidate }) => {
+    return (
+      <div className="dashboard">
+        <div className="dashboard-header">
+          <h1 className="dashboard-title">Dashboard</h1>
+          <p className="dashboard-subtitle">Welcome back! Here's your career overview.</p>
+        </div>
+        {/* Tip banner to encourage profile completion (UI-only addition) */}
+        <div className="promo-banner" role="region" aria-label="Profile visibility tip">
+          <div className="promo-banner-content">
+            <div className="promo-icon" aria-hidden="true">💡</div>
+            <div className="promo-text">
+              <h3 className="promo-title">Pro Tip: Boost Your Profile Visibility</h3>
+              <p className="promo-desc">Profiles with portfolios and certifications get more views from recruiters. Complete these sections to stand out.</p>
+            </div>
+            <button className="promo-action" type="button" onClick={() => (window.location.href = '/candidate-setup')}>Complete Profile</button>
+          </div>
+          <button className="promo-close" type="button" aria-label="Dismiss tip" onClick={(e) => e.currentTarget.parentElement?.remove()}>×</button>
+        </div>
 
-      <div className="dashboard-grid">
-        <div className="dashboard-card">
-          <div className="card-header">
-            <h3 className="card-title">Profile Completeness</h3>
+        <div className="dashboard-grid">
+          <div className="dashboard-card">
+            <div className="card-header">
+              <h3 className="card-title">Profile Completeness</h3>
           </div>
           <div className="card-content">
             <div className="progress-circle">
