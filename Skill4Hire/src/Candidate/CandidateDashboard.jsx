@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { candidateService } from "../../services/candidateService"
+import { applicationsService } from "../../services/applicationsService"
 import "./base.css"
 import "./buttons.css"
 import "./dashboard.css"
@@ -455,6 +456,38 @@ const ApplicationTracking = () => {
     },
   ]
 
+  const [applications, setApplications] = useState(sampleApplications)
+
+  useEffect(() => {
+    let mounted = true
+    ;(async () => {
+      try {
+        const data = await applicationsService.listForCurrent()
+        if (!mounted) return
+        const mapped = (Array.isArray(data) ? data : []).map((a) => ({
+          id: a.id,
+          role: a.jobTitle || a.jobDescription || 'Job Application',
+          company: a.companyName || '—',
+          location: a.jobLocation || a.jobType || '',
+          appliedOn: a.appliedAt ? new Date(a.appliedAt).toLocaleDateString() : '-',
+          status: (() => {
+            const s = String(a.status || '').toUpperCase()
+            if (s === 'APPLIED') return 'Applied'
+            if (s === 'SHORTLISTED') return 'Shortlisted'
+            if (s === 'REJECTED') return 'Rejected'
+            return a.status || 'Applied'
+          })(),
+          statusDetail: a.jobDescription || '',
+        }))
+        if (mapped.length) setApplications(mapped)
+      } catch (e) {
+        // Keep samples on error; optionally log
+        console.warn('Failed to load applications:', e?.message || e)
+      }
+    })()
+    return () => { mounted = false }
+  }, [])
+
   const statusClassMap = {
     Applied: "status-applied",
     Shortlisted: "status-shortlisted",
@@ -466,7 +499,7 @@ const ApplicationTracking = () => {
       <h2>Application Tracking</h2>
       <p className="section-subtitle">Sample view showing how your job applications will appear once tracking is live.</p>
       <div className="application-grid">
-        {sampleApplications.map((application) => (
+        {applications.map((application) => (
           <div key={application.id} className="application-card">
             <div className="application-header">
               <div>
