@@ -37,3 +37,4 @@ export default function EmployeeHome({ employee, onViewProfile, onViewDashboard 
         </div>
     );
 }
+//error fixed//
