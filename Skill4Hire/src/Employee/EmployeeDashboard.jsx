@@ -24,7 +24,7 @@ const EmployeeDashboard = () => {
   const [loadingCompleteness, setLoadingCompleteness] = useState(false);
   const [completenessError, setCompletenessError] = useState(null);
 
-  // Real data states
+  // real data states
   const [candidates, setCandidates] = useState([]);
   const [jobs, setJobs] = useState([]);
   const [recommendations, setRecommendations] = useState([]);

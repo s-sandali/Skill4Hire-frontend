@@ -1,4 +1,4 @@
-/* Employee Home Styling (extends base.css + buttons.css) */
+/* employee Home Styling (extends base.css + buttons.css) */
 
 .home-container {
     height: calc(100vh - 80px); /* fill viewport minus topbar height */
