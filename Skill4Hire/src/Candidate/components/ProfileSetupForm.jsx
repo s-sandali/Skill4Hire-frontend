@@ -109,19 +109,7 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
       const profileDataToSend = {
         ...formData,
         phoneNumber: formData.phoneNumber,
-        headline: formData.headline,
-        education: {
-          ...formData.education,
-          graduationYear: formData.education?.graduationYear !== '' && formData.education?.graduationYear !== undefined
-            ? Number(formData.education.graduationYear)
-            : null,
-        },
-        experience: {
-          ...formData.experience,
-          yearsOfExperience: formData.experience?.yearsOfExperience !== '' && formData.experience?.yearsOfExperience !== undefined
-            ? Number(formData.experience.yearsOfExperience)
-            : 0,
-        }
+        headline: formData.headline
       };
       
       console.log("Updating profile data...");

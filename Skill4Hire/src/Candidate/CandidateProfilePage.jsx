@@ -117,27 +117,7 @@ const CandidateProfilePage = () => {
     return experienceText || "Experience details available";
   };
 
-
-  // Build resume URL and download
-  const getResumeUrl = (resumePath) => {
-    if (!resumePath) return null;
-    if (String(resumePath).startsWith('http')) return resumePath;
-    return `http://localhost:8080/uploads/resumes/${resumePath}`;
-  };
-
-  const handleDownloadResume = () => {
-    const path = candidate?.resumePath;
-    if (!path) {
-      alert('No resume available to download');
-      return;
-    }
-    const url = getResumeUrl(path);
-    if (!url) {
-      alert('Resume URL is not available');
-      return;
-    }
-    window.open(url, '_blank');
-  };  // Format education for display using backend DTO structure
+  // Format education for display using backend DTO structure
   const formatEducation = (education) => {
     if (!education) return "No education listed yet.";
     
@@ -335,7 +315,7 @@ const CandidateProfilePage = () => {
                   <div className="resume-item">
                     <p>{candidate.resumePath ? candidate.resumePath.split('/').pop() : "No resume uploaded"}</p>
                     {candidate.resumePath && (
-                      <button className="btn-outline small" onClick={handleDownloadResume}>Download Resume</button>
+                      <button className="btn-outline small">Download</button>
                     )}
                   </div>
                 </div>
@@ -759,4 +739,3 @@ const ProfileEditForm = ({ candidate, onSave }) => {
 };
 
 export default CandidateProfilePage;
-

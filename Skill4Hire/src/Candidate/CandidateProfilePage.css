@@ -140,21 +140,6 @@
 .card-header h3 { margin: 0; font-size: 1rem; color: #0f172a; }
 .card-content { color: #475569; font-size: 0.95rem; }
 
-/* Outline buttons inside profile page (e.g., resume download) */
-.candidate-profile-page .btn-outline.small {
-  background: #2563eb;
-  color: #ffffff;
-  border: 1px solid #60a5fa;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-weight: 700;
-}
-
-.candidate-profile-page .btn-outline.small:hover {
-  background: #1d4ed8;
-  border-color: #93c5fd;
-}
-
 /* Ensure readable inputs in edit tab */
 .candidate-profile-page input,
 .candidate-profile-page textarea,

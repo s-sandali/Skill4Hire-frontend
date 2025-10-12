@@ -122,21 +122,18 @@
   white-space: nowrap;
 }
 
-
 .file-upload-clear {
   align-self: flex-end;
-  background: #2563eb;
-  border: 1px solid #60a5fa;
-  color: #ffffff; /* ensure visible text */
-  font-weight: 700;
+  background: none;
+  border: none;
+  color: var(--primary-accent);
+  font-weight: 500;
   cursor: pointer;
   font-size: 0.85rem;
   transition: all 0.25s ease;
-  padding: 0.35rem 0.75rem;
-  border-radius: 999px;
 }
 
 .file-upload-clear:hover {
-  background: #1d4ed8;
-  border-color: #93c5fd;
+  text-decoration: underline;
+  color: var(--highlight-cta);
 }
