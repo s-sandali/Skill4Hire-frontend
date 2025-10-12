@@ -5,7 +5,6 @@ import CandidateSidebar from "./CandidateSidebar.jsx"
 import CandidateHeader from "./CandidateHeader.jsx"
 import "../base.css"
 import "./CandidateLayout.css"
-import "../candidate.css"
 
 export default function CandidateLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)

@@ -1,9 +1,8 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { candidateService } from "../../services/candidateService.jsx"
+import { candidateService } from "../../services/candidateService"
 import "../base.css"
-import "../candidate.css"
 import "./Applications.css"
 
 const fallbackData = [
@@ -66,7 +65,8 @@ export default function Applications() {
           lastUpdate: a.updatedAt || a.lastUpdate || a.modifiedAt || "--",
         }))
         if (isMounted) setApps(normalized.length ? normalized : fallbackData)
-      } catch (e) {
+      } catch (error) {
+        console.error("Failed to load applications:", error)
         if (isMounted) setApps(fallbackData)
       } finally {
         if (isMounted) setLoading(false)
@@ -94,8 +94,7 @@ export default function Applications() {
   }
 
   return (
-    <div className="applications-shell">
-      <div className="applications-page">
+    <div className="applications-page">
       <div className="apps-header">
         <h1 className="apps-title">Applications</h1>
         <p className="apps-sub">Track each application and its latest status</p>
@@ -119,7 +118,7 @@ export default function Applications() {
           >
             <option value="all">All statuses</option>
             <option value="submitted">Submitted</option>
-            <option value="under review">Under Review</option>
+            <option value="under-review">Under Review</option>
             <option value="shortlisted">Shortlisted</option>
             <option value="offer">Offer</option>
             <option value="rejected">Rejected</option>
@@ -162,7 +161,6 @@ export default function Applications() {
           </table>
         </div>
       </div>
-      </div>
     </div>
   )
 }
@@ -184,6 +182,7 @@ function cls(status) {
   if (s.includes("offer")) return "offer"
   if (s.includes("interview") || s.includes("shortlist")) return "shortlisted"
   if (s.includes("review")) return "under-review"
+  if (s.includes("apply")) return "submitted"
   return "submitted"
 }
 
@@ -194,6 +193,7 @@ function statusLabel(status) {
   if (s.includes("reject")) return "Rejected"
   if (s.includes("offer")) return "Offer"
   if (s.includes("submit")) return "Submitted"
+  if (s.includes("apply")) return "Applied"
   return status || "Submitted"
 }
 

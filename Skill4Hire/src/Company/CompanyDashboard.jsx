@@ -1,23 +1,18 @@
-import { useState, useEffect } from 'react';
-import { 
-  RiBuildingLine, 
-  RiBriefcaseLine, 
-  RiUserLine, 
-  RiFileList3Line, 
+import { useState, useEffect, useCallback } from 'react';
+import {
+  RiBuildingLine,
+  RiBriefcaseLine,
   RiBarChartBoxLine,
   RiSettingsLine,
   RiLogoutBoxLine,
-  RiSearchLine,
-  RiFilterLine,
   RiAddLine,
   RiEditLine,
   RiDeleteBinLine,
   RiEyeLine,
   RiDownloadLine,
-  RiCalendarScheduleLine,
-  RiNotification3Line,
   RiUploadCloudLine,
   RiImageLine,
+  RiStarLine,
   RiGlobalLine,
   RiPhoneLine,
   RiMailLine,
@@ -39,18 +34,21 @@ import './CompanyDashboard.css';
 
 const CompanyDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
   
   // Job-related state
   const [jobPostings, setJobPostings] = useState([]);
   const [jobsLoading, setJobsLoading] = useState(false);
+  const [jobsInitialized, setJobsInitialized] = useState(false);
   const [showJobForm, setShowJobForm] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
   const [jobError, setJobError] = useState('');
   const [selectedJob, setSelectedJob] = useState(null);
   const [showJobDetails, setShowJobDetails] = useState(false);
+  const [recommendations, setRecommendations] = useState([]);
+  const [recommendationsLoading, setRecommendationsLoading] = useState(false);
+  const [recommendationsError, setRecommendationsError] = useState('');
+  const [selectedRecommendationJob, setSelectedRecommendationJob] = useState('all');
 
   // Company settings state
   const [companyLogo, setCompanyLogo] = useState(null);
@@ -92,56 +90,79 @@ const CompanyDashboard = () => {
     }
   });
 
-  // Sample data
-  const [companyData] = useState({
-    id: "comp-001",
-    name: "TechCorp Solutions",
-    email: "hr@techcorp.com",
-    industry: "Technology",
-    size: "100-500 employees",
-    location: "San Francisco, CA",
-    founded: "2018",
-    status: "Active"
-  });
-
-  const [applications] = useState([
-    {
-      id: "app-001",
-      candidateName: "Alex Chen",
-      candidateEmail: "alex.chen@email.com",
-      jobTitle: "Senior Frontend Developer",
-      appliedDate: "2024-01-15",
-      status: "Under Review",
-      experience: "5 years",
-      skills: ["React", "JavaScript", "TypeScript", "Node.js"],
-      matchScore: 95
-    },
-    {
-      id: "app-002",
-      candidateName: "Maria Rodriguez",
-      candidateEmail: "maria.rodriguez@email.com",
-      jobTitle: "Backend Developer",
-      appliedDate: "2024-01-14",
-      status: "Interview Scheduled",
-      experience: "4 years",
-      skills: ["Python", "Django", "PostgreSQL", "AWS"],
-      matchScore: 88
-    },
-    {
-      id: "app-003",
-      candidateName: "David Kim",
-      candidateEmail: "david.kim@email.com",
-      jobTitle: "Full Stack Developer",
-      appliedDate: "2024-01-10",
-      status: "Hired",
-      experience: "6 years",
-      skills: ["React", "Node.js", "MongoDB", "Docker"],
-      matchScore: 92
+  const formatSalary = (value) => {
+    if (value === undefined || value === null || value === "") {
+      return null;
     }
-  ]);
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric.toLocaleString() : value;
+  };
+
+  const toSkillList = useCallback((rawSkills) => {
+    if (!rawSkills) return [];
+    if (Array.isArray(rawSkills)) return rawSkills.filter(Boolean);
+    if (typeof rawSkills === 'string') {
+      return rawSkills
+        .split(',')
+        .map((skill) => skill.trim())
+        .filter(Boolean);
+    }
+    return [];
+  }, []);
+
+
+  const normalizeRecommendations = useCallback((payload) => {
+    const rawList = Array.isArray(payload)
+      ? payload
+      : Array.isArray(payload?.recommendations)
+        ? payload.recommendations
+        : Array.isArray(payload?.data)
+          ? payload.data
+          : [];
+
+    return rawList.map((item, index) => {
+      const skillsArray = Array.isArray(item?.skills)
+        ? item.skills
+        : typeof item?.skills === 'string'
+          ? item.skills
+              .split(',')
+              .map((skill) => skill.trim())
+              .filter(Boolean)
+          : [];
+
+      return {
+        id: item?.id || item?._id || item?.candidateId || `rec-${index}`,
+        candidateName: item?.candidateName || item?.name || 'Candidate',
+        email: item?.candidateEmail || item?.email || '',
+        matchScore: item?.matchScore ?? item?.score ?? null,
+        jobTitle: item?.jobTitle || item?.job?.title || '',
+        jobId: item?.jobId || item?.jobPostId || item?.job?.id || null,
+        summary: item?.summary || item?.notes || '',
+        skills: skillsArray,
+        resumeUrl: item?.resumeUrl || '',
+      };
+    });
+  }, []);
+
+  const loadRecommendations = useCallback(async (jobId = 'all') => {
+    setRecommendationsLoading(true);
+    setRecommendationsError('');
+    try {
+      const data = jobId && jobId !== 'all'
+        ? await companyService.getRecommendationsForJob(jobId)
+        : await companyService.getRecommendations();
+      setRecommendations(normalizeRecommendations(data));
+    } catch (error) {
+      const message = error.response?.data?.message || error.message || 'Failed to load recommendations';
+      setRecommendations([]);
+      setRecommendationsError(message);
+    } finally {
+      setRecommendationsLoading(false);
+    }
+  }, [normalizeRecommendations]);
 
   // Load job postings from backend
-  const loadJobPostings = async () => {
+  const loadJobPostings = useCallback(async () => {
     try {
       setJobsLoading(true);
       setJobError('');
@@ -149,15 +170,18 @@ const CompanyDashboard = () => {
       
       const jobs = await jobService.getAll();
       console.log('Loaded jobs:', jobs);
-      
-      setJobPostings(jobs || []);
+      const normalizedJobs = Array.isArray(jobs) ? jobs : [];
+      setJobPostings(normalizedJobs);
     } catch (error) {
       console.error('Failed to load job postings:', error);
-      setJobError('Failed to load job postings: ' + (error.response?.data?.message || error.message));
+      const message = error.response?.data?.message || error.message || 'Unknown error';
+      setJobError('Failed to load job postings: ' + message);
+      setJobPostings([]);
     } finally {
       setJobsLoading(false);
+      setJobsInitialized(true);
     }
-  };
+  }, []);
 
   // Handle job deletion with confirmation
   const handleDeleteJob = async (jobId) => {
@@ -243,13 +267,6 @@ const CompanyDashboard = () => {
     return status.toLowerCase().replace(' ', '-');
   };
 
-  const filteredApplications = applications.filter(application => {
-    const matchesSearch = application.candidateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         application.jobTitle.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterStatus === 'all' || application.status.toLowerCase().includes(filterStatus.toLowerCase());
-    return matchesSearch && matchesFilter;
-  });
-
   const handleLogout = async () => {
     try {
       await authService.logout();
@@ -265,7 +282,7 @@ const CompanyDashboard = () => {
   };
 
   // Load company profile data
-  const loadCompanyProfile = async () => {
+  const loadCompanyProfile = useCallback(async () => {
     try {
       setIsLoading(true);
       console.log('Loading company profile...');
@@ -322,20 +339,25 @@ const CompanyDashboard = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   // Load profile data and jobs when component mounts
   useEffect(() => {
     loadCompanyProfile();
     loadJobPostings();
-  }, []);
+  }, [loadCompanyProfile, loadJobPostings]);
 
   // Load jobs when jobs tab is selected
   useEffect(() => {
-    if (activeTab === 'jobs' && jobPostings.length === 0 && !jobsLoading) {
+    if (activeTab === 'jobs' && !jobsInitialized && !jobsLoading) {
       loadJobPostings();
     }
-  }, [activeTab]);
+  }, [activeTab, jobsInitialized, jobsLoading, loadJobPostings]);
+
+  useEffect(() => {
+    if (activeTab !== 'recommendations') return;
+    loadRecommendations(selectedRecommendationJob);
+  }, [activeTab, loadRecommendations, selectedRecommendationJob]);
 
   // Logo upload handler
   const handleLogoUpload = async (event) => {
@@ -615,8 +637,8 @@ const CompanyDashboard = () => {
                     <RiBuildingLine />
                   </div>
                   <div className="user-details">
-                    <span className="user-name">{companySettings.companyName || companyData.name}</span>
-                    <span className="user-role">{companySettings.industry || companyData.industry}</span>
+                    <span className="user-name">{companySettings.companyName || 'Your Company'}</span>
+                    <span className="user-role">{companySettings.industry || 'Industry not set'}</span>
                   </div>
                 </div>
                 <button className="logout-btn" onClick={handleLogout}>
@@ -641,22 +663,10 @@ const CompanyDashboard = () => {
               <RiBriefcaseLine /> Job Postings
             </button>
             <button 
-              className={`nav-tab ${activeTab === 'applications' ? 'active' : ''}`}
-              onClick={() => setActiveTab('applications')}
+              className={`nav-tab ${activeTab === 'recommendations' ? 'active' : ''}`}
+              onClick={() => setActiveTab('recommendations')}
             >
-              <RiFileList3Line /> Applications
-            </button>
-            <button 
-              className={`nav-tab ${activeTab === 'candidates' ? 'active' : ''}`}
-              onClick={() => setActiveTab('candidates')}
-            >
-              <RiUserLine /> Candidates
-            </button>
-            <button 
-              className={`nav-tab ${activeTab === 'analytics' ? 'active' : ''}`}
-              onClick={() => setActiveTab('analytics')}
-            >
-              <RiBarChartBoxLine /> Analytics
+              <RiStarLine /> Recommendations
             </button>
             <button 
               className={`nav-tab ${activeTab === 'settings' ? 'active' : ''}`}
@@ -670,7 +680,7 @@ const CompanyDashboard = () => {
           <main className="dashboard-main">
             {activeTab === 'overview' && (
               <div className="overview-tab">
-                <h2>Welcome back, {companySettings.companyName || companyData.name}!</h2>
+                <h2>Welcome back, {companySettings.companyName || 'Your Company'}!</h2>
                 
                 <div className="company-overview-card">
                   <h3>Company Profile</h3>
@@ -721,29 +731,11 @@ const CompanyDashboard = () => {
                   </div>
                   <div className="stat-card">
                     <div className="stat-icon">
-                      <RiFileList3Line />
+                      <RiStarLine />
                     </div>
                     <div className="stat-content">
-                      <h3>{applications.length}</h3>
-                      <p>Total Applications</p>
-                    </div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="stat-icon">
-                      <RiUserLine />
-                    </div>
-                    <div className="stat-content">
-                      <h3>12</h3>
-                      <p>New Candidates This Week</p>
-                    </div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="stat-icon">
-                      <RiNotification3Line />
-                    </div>
-                    <div className="stat-content">
-                      <h3>5</h3>
-                      <p>Interviews Scheduled</p>
+                      <h3>{recommendations.length}</h3>
+                      <p>Saved Recommendations</p>
                     </div>
                   </div>
                 </div>
@@ -828,12 +820,21 @@ const CompanyDashboard = () => {
                             <div className="job-details">
                               <p><strong>Type:</strong> {job.type}</p>
                               <p><strong>Location:</strong> {job.location}</p>
-                              {job.salary && <p><strong>Salary:</strong> ${job.salary.toLocaleString()}</p>}
+                              {formatSalary(job.salary) && (
+                                <p><strong>Salary:</strong> ${formatSalary(job.salary)}</p>
+                              )}
                               {job.experience && <p><strong>Experience:</strong> {job.experience} years</p>}
                               {job.deadline && (
                                 <p><strong>Deadline:</strong> {new Date(job.deadline).toLocaleDateString()}</p>
                               )}
                               <p className="job-description">{job.description}</p>
+                              {toSkillList(job.skills).length > 0 && (
+                                <div className="skills-list" aria-label="Required skills">
+                                  {toSkillList(job.skills).map((skill) => (
+                                    <span key={skill} className="skill-tag">{skill}</span>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                             <div className="job-actions">
                               <button 
@@ -887,10 +888,10 @@ const CompanyDashboard = () => {
                                   {formatJobStatus(selectedJob)}
                                 </span>
                               </div>
-                              {selectedJob.salary && (
+                              {formatSalary(selectedJob.salary) && (
                                 <div className="info-item">
                                   <strong>Salary:</strong>
-                                  <span>${selectedJob.salary.toLocaleString()}</span>
+                                  <span>${formatSalary(selectedJob.salary)}</span>
                                 </div>
                               )}
                               {selectedJob.experience && (
@@ -918,6 +919,16 @@ const CompanyDashboard = () => {
                                 </div>
                               )}
                             </div>
+                            {toSkillList(selectedJob.skills).length > 0 && (
+                              <div className="skills-section">
+                                <h3>Key Skills</h3>
+                                <div className="skills-list">
+                                  {toSkillList(selectedJob.skills).map((skill) => (
+                                    <span key={skill} className="skill-tag">{skill}</span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                             <div className="description-section">
                               <h3>Job Description</h3>
                               <div className="job-description-full">
@@ -975,162 +986,105 @@ const CompanyDashboard = () => {
                 )}
               </div>
             )}
-
-            {activeTab === 'applications' && (
-              <div className="applications-tab">
-                <div className="tab-header">
-                  <h2>Job Applications</h2>
-                  <div className="tab-actions">
-                    <div className="search-box">
-                      <RiSearchLine />
-                      <input 
-                        type="text" 
-                        placeholder="Search applications..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                    </div>
-                    <select 
-                      value={filterStatus} 
-                      onChange={(e) => setFilterStatus(e.target.value)}
-                      className="filter-select"
+            {activeTab === 'recommendations' && (
+              <div className="recommendations-tab">
+                <div className="recommendations-header">
+                  <h2>Candidate Recommendations</h2>
+                  <div className="recommendations-controls">
+                    <label htmlFor="recommendations-job-filter">Filter by job</label>
+                    <select
+                      id="recommendations-job-filter"
+                      value={selectedRecommendationJob}
+                      onChange={(event) => setSelectedRecommendationJob(event.target.value)}
                     >
-                      <option value="all">All Status</option>
-                      <option value="review">Under Review</option>
-                      <option value="interview">Interview Scheduled</option>
-                      <option value="hired">Hired</option>
-                      <option value="rejected">Rejected</option>
+                      <option value="all">All active jobs</option>
+                      {jobPostings.map((job) => (
+                        <option key={job.id} value={job.id}>
+                          {job.title || job.jobTitle || 'Untitled position'}
+                        </option>
+                      ))}
                     </select>
+                    <button
+                      type="button"
+                      className="btn-outline"
+                      onClick={() => loadRecommendations(selectedRecommendationJob)}
+                    >
+                      <RiRefreshLine /> Refresh
+                    </button>
                   </div>
                 </div>
-                <div className="applications-grid">
-                  {filteredApplications.map(application => (
-                    <div key={application.id} className="application-card">
-                      <div className="application-header">
-                        <div className="candidate-avatar">
-                          <RiUserLine />
+
+                {recommendationsLoading && (
+                  <div className="recommendations-loading">
+                    <RiLoader4Line className="spin" />
+                    <p>Fetching recommended candidates...</p>
+                  </div>
+                )}
+
+                {!recommendationsLoading && recommendationsError && (
+                  <div className="recommendations-error">
+                    <RiErrorWarningLine />
+                    <span>{recommendationsError}</span>
+                  </div>
+                )}
+
+                {!recommendationsLoading && !recommendationsError && recommendations.length === 0 && (
+                  <div className="recommendations-empty">
+                    <p>No recommendations available yet. Post a job or adjust your filters to see matches.</p>
+                  </div>
+                )}
+
+                {!recommendationsLoading && !recommendationsError && recommendations.length > 0 && (
+                  <div className="recommendations-list">
+                    {recommendations.map((rec) => {
+                      const score = typeof rec.matchScore === 'number'
+                        ? Math.round(rec.matchScore > 0 && rec.matchScore <= 1 ? rec.matchScore * 100 : rec.matchScore)
+                        : null;
+
+                      return (
+                        <div key={rec.id} className="recommendation-card">
+                          <div className="recommendation-card-header">
+                            <div>
+                              <h3>{rec.candidateName}</h3>
+                              <p className="recommendation-job">{rec.jobTitle || 'General fit'}</p>
+                            </div>
+                            {score !== null && <span className="recommendation-score">{score}% Match</span>}
+                          </div>
+
+                          {rec.skills.length > 0 && (
+                            <div className="recommendation-skills">
+                              {rec.skills.slice(0, 8).map((skill) => (
+                                <span key={`${rec.id}-${skill}`} className="skill-tag">{skill}</span>
+                              ))}
+                            </div>
+                          )}
+
+                          {rec.summary && <p className="recommendation-summary">{rec.summary}</p>}
+
+                          <div className="recommendation-actions">
+                            {rec.resumeUrl && (
+                              <a
+                                href={rec.resumeUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn-outline small"
+                              >
+                                <RiDownloadLine /> Resume
+                              </a>
+                            )}
+                            {rec.email && (
+                              <a href={`mailto:${rec.email}`} className="btn-primary small">
+                                <RiMailLine /> Contact
+                              </a>
+                            )}
+                          </div>
                         </div>
-                        <div className="candidate-info">
-                          <h3>{application.candidateName}</h3>
-                          <p>{application.jobTitle}</p>
-                          <span className="match-score">{application.matchScore}% Match</span>
-                        </div>
-                        <div className="application-status">
-                          <span className={`status-badge ${application.status.toLowerCase().replace(' ', '-')}`}>
-                            {application.status}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="application-details">
-                        <p><strong>Experience:</strong> {application.experience}</p>
-                        <p><strong>Applied:</strong> {application.appliedDate}</p>
-                        <div className="skills-list">
-                          {application.skills.map(skill => (
-                            <span key={skill} className="skill-tag">{skill}</span>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="application-actions">
-                        <button className="btn-primary">
-                          <RiEyeLine /> View Profile
-                        </button>
-                        <button className="btn-secondary">
-                          <RiCalendarScheduleLine /> Schedule Interview
-                        </button>
-                        <button className="btn-danger">
-                          <RiDeleteBinLine /> Reject
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
-
-            {activeTab === 'candidates' && (
-              <div className="candidates-tab">
-                <h2>Candidate Pool</h2>
-                <div className="candidates-grid">
-                  {applications.map(candidate => (
-                    <div key={candidate.id} className="candidate-card">
-                      <div className="candidate-header">
-                        <div className="candidate-avatar">
-                          <RiUserLine />
-                        </div>
-                        <div className="candidate-info">
-                          <h3>{candidate.candidateName}</h3>
-                          <p>{candidate.jobTitle}</p>
-                          <span className="match-score">{candidate.matchScore}% Match</span>
-                        </div>
-                      </div>
-                      <div className="candidate-details">
-                        <p><strong>Experience:</strong> {candidate.experience}</p>
-                        <div className="skills-list">
-                          {candidate.skills.map(skill => (
-                            <span key={skill} className="skill-tag">{skill}</span>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="candidate-actions">
-                        <button className="btn-primary">
-                          <RiEyeLine /> View Profile
-                        </button>
-                        <button className="btn-secondary">
-                          <RiDownloadLine /> Download Resume
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'analytics' && (
-              <div className="analytics-tab">
-                <h2>Analytics & Reports</h2>
-                <div className="analytics-grid">
-                  <div className="analytics-card">
-                    <h3>Application Trends</h3>
-                    <div className="chart-placeholder">
-                      <p>Chart visualization would go here</p>
-                    </div>
-                  </div>
-                  <div className="analytics-card">
-                    <h3>Hiring Funnel</h3>
-                    <div className="chart-placeholder">
-                      <p>Funnel visualization would go here</p>
-                    </div>
-                  </div>
-                  <div className="analytics-card">
-                    <h3>Top Skills</h3>
-                    <div className="skills-chart">
-                      <div className="skill-bar">
-                        <span>React</span>
-                        <div className="bar">
-                          <div className="fill" style={{width: '85%'}}></div>
-                        </div>
-                        <span>85%</span>
-                      </div>
-                      <div className="skill-bar">
-                        <span>JavaScript</span>
-                        <div className="bar">
-                          <div className="fill" style={{width: '78%'}}></div>
-                        </div>
-                        <span>78%</span>
-                      </div>
-                      <div className="skill-bar">
-                        <span>Python</span>
-                        <div className="bar">
-                          <div className="fill" style={{width: '65%'}}></div>
-                        </div>
-                        <span>65%</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {activeTab === 'settings' && (
               <div className="settings-tab">
                 <div className="tab-header">

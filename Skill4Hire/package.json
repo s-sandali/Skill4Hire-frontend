@@ -7,11 +7,13 @@
     "dev": "vite --port 5714",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:job-flow": "node scripts/jobFlowSmoke.js"
   },
   "dependencies": {
-    "axios": "^1.12.2",
-    "react": "^19.1.1",
+  "axios": "^1.12.2",
+  "axios-cookiejar-support": "^5.0.2",
+  "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.9.1"
@@ -25,6 +27,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
-    "vite": "^7.1.2"
+  "tough-cookie": "^5.1.0",
+  "vite": "^7.1.2"
   }
 }

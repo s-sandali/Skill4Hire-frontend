@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     RiMailLine,
     RiPhoneLine,
@@ -51,17 +51,6 @@ export default function EmployeeProfile() {
         skills: [],
         photoPreviewUrl: null,
     });
-
-    const initials = useMemo(
-        () =>
-            (profile.name || "U")
-                .split(" ")
-                .map((w) => w[0])
-                .join("")
-                .slice(0, 2)
-                .toUpperCase(),
-        [profile.name]
-    );
 
     useEffect(() => {
         let cancelled = false;

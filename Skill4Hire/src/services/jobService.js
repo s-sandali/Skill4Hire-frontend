@@ -9,6 +9,12 @@ const api = axios.create({
   withCredentials: true, // include cookies/session
 });
 
+const normalizeJob = (job) => {
+  if (!job) return null;
+  const normalizedId = job.id || job._id || job.jobId;
+  return normalizedId ? { ...job, id: normalizedId } : { ...job };
+};
+
 // Interceptor for handling responses & errors globally
 api.interceptors.response.use(
   (response) => response,
@@ -31,9 +37,10 @@ export const jobService = {
   getAll: async () => {
     try {
       console.log('📤 Fetching company jobs from /my-jobs');
-      const res = await api.get("/my-jobs");
-      console.log('📦 Jobs response:', res.data);
-      return res.data;
+  const res = await api.get("/my-jobs");
+  console.log('📦 Jobs response:', res.data);
+  const payload = Array.isArray(res.data) ? res.data : [];
+  return payload.map(normalizeJob);
     } catch (err) {
       console.error("❌ Job getAll failed:", err.response?.data || err.message);
       throw err;
@@ -44,9 +51,9 @@ export const jobService = {
   getById: async (id) => {
     try {
       console.log('📤 Fetching job by ID:', id);
-      const res = await api.get(`/${id}`);
-      console.log('📦 Job detail response:', res.data);
-      return res.data;
+  const res = await api.get(`/${id}`);
+  console.log('📦 Job detail response:', res.data);
+  return normalizeJob(res.data);
     } catch (err) {
       console.error("❌ Job getById failed:", err.response?.data || err.message);
       throw err;
@@ -57,9 +64,9 @@ export const jobService = {
   create: async (job) => {
     try {
       console.log('📤 Creating job:', job);
-      const res = await api.post("", job);
-      console.log('✅ Job created:', res.data);
-      return res.data;
+  const res = await api.post("", job);
+  console.log('✅ Job created:', res.data);
+  return normalizeJob(res.data);
     } catch (err) {
       console.error("❌ Job create failed:", err.response?.data || err.message);
       throw err;
@@ -70,9 +77,9 @@ export const jobService = {
   update: async (id, job) => {
     try {
       console.log('📤 Updating job:', id, job);
-      const res = await api.put(`/${id}`, job);
-      console.log('✅ Job updated:', res.data);
-      return res.data;
+  const res = await api.put(`/${id}`, job);
+  console.log('✅ Job updated:', res.data);
+  return normalizeJob(res.data);
     } catch (err) {
       console.error("❌ Job update failed:", err.response?.data || err.message);
       throw err;
@@ -91,13 +98,47 @@ export const jobService = {
     }
   },
 
-  // Search jobs (public endpoint)
-  search: async (params) => {
+  // Get public job listings (no auth required)
+  listPublic: async (params = {}) => {
     try {
-      const res = await api.get("/search", { params });
-      return res.data;
+  const res = await api.get("", { params });
+  const payload = Array.isArray(res.data) ? res.data : [];
+  return payload.map(normalizeJob);
+    } catch (err) {
+      console.error("❌ Public job list failed:", err.response?.data || err.message);
+      throw err;
+    }
+  },
+
+  // Search jobs (public endpoint)
+  search: async (params = {}) => {
+    try {
+  const res = await api.get("/search", { params });
+  const payload = Array.isArray(res.data) ? res.data : [];
+  return payload.map(normalizeJob);
     } catch (err) {
       console.error("❌ Job search failed:", err.response?.data || err.message);
+      throw err;
+    }
+  },
+
+  // Skill-matched search for authenticated candidates
+  searchWithMatching: async (params = {}) => {
+    try {
+      const res = await api.get("/search/with-matching", { params });
+      const payload = Array.isArray(res.data) ? res.data : [];
+      return payload.map((item) => {
+        if (!item) return item;
+        if (item.job) {
+          return {
+            ...item,
+            job: normalizeJob(item.job)
+          };
+        }
+        return normalizeJob(item);
+      });
+    } catch (err) {
+      console.error("❌ Job matching search failed:", err.response?.data || err.message);
       throw err;
     }
   },
