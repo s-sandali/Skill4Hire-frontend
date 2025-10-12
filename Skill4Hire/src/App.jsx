@@ -37,6 +37,8 @@ function App() {
         <Route path="/candidate-profile" element={<CandidatePage />} />
         <Route path="/candidate-setup" element={<CandidatePage />} />
         <Route path="/candidate-applications" element={<CandidatePage />} />
+        <Route path="/candidate-jobs" element={<CandidatePage />} />
+        <Route path="/candidate-matches" element={<CandidatePage />} />
   <Route path="/company-profile" element={<CompanyProfilePage />} />
          <Route path="/jobs" element={<JobPostings />} />
         <Route path="/jobs/create" element={<JobForm />} />
@@ -47,4 +49,3 @@ function App() {
 }
 
 export default App
-

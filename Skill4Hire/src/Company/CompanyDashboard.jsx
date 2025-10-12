@@ -393,8 +393,9 @@ const CompanyDashboard = () => {
       };
       reader.readAsDataURL(file);
 
-      if (response && response.logoUrl) {
-        setLogoPreview(response.logoUrl);
+      // Prefer server-provided URL/path if returned
+      if (response && (response.logo || response.logoUrl)) {
+        setLogoPreview(response.logo || response.logoUrl);
       }
 
       setSaveStatus('success');
@@ -1470,3 +1471,4 @@ const CompanyDashboard = () => {
 };
 
 export default CompanyDashboard;
+
