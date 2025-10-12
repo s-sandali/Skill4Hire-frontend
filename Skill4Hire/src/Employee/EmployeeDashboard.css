@@ -582,10 +582,12 @@
 }
 
 /* ===================== */
-/*    JOBS – Professional White Theme   */
+/*    JOBS – Updated White Theme with Black Text   */
 /* ===================== */
 .jobs-panel {
   padding-top: 0.5rem;
+  background: #ffffff !important;
+  color: #1e293b !important;
 }
 
 .jobs-header {
@@ -593,12 +595,14 @@
   align-items: center;
   justify-content: space-between;
   margin: 0.5rem 0 1.5rem 0;
+  background: #ffffff;
+  color: #1e293b;
 }
 
 .jobs-title {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #1e293b;
+  color: #1e293b !important;
 }
 
 .btn-post {
@@ -629,10 +633,11 @@
 .job-card {
   padding: 1.5rem;
   border-radius: 12px;
-  background: #ffffff;
+  background: #ffffff !important;
   border: 1px solid #e2e8f0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
+  color: #1e293b !important;
 }
 
 .job-card:hover {
@@ -646,13 +651,14 @@
   justify-content: space-between;
   gap: 0.75rem;
   margin-bottom: 1rem;
+  color: #1e293b;
 }
 
 .job-title {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 600;
-  color: #1e293b;
+  color: #1e293b !important;
   line-height: 1.3;
 }
 
@@ -663,30 +669,30 @@
   font-weight: 600;
   border: 1px solid #e2e8f0;
   background: #f8fafc;
-  color: #475569;
+  color: #475569 !important;
   flex-shrink: 0;
 }
 
 .job-status-badge.active {
   background: #dcfce7;
-  color: #166534;
+  color: #166534 !important;
   border-color: #bbf7d0;
 }
 
 .job-status-badge.closed {
   background: #f3f4f6;
-  color: #374151;
+  color: #374151 !important;
   border-color: #e5e7eb;
 }
 
 .job-meta p {
   margin: 0.5rem 0;
-  color: #64748b;
+  color: #64748b !important;
   font-size: 0.9rem;
 }
 
 .job-meta p strong {
-  color: #374151;
+  color: #1e293b !important;
   font-weight: 600;
 }
 
@@ -983,7 +989,7 @@
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  background: conic-gradient(#3b82f6 0% var(--progress, 0%), #e2e8f0 var(--progress, 0%) 100%);
+  background: conic-gradient(#3b82f6 0% var(--progress), #e2e8f0 var(--progress) 100%);
   position: relative;
 }
 
@@ -1137,17 +1143,9 @@
 
 /* Loading animation */
 @keyframes pulse {
-  0% {
-    opacity: 0.6;
-  }
-
-  50% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0.6;
-  }
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
 }
 
 .loading {
