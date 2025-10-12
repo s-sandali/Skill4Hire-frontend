@@ -11,7 +11,7 @@ export default function ProfileOverview({ candidate, onRefresh }) {
 
   const fetchProfileCompleteness = useCallback(async () => {
     try {
-      const { candidateService } = await import("../../services/candidateService")
+      const { candidateService } = await import("../../services/candidateService.jsx")
       const completenessData = await candidateService.checkProfileCompleteness()
       setCompleteness(completenessData.completeness || 0)
     } catch (error) {

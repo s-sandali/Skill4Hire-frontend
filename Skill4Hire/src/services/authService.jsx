@@ -1,6 +1,6 @@
 import apiClient from '../utils/axiosConfig';
 export const authService = {
-  // Unified login - determines role and calls appropriate endpoint
+  
   login: async (email, password) => {
     try {
       // Try to determine role from email or use a default approach
@@ -47,12 +47,8 @@ loginCompany: async (email, password) => {
     // 👉 Save to localStorage
     localStorage.setItem("userRole", "COMPANY");
 
-    // Depending on your backend response structure:
-    // If backend returns { id: 3, name: "TechCorp", ... }
     localStorage.setItem("companyId", response.data.id);
 
-    // If backend instead returns { companyId: 3, companyName: "TechCorp", ... }
-    // localStorage.setItem("companyId", response.data.companyId);
 
     console.log("📦 Company login response:", response.data);
     return response.data;
@@ -92,7 +88,7 @@ loginCompany: async (email, password) => {
   registerCandidate: async (userData) => {
     try {
       const response = await apiClient.post('/api/candidates/auth/register', userData);
-      return response.data;
+      return { success: true, data: response.data };
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Registration failed');
     }
@@ -102,7 +98,7 @@ loginCompany: async (email, password) => {
   registerCompany: async (userData) => {
     try {
       const response = await apiClient.post('/api/companies/auth/register', userData);
-      return response.data;
+      return { success: true, data: response.data };
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Registration failed');
     }
@@ -112,7 +108,7 @@ loginCompany: async (email, password) => {
   registerEmployee: async (userData) => {
     try {
       const response = await apiClient.post('/api/employees/auth/register', userData);
-      return response.data;
+      return { success: true, data: response.data };
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Registration failed');
     }
@@ -122,7 +118,7 @@ loginCompany: async (email, password) => {
   registerAdmin: async (userData) => {
     try {
       const response = await apiClient.post('/api/admin/auth/register', userData);
-      return response.data;
+      return { success: true, data: response.data };
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Registration failed');
     }

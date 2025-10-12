@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { RiUserLine, RiMailLine, RiBookLine, RiBriefcaseLine, RiStarLine, RiFileTextLine, RiEditLine, RiDeleteBinLine } from 'react-icons/ri';
-import { candidateService } from '../services/candidateService';
+import { candidateService } from '../services/candidateService.jsx';
 import './CandidateProfilePage.css';
+import './candidate.css';
 
 const CandidateProfilePage = () => {
   const [candidate, setCandidate] = useState(null);
@@ -75,8 +76,14 @@ const CandidateProfilePage = () => {
         title: profileData.title,
         headline: profileData.headline,
         skills: profileData.skills,
-        education: profileData.education,
-        experience: profileData.experience
+        education: {
+          ...profileData.education,
+          graduationYear: profileData.education?.graduationYear ? Number(profileData.education.graduationYear) : null,
+        },
+        experience: {
+          ...profileData.experience,
+          yearsOfExperience: profileData.experience?.yearsOfExperience ? Number(profileData.experience.yearsOfExperience) : 0,
+        }
       };
 
       const updatedProfile = await candidateService.updateProfile(backendProfileData);
@@ -485,22 +492,30 @@ const ProfileEditForm = ({ candidate, onSave }) => {
 
   const handleExperienceChange = (e) => {
     const { name, value, type, checked } = e.target;
+    let next = value;
+    if (name === 'yearsOfExperience') {
+      next = String(value || '').replace(/[^0-9]/g, '').slice(0, 2);
+    }
     setFormData(prev => ({
       ...prev,
       experience: {
         ...prev.experience,
-        [name]: type === 'checkbox' ? checked : value
+        [name]: type === 'checkbox' ? checked : next
       }
     }));
   };
 
   const handleEducationChange = (e) => {
     const { name, value } = e.target;
+    let next = value;
+    if (name === 'graduationYear') {
+      next = String(value || '').replace(/[^0-9]/g, '').slice(0, 4);
+    }
     setFormData(prev => ({
       ...prev,
       education: {
         ...prev.education,
-        [name]: value
+        [name]: next
       }
     }));
   };
@@ -667,12 +682,12 @@ const ProfileEditForm = ({ candidate, onSave }) => {
             </div>
             <div className="form-group">
               <label>Years of Experience</label>
-              <input
-                type="number"
-                name="yearsOfExperience"
-                value={formData.experience.yearsOfExperience || 0}
-                onChange={handleExperienceChange}
-                min="0"
+              <input 
+                type="text" 
+                name="yearsOfExperience" 
+                inputMode="numeric" pattern="[0-9]*"
+                value={formData.experience.yearsOfExperience ?? ''}
+                onChange={handleExperienceChange} 
               />
             </div>
           </>
@@ -704,13 +719,12 @@ const ProfileEditForm = ({ candidate, onSave }) => {
         <div className="form-group">
           <label>Graduation Year</label>
           <input
-            type="number"
+            type="text"
             name="graduationYear"
-            value={formData.education.graduationYear || ""}
+            inputMode="numeric" pattern="[0-9]*"
+            value={formData.education.graduationYear ?? ''}
             onChange={handleEducationChange}
             placeholder="e.g., 2023"
-            min="1900"
-            max="2030"
           />
         </div>
       </div>
