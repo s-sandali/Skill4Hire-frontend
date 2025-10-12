@@ -12,6 +12,7 @@ import AdminDashboard from './Admin/AdminDashboard.jsx'
 import CandidatePage from './Candidate/CandidatePage.jsx';
 import JobPostings from "./Company/JobPostings.jsx";
 import JobForm from "./Company/JobForm.jsx";
+import CompanyProfilePage from './Company/CompanyProfilePage.jsx';
 import './App.css'
 
 
@@ -36,6 +37,7 @@ function App() {
         <Route path="/candidate-profile" element={<CandidatePage />} />
         <Route path="/candidate-setup" element={<CandidatePage />} />
         <Route path="/candidate-applications" element={<CandidatePage />} />
+  <Route path="/company-profile" element={<CompanyProfilePage />} />
          <Route path="/jobs" element={<JobPostings />} />
         <Route path="/jobs/create" element={<JobForm />} />
         <Route path="/jobs/edit/:id" element={<JobForm />} />

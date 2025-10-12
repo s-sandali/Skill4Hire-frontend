@@ -109,7 +109,12 @@ export const candidateService = {
 
   applyToJob: async (jobId) => {
     try {
-      const response = await apiClient.post(`/api/jobs/${jobId}/apply`);
+      if (!jobId) {
+        throw new Error('Missing job identifier');
+      }
+
+      const payload = { jobPostId: jobId };
+      const response = await apiClient.post('/api/candidates/applications', payload);
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Failed to apply to job');

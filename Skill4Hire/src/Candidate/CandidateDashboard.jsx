@@ -141,11 +141,7 @@ const ProfileOverview = ({ candidate }) => {
       <div className="profile-sections">
         <div className="section">
           <h3>About</h3>
-<<<<<<< HEAD
           <p>{candidate.headline || candidate.bio || "No bio provided"}</p>
-=======
-          <p>{candidate.headline || "No bio provided"}</p>
->>>>>>> 75012195c6be97b8c92b8ced2f7cb10cacfdc7e0
         </div>
 
         <div className="section">
@@ -177,17 +173,10 @@ const EditProfile = ({ candidate, onUpdate }) => {
   const [formData, setFormData] = useState({
     name: candidate?.name || "",
     email: candidate?.email || "",
-<<<<<<< HEAD
     phoneNumber: candidate?.phoneNumber || "",
     location: candidate?.location || "",
     title: candidate?.title || "",
     headline: candidate?.headline || candidate?.bio || "",
-=======
-    phoneNumber: candidate?.phoneNumber || "", // Changed from phone
-    location: candidate?.location || "",
-    title: candidate?.title || "",
-    headline: candidate?.headline || candidate?.bio || "", // Map bio to headline
->>>>>>> 75012195c6be97b8c92b8ced2f7cb10cacfdc7e0
     experience: candidate?.experience || {
       isExperienced: false,
       role: "",

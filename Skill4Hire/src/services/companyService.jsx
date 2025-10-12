@@ -68,5 +68,26 @@ export const companyService = {
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Error deleting account');
     }
+  },
+
+  getRecommendations: async () => {
+    try {
+      const response = await apiClient.get('/api/companies/recommendations');
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch recommendations');
+    }
+  },
+
+  getRecommendationsForJob: async (jobId) => {
+    try {
+      if (!jobId) {
+        throw new Error('Missing job identifier');
+      }
+      const response = await apiClient.get(`/api/companies/jobs/${jobId}/recommendations`);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch job recommendations');
+    }
   }
 };

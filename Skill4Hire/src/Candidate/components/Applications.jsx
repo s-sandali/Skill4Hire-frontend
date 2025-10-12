@@ -65,7 +65,8 @@ export default function Applications() {
           lastUpdate: a.updatedAt || a.lastUpdate || a.modifiedAt || "--",
         }))
         if (isMounted) setApps(normalized.length ? normalized : fallbackData)
-      } catch (e) {
+      } catch (error) {
+        console.error("Failed to load applications:", error)
         if (isMounted) setApps(fallbackData)
       } finally {
         if (isMounted) setLoading(false)
@@ -117,7 +118,7 @@ export default function Applications() {
           >
             <option value="all">All statuses</option>
             <option value="submitted">Submitted</option>
-            <option value="under review">Under Review</option>
+            <option value="under-review">Under Review</option>
             <option value="shortlisted">Shortlisted</option>
             <option value="offer">Offer</option>
             <option value="rejected">Rejected</option>
@@ -181,6 +182,7 @@ function cls(status) {
   if (s.includes("offer")) return "offer"
   if (s.includes("interview") || s.includes("shortlist")) return "shortlisted"
   if (s.includes("review")) return "under-review"
+  if (s.includes("apply")) return "submitted"
   return "submitted"
 }
 
@@ -191,6 +193,7 @@ function statusLabel(status) {
   if (s.includes("reject")) return "Rejected"
   if (s.includes("offer")) return "Offer"
   if (s.includes("submit")) return "Submitted"
+  if (s.includes("apply")) return "Applied"
   return status || "Submitted"
 }
 

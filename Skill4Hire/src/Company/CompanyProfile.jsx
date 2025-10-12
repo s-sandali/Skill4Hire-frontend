@@ -1,5 +1,20 @@
 import { useState } from 'react';
-import { RiBuildingLine, RiMailLine, RiGlobalLine, RiMapPinLine, RiTeamLine, RiCalendarLine, RiUserLine, RiPhoneLine, RiEditLine, RiDeleteBinLine, RiBriefcaseLine } from 'react-icons/ri';
+import { 
+  RiBuildingLine, 
+  RiMailLine, 
+  RiGlobalLine, 
+  RiMapPinLine, 
+  RiTeamLine, 
+  RiCalendarLine, 
+  RiUserLine, 
+  RiPhoneLine, 
+  RiEditLine, 
+  RiBriefcaseLine,
+  RiShieldCheckLine,
+  RiBarChartBoxLine,
+  RiStarLine,
+  RiTimeLine
+} from 'react-icons/ri';
 import CompanyDashboard from './CompanyDashboard';
 import JobPostings from './JobPostings';
 import './CompanyProfile.css';
@@ -96,31 +111,71 @@ const CompanyProfile = () => {
 
       {/* Company Header */}
       <div className="company-header">
-        <div className="company-avatar">
-          {sampleProfile?.logo ? (
-            <img src={sampleProfile.logo} alt="Company Logo" />
-          ) : (
-            <RiBuildingLine />
-          )}
+        <div className="company-logo-wrapper">
+          <div className="company-avatar">
+            {sampleProfile?.logo ? (
+              <img src={sampleProfile.logo} alt="Company Logo" />
+            ) : (
+              <RiBuildingLine />
+            )}
+          </div>
+          <div className="verified-badge">
+            <RiShieldCheckLine />
+            <span>Verified</span>
+          </div>
         </div>
+        
         <div className="company-info">
           <h1>{sampleProfile?.companyName || 'Your Company'}</h1>
-          <p className="company-industry">{sampleProfile?.industry}</p>
+          <div className="company-meta">
+            <span className="meta-item">
+              <RiBuildingLine /> {sampleProfile?.industry}
+            </span>
+            <span className="meta-item">
+              <RiMapPinLine /> {sampleProfile?.location}
+            </span>
+          </div>
+          
           <div className="company-stats">
-            <div className="stat">
-              <span className="stat-number">{sampleProfile?.companySize || 'N/A'}</span>
-              <span className="stat-label">Employees</span>
+            <div className="stat-item">
+              <div className="stat-icon">
+                <RiTeamLine />
+              </div>
+              <div className="stat-info">
+                <span className="stat-number">{sampleProfile?.companySize || 'N/A'}</span>
+                <span className="stat-label">Team Size</span>
+              </div>
             </div>
-            <div className="stat">
-              <span className="stat-number">{sampleProfile?.foundedYear || 'N/A'}</span>
-              <span className="stat-label">Founded</span>
+            <div className="stat-item">
+              <div className="stat-icon">
+                <RiCalendarLine />
+              </div>
+              <div className="stat-info">
+                <span className="stat-number">{sampleProfile?.foundedYear || 'N/A'}</span>
+                <span className="stat-label">Founded</span>
+              </div>
             </div>
-            <div className="stat">
-              <span className="stat-number">95%</span>
-              <span className="stat-label">Profile Score</span>
+            <div className="stat-item">
+              <div className="stat-icon">
+                <RiStarLine />
+              </div>
+              <div className="stat-info">
+                <span className="stat-number">95%</span>
+                <span className="stat-label">Profile Score</span>
+              </div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-icon">
+                <RiBriefcaseLine />
+              </div>
+              <div className="stat-info">
+                <span className="stat-number">12</span>
+                <span className="stat-label">Active Jobs</span>
+              </div>
             </div>
           </div>
         </div>
+        
         <div className="company-actions">
           <button 
             className="btn-primary" 
@@ -137,25 +192,29 @@ const CompanyProfile = () => {
           className={`tab ${activeTab === 'profile' ? 'active' : ''}`}
           onClick={() => setActiveTab('profile')}
         >
-          Company Overview
+          <RiBarChartBoxLine />
+          <span>Overview</span>
         </button>
         <button 
           className={`tab ${activeTab === 'edit' ? 'active' : ''}`}
           onClick={() => setActiveTab('edit')}
         >
-          Edit Profile
+          <RiEditLine />
+          <span>Edit Profile</span>
         </button>
         <button 
           className={`tab ${activeTab === 'jobs' ? 'active' : ''}`}
           onClick={() => setActiveTab('jobs')}
         >
-          Job Postings
+          <RiBriefcaseLine />
+          <span>Job Postings</span>
         </button>
         <button 
           className={`tab ${activeTab === 'candidates' ? 'active' : ''}`}
           onClick={() => setActiveTab('candidates')}
         >
-          Candidates
+          <RiTeamLine />
+          <span>Candidates</span>
         </button>
       </div>
 
@@ -163,29 +222,91 @@ const CompanyProfile = () => {
       <div className="tab-content">
         {activeTab === 'profile' && (
           <div className="profile-overview">
+            {/* Quick Stats Banner */}
+            <div className="quick-stats-banner">
+              <div className="quick-stat">
+                <div className="quick-stat-icon">
+                  <RiBriefcaseLine />
+                </div>
+                <div className="quick-stat-content">
+                  <h4>12</h4>
+                  <p>Active Jobs</p>
+                </div>
+              </div>
+              <div className="quick-stat">
+                <div className="quick-stat-icon">
+                  <RiUserLine />
+                </div>
+                <div className="quick-stat-content">
+                  <h4>48</h4>
+                  <p>Applications</p>
+                </div>
+              </div>
+              <div className="quick-stat">
+                <div className="quick-stat-icon">
+                  <RiTimeLine />
+                </div>
+                <div className="quick-stat-content">
+                  <h4>5</h4>
+                  <p>Interviews</p>
+                </div>
+              </div>
+              <div className="quick-stat">
+                <div className="quick-stat-icon">
+                  <RiBarChartBoxLine />
+                </div>
+                <div className="quick-stat-content">
+                  <h4>85%</h4>
+                  <p>Response Rate</p>
+                </div>
+              </div>
+            </div>
+            
             <div className="overview-grid">
               {/* Company Information Card */}
               <div className="overview-card">
                 <div className="card-header">
-                  <RiBuildingLine className="card-icon" />
+                  <div className="card-header-icon">
+                    <RiBuildingLine />
+                  </div>
                   <h3>Company Information</h3>
                 </div>
                 <div className="card-content">
-                  <div className="info-item">
-                    <span className="info-label">Company Name</span>
-                    <span className="info-value">{sampleProfile?.companyName}</span>
+                  <div className="info-row">
+                    <div className="info-icon">
+                      <RiBuildingLine />
+                    </div>
+                    <div className="info-details">
+                      <span className="info-label">Company Name</span>
+                      <span className="info-value">{sampleProfile?.companyName}</span>
+                    </div>
                   </div>
-                  <div className="info-item">
-                    <span className="info-label">Industry</span>
-                    <span className="info-value">{sampleProfile?.industry}</span>
+                  <div className="info-row">
+                    <div className="info-icon">
+                      <RiBarChartBoxLine />
+                    </div>
+                    <div className="info-details">
+                      <span className="info-label">Industry</span>
+                      <span className="info-value">{sampleProfile?.industry}</span>
+                    </div>
                   </div>
-                  <div className="info-item">
-                    <span className="info-label">Company Size</span>
-                    <span className="info-value">{sampleProfile?.companySize} employees</span>
+                  <div className="info-row">
+                    <div className="info-icon">
+                      <RiTeamLine />
+                    </div>
+                    <div className="info-details">
+                      <span className="info-label">Company Size</span>
+                      <span className="info-value">{sampleProfile?.companySize} employees</span>
+                    </div>
                   </div>
-                  <div className="info-item">
-                    <span className="info-label">Founded</span>
-                    <span className="info-value">{sampleProfile?.foundedYear}</span>
+                  <div className="info-row">
+                    <div className="info-icon">
+                      <RiCalendarLine />
+                    </div>
+                    <div className="info-details">
+                      <span className="info-label">Founded</span>
+                      <span className="info-value">{sampleProfile?.foundedYear}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -193,29 +314,51 @@ const CompanyProfile = () => {
               {/* Contact Information Card */}
               <div className="overview-card">
                 <div className="card-header">
-                  <RiMailLine className="card-icon" />
+                  <div className="card-header-icon">
+                    <RiMailLine />
+                  </div>
                   <h3>Contact Information</h3>
                 </div>
                 <div className="card-content">
-                  <div className="info-item">
-                    <span className="info-label">Email</span>
-                    <span className="info-value">{sampleProfile?.email}</span>
+                  <div className="info-row">
+                    <div className="info-icon">
+                      <RiMailLine />
+                    </div>
+                    <div className="info-details">
+                      <span className="info-label">Email</span>
+                      <span className="info-value">{sampleProfile?.email}</span>
+                    </div>
                   </div>
-                  <div className="info-item">
-                    <span className="info-label">Phone</span>
-                    <span className="info-value">{sampleProfile?.phone}</span>
+                  <div className="info-row">
+                    <div className="info-icon">
+                      <RiPhoneLine />
+                    </div>
+                    <div className="info-details">
+                      <span className="info-label">Phone</span>
+                      <span className="info-value">{sampleProfile?.phone}</span>
+                    </div>
                   </div>
-                  <div className="info-item">
-                    <span className="info-label">Website</span>
-                    <span className="info-value">
-                      <a href={sampleProfile?.website} target="_blank" rel="noopener noreferrer">
-                        {sampleProfile?.website}
-                      </a>
-                    </span>
+                  <div className="info-row">
+                    <div className="info-icon">
+                      <RiGlobalLine />
+                    </div>
+                    <div className="info-details">
+                      <span className="info-label">Website</span>
+                      <span className="info-value">
+                        <a href={sampleProfile?.website} target="_blank" rel="noopener noreferrer">
+                          {sampleProfile?.website}
+                        </a>
+                      </span>
+                    </div>
                   </div>
-                  <div className="info-item">
-                    <span className="info-label">Location</span>
-                    <span className="info-value">{sampleProfile?.location}</span>
+                  <div className="info-row">
+                    <div className="info-icon">
+                      <RiMapPinLine />
+                    </div>
+                    <div className="info-details">
+                      <span className="info-label">Location</span>
+                      <span className="info-value">{sampleProfile?.location}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -223,13 +366,21 @@ const CompanyProfile = () => {
               {/* Contact Person Card */}
               <div className="overview-card">
                 <div className="card-header">
-                  <RiUserLine className="card-icon" />
+                  <div className="card-header-icon">
+                    <RiUserLine />
+                  </div>
                   <h3>Contact Person</h3>
                 </div>
                 <div className="card-content">
-                  <div className="info-item">
-                    <span className="info-label">Contact Person</span>
-                    <span className="info-value">{sampleProfile?.contactPerson || 'Not specified'}</span>
+                  <div className="contact-person-card">
+                    <div className="contact-avatar">
+                      <RiUserLine />
+                    </div>
+                    <div className="contact-details">
+                      <h4>{sampleProfile?.contactPerson || 'Not specified'}</h4>
+                      <p>HR Manager</p>
+                      <span className="contact-email">{sampleProfile?.email}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -237,7 +388,9 @@ const CompanyProfile = () => {
               {/* Company Description Card */}
               <div className="overview-card full-width">
                 <div className="card-header">
-                  <RiBuildingLine className="card-icon" />
+                  <div className="card-header-icon">
+                    <RiBuildingLine />
+                  </div>
                   <h3>About the Company</h3>
                 </div>
                 <div className="card-content">

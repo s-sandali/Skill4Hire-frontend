@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   RiUserLine, RiBriefcaseLine, RiFileList3Line,
   RiCalendarScheduleLine, RiLogoutBoxLine,
@@ -43,17 +43,17 @@ const EmployeeDashboard = () => {
   const goToDashboard = () => setActiveTab("dashboard");
 
   // Fetch employee profile
-  const fetchEmployeeProfile = async () => {
+  const fetchEmployeeProfile = useCallback(async () => {
     try {
       const data = await employeeService.getProfile();
       setEmployeeData(data);
     } catch (error) {
       console.error("Error fetching employee profile:", error);
     }
-  };
+  }, []);
 
   // Fetch profile completeness
-  const fetchProfileCompleteness = async () => {
+  const fetchProfileCompleteness = useCallback(async () => {
     setLoadingCompleteness(true);
     setCompletenessError(null);
     try {
@@ -77,34 +77,15 @@ const EmployeeDashboard = () => {
     } finally {
       setLoadingCompleteness(false);
     }
-  };
-
-  // Fetch real data when tabs change
-  useEffect(() => {
-    if (activeTab === 'candidates') {
-      fetchCandidates();
-    } else if (activeTab === 'jobs') {
-      fetchJobs();
-    } else if (activeTab === 'recommendations') {
-      fetchMyRecommendations();
-    } else if (activeTab === 'dashboard') {
-      fetchDashboardMetrics();
-    }
-  }, [activeTab, searchTerm, filterStatus]);
-
-  // Fetch initial data
-  useEffect(() => {
-    fetchEmployeeProfile();
-    fetchProfileCompleteness();
   }, []);
 
   // Fetch candidates with filters
-  const fetchCandidates = async () => {
+  const fetchCandidates = useCallback(async () => {
     setLoading(true);
     try {
       const data = await employeeService.searchCandidates({
         skill: searchTerm || null,
-        minExperience: filterStatus !== 'all' && filterStatus !== 'experience' ? parseInt(filterStatus) : null,
+        minExperience: filterStatus !== 'all' && filterStatus !== 'experience' ? parseInt(filterStatus, 10) : null,
         page: 0,
         size: 10
       });
@@ -115,10 +96,10 @@ const EmployeeDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterStatus, searchTerm]);
 
   // Fetch active jobs
-  const fetchJobs = async () => {
+  const fetchJobs = useCallback(async () => {
     setLoading(true);
     try {
       const data = await employeeService.getActiveJobs(0, 10);
@@ -129,10 +110,10 @@ const EmployeeDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Fetch employee's recommendations
-  const fetchMyRecommendations = async () => {
+  const fetchMyRecommendations = useCallback(async () => {
     setLoading(true);
     try {
       const data = await employeeService.getMyRecommendations(0, 10);
@@ -143,17 +124,47 @@ const EmployeeDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Fetch dashboard metrics
-  const fetchDashboardMetrics = async () => {
+  const fetchDashboardMetrics = useCallback(async () => {
     try {
       const data = await employeeService.getDashboardMetrics();
       setDashboardMetrics(data);
     } catch (error) {
       console.error('Error fetching dashboard metrics:', error);
     }
-  };
+  }, []);
+
+  // Fetch initial data
+  useEffect(() => {
+    fetchEmployeeProfile();
+    fetchProfileCompleteness();
+  }, [fetchEmployeeProfile, fetchProfileCompleteness]);
+
+  useEffect(() => {
+    if (activeTab === 'candidates') {
+      fetchCandidates();
+    }
+  }, [activeTab, fetchCandidates]);
+
+  useEffect(() => {
+    if (activeTab === 'jobs') {
+      fetchJobs();
+    }
+  }, [activeTab, fetchJobs]);
+
+  useEffect(() => {
+    if (activeTab === 'recommendations') {
+      fetchMyRecommendations();
+    }
+  }, [activeTab, fetchMyRecommendations]);
+
+  useEffect(() => {
+    if (activeTab === 'dashboard') {
+      fetchDashboardMetrics();
+    }
+  }, [activeTab, fetchDashboardMetrics]);
 
   // Handle candidate recommendation
   const handleRecommendCandidate = (candidate) => {

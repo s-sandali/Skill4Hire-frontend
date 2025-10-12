@@ -55,7 +55,7 @@ const EmployeeDashboard = () => {
             // Attempt to parse text; fallback if it isn't JSON
             const text = await res.text();
             return text ? JSON.parse(text) : fallback;
-          } catch (_) {
+          } catch {
             return fallback;
           }
         };

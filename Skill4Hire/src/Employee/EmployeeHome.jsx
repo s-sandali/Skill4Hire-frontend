@@ -4,7 +4,7 @@ import "../Candidate/base.css";
 import "../Candidate/buttons.css";
 import "./EmployeeHome.css";
 
-export default function EmployeeHome({ employee, onViewProfile, onViewDashboard }) {
+export default function EmployeeHome({ onViewProfile, onViewDashboard }) {
     return (
         <div className="home-container">
             <div className="home-content">
@@ -37,4 +37,3 @@ export default function EmployeeHome({ employee, onViewProfile, onViewDashboard 
         </div>
     );
 }
-//error fixed//

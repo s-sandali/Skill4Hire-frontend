@@ -7,6 +7,18 @@ const JobPostings = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  const toSkillList = (skills) => {
+    if (!skills) return [];
+    if (Array.isArray(skills)) return skills.filter(Boolean);
+    if (typeof skills === "string") {
+      return skills
+        .split(",")
+        .map((skill) => skill.trim())
+        .filter(Boolean);
+    }
+    return [];
+  };
+
   const loadJobs = async () => {
     try {
       const data = await jobService.getAll();
@@ -41,7 +53,7 @@ const JobPostings = () => {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-white">Job Postings</h2>
         <button
-          onClick={() => navigate("/jobs/new")}
+          onClick={() => navigate("/jobs/create")}
           className="bg-blue-600 text-white px-4 py-2 rounded-md"
         >
           + New Job
@@ -83,6 +95,19 @@ const JobPostings = () => {
                 <p>⚡ {job.experience} years exp</p>
                 <p>⏳ Deadline: {new Date(job.deadline).toLocaleDateString()}</p>
               </div>
+
+              {toSkillList(job.skills).length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {toSkillList(job.skills).map((skill) => (
+                    <span
+                      key={skill}
+                      className="bg-blue-900 text-blue-200 px-2 py-1 rounded-full text-xs tracking-wide"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              )}
 
               <div className="flex gap-3 mt-4">
                 <button
