@@ -1,7 +1,6 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { employeeService } from '../services/employeeService';
 import './EmployeeDashboard.css';
 
 const sampleCompany = {
@@ -24,8 +23,6 @@ const EmployeeDashboard = () => {
   const [companyQuery, setCompanyQuery] = useState('');
   const [candidateQuery, setCandidateQuery] = useState('');
   const [selectedCandidate, setSelectedCandidate] = useState(null);
-  const [jobPostId, setJobPostId] = useState('');
-  const [submitting, setSubmitting] = useState(false);
 
   // new: state for backend data + loading / error
   const [companies, setCompanies] = useState([sampleCompany]);
@@ -197,47 +194,9 @@ const EmployeeDashboard = () => {
 
           {selectedCandidate && (
             <div className="ed-selected">
-              <div>
-                <span>Selected candidate to suggest: </span>
-                <strong>{selectedCandidate.name}</strong>
-                <button className="link" onClick={() => setSelectedCandidate(null)}>Clear</button>
-              </div>
-              <div className="ed-selected-actions">
-                <input
-                  type="text"
-                  placeholder="Enter Job Post ID"
-                  value={jobPostId}
-                  onChange={(e) => setJobPostId(e.target.value)}
-                />
-                <button
-                  className="primary"
-                  disabled={submitting}
-                  onClick={async () => {
-                    if (!jobPostId.trim()) {
-                      alert('Please enter a jobPostId');
-                      return;
-                    }
-                    if (selectedCandidate?._example) {
-                      alert(`Would submit ${selectedCandidate.name} to job ${jobPostId}`);
-                      return;
-                    }
-                    try {
-                      setSubmitting(true);
-                      const res = await employeeService.submitCandidateApplication({
-                        candidateId: selectedCandidate.id,
-                        jobPostId: jobPostId.trim(),
-                      });
-                      alert('Candidate submitted successfully');
-                    } catch (e) {
-                      alert(e.message || 'Failed to submit');
-                    } finally {
-                      setSubmitting(false);
-                    }
-                  }}
-                >
-                  {submitting ? 'Submitting…' : 'Submit to Job'}
-                </button>
-              </div>
+              <span>Selected candidate to suggest: </span>
+              <strong>{selectedCandidate.name}</strong>
+              <button className="link" onClick={() => setSelectedCandidate(null)}>Clear</button>
             </div>
           )}
         </>

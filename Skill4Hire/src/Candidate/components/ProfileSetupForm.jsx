@@ -70,7 +70,7 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
   const addSkill = async () => {
     if (newSkill.trim() && !formData.skills.includes(newSkill.trim())) {
       try {
-        const { candidateService } = await import("../../services/candidateService.jsx")
+        const { candidateService } = await import("../../services/candidateService")
         const updatedSkills = await candidateService.addSkill(newSkill.trim())
         setFormData((prev) => ({
           ...prev,
@@ -86,7 +86,7 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
 
   const removeSkill = async (skillToRemove) => {
     try {
-      const { candidateService } = await import("../../services/candidateService.jsx")
+      const { candidateService } = await import("../../services/candidateService")
       const updatedSkills = await candidateService.removeSkill(skillToRemove)
       setFormData((prev) => ({
         ...prev,
@@ -103,7 +103,7 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
     setIsLoading(true);
   
     try {
-      const { candidateService } = await import("../../services/candidateService.jsx");
+      const { candidateService } = await import("../../services/candidateService");
       
       // First update profile data
       const profileDataToSend = {
