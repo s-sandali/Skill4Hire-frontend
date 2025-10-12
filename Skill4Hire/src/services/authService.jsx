@@ -37,29 +37,18 @@ export const authService = {
       throw new Error(error.response?.data?.message || 'Candidate login failed');
     }
   },
-loginCompany: async (email, password) => {
-  try {
-    const response = await apiClient.post('/api/companies/auth/login', {
-      email,
-      password
-    });
 
-    // 👉 Save to localStorage
-    localStorage.setItem("userRole", "COMPANY");
-
-    // Depending on your backend response structure:
-    // If backend returns { id: 3, name: "TechCorp", ... }
-    localStorage.setItem("companyId", response.data.id);
-
-    // If backend instead returns { companyId: 3, companyName: "TechCorp", ... }
-    // localStorage.setItem("companyId", response.data.companyId);
-
-    console.log("📦 Company login response:", response.data);
-    return response.data;
-  } catch (error) {
-    throw new Error(error.response?.data?.message || 'Company login failed');
-  }
-},
+  loginCompany: async (email, password) => {
+    try {
+      const response = await apiClient.post('/api/companies/auth/login', {
+        email,
+        password
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Company login failed');
+    }
+  },
 
   loginEmployee: async (email, password) => {
     try {
