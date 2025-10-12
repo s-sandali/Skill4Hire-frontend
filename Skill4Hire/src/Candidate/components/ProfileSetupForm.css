@@ -204,17 +204,25 @@
 }
 
 .skill-remove {
-  background: none;
-  border: none;
-  color: var(--primary-bg);
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
   cursor: pointer;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   line-height: 1;
   padding: 0;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
 }
 
 .skill-remove:hover {
-  color: var(--error-color);
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #991b1b;
 }
 
 /* File Upload Section */
@@ -255,15 +263,16 @@
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
 }
 
-.btn-secondary {
-  background: #f0f3fa;
-  color: #0e1a32;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+.profile-form .btn-secondary {
+  background: linear-gradient(135deg, var(--primary-accent) 0%, var(--highlight-cta) 100%);
+  color: #ffffff; /* ensure text is visible */
+  border: none;
+  box-shadow: 0 3px 10px rgba(37,99,235,0.25);
 }
 
-.btn-secondary:hover {
-  background: #e5ebf6;
-  transform: translateY(-1px);
+.profile-form .btn-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
 }
 
 /* Responsive Design */
