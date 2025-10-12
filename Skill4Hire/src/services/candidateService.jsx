@@ -21,22 +21,9 @@ export const candidateService = {
         location: profileData.location,
         title: profileData.title,
         headline: profileData.headline || profileData.bio,
-        skills: Array.isArray(profileData.skills) ? profileData.skills : [],
-        education: profileData.education ? {
-          degree: profileData.education.degree ?? '',
-          institution: profileData.education.institution ?? '',
-          graduationYear: profileData.education.graduationYear !== undefined && profileData.education.graduationYear !== ''
-            ? Number(profileData.education.graduationYear)
-            : null,
-        } : null,
-        experience: profileData.experience ? {
-          isExperienced: !!profileData.experience.isExperienced,
-          role: profileData.experience.role ?? '',
-          company: profileData.experience.company ?? '',
-          yearsOfExperience: profileData.experience.yearsOfExperience !== undefined && profileData.experience.yearsOfExperience !== ''
-            ? Number(profileData.experience.yearsOfExperience)
-            : 0,
-        } : null,
+        skills: profileData.skills,
+        education: profileData.education,
+        experience: profileData.experience,
         jobPreferences: profileData.jobPreferences || {},
         notificationPreferences: profileData.notificationPreferences || {}
       };
@@ -65,9 +52,8 @@ export const candidateService = {
   // Skills Management - FIXED parameter name
   addSkill: async (skill) => {
     try {
-      // Backend expects RequestParam("skill") — always send via query param
       const response = await apiClient.post('/api/candidates/skills', null, {
-        params: { skill }
+        params: { skill } // Matches backend @RequestParam("skill")
       });
       const data = response.data;
       return Array.isArray(data) ? data : (data?.skills ?? []);
@@ -123,7 +109,12 @@ export const candidateService = {
 
   applyToJob: async (jobId) => {
     try {
-      const response = await apiClient.post(`/api/jobs/${jobId}/apply`);
+      if (!jobId) {
+        throw new Error('Missing job identifier');
+      }
+
+      const payload = { jobPostId: jobId };
+      const response = await apiClient.post('/api/candidates/applications', payload);
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Failed to apply to job');

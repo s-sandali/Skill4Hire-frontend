@@ -25,7 +25,7 @@ export default function CandidateHeader({ onMenuClick }) {
     let mounted = true
     const fetchProfile = async () => {
       try {
-        const { candidateService } = await import("../../services/candidateService.jsx")
+        const { candidateService } = await import("../../services/candidateService")
         const profile = await candidateService.getProfile()
         if (mounted) setCandidate(profile)
       } catch {

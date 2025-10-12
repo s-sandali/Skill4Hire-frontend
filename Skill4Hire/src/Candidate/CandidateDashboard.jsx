@@ -1,120 +1,454 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { RiUserLine, RiFileTextLine, RiEyeLine, RiStarLine } from 'react-icons/ri'
-import { candidateService } from "../services/candidateService.jsx"
+import { useState, useEffect } from "react"
+import { candidateService } from "../services/candidateService"
 import "./base.css"
 import "./buttons.css"
 import "./dashboard.css"
-import "./candidate.css"
+import Applications from "./components/Applications"
 
-// Lean dashboard content only. Navigation and other sections
-// live in Candidate/components/CandidateLayout and dedicated pages.
-export default function CandidateDashboard() {
+const CandidateDashboard = () => {
   const [candidate, setCandidate] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState("overview")
 
   useEffect(() => {
-    let mounted = true
-    ;(async () => {
-      try {
-        const profile = await candidateService.getProfile()
-        if (mounted) setCandidate(profile)
-      } catch (err) {
-        console.error("Error fetching profile:", err)
-      } finally {
-        if (mounted) setLoading(false)
-      }
-    })()
-    return () => { mounted = false }
+    fetchCandidateProfile()
   }, [])
 
-  if (loading) return <div className="loading">Loading your dashboard...</div>
+  const fetchCandidateProfile = async () => {
+    try {
+      const profile = await candidateService.getProfile()
+      setCandidate(profile)
+    } catch (error) {
+      console.error("Error fetching profile:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-  const completeness = candidate?.profileCompleteness ?? 0
-  const skillsCount = Array.isArray(candidate?.skills) ? candidate.skills.length : 0
-  const applications = 0
-  const views = 0
-  const matches = 0
+  if (loading) {
+    return <div className="loading">Loading your dashboard...</div>
+  }
 
   return (
-    <div className="dashboard">
-      <div className="dashboard-header">
-        <h1 className="dashboard-title">Dashboard</h1>
-        <p className="dashboard-subtitle">Welcome back! Here's your overview.</p>
+    <div className="candidate-dashboard">
+      <div className="dashboard-sidebar">
+        <div className="sidebar-header">
+          <h2>Candidate Portal</h2>
+        </div>
+        <nav className="sidebar-nav">
+          <button
+            className={`nav-item ${activeTab === "overview" ? "active" : ""}`}
+            onClick={() => setActiveTab("overview")}
+          >
+            Profile Overview
+          </button>
+          <button className={`nav-item ${activeTab === "edit" ? "active" : ""}`} onClick={() => setActiveTab("edit")}>
+            Edit Profile
+          </button>
+          <button
+            className={`nav-item ${activeTab === "applications" ? "active" : ""}`}
+            onClick={() => setActiveTab("applications")}
+          >
+            Application Tracking
+          </button>
+          <button
+            className={`nav-item ${activeTab === "recommendations" ? "active" : ""}`}
+            onClick={() => setActiveTab("recommendations")}
+          >
+            Job Recommendations
+          </button>
+          <button
+            className={`nav-item ${activeTab === "notifications" ? "active" : ""}`}
+            onClick={() => setActiveTab("notifications")}
+          >
+            Notifications
+          </button>
+        </nav>
       </div>
 
-      <div className="promo-banner" role="region" aria-label="Profile visibility tip">
-        <div className="promo-banner-content">
-          <div className="promo-icon" aria-hidden="true">💡</div>
-          <div className="promo-text">
-            <h3 className="promo-title">Pro Tip: Boost Your Profile Visibility</h3>
-            <p className="promo-desc">Profiles with portfolios and certifications get more views from recruiters. Complete these sections to stand out.</p>
-          </div>
-          <button className="promo-action" type="button" onClick={() => (window.location.href = '/candidate-setup')}>Complete Profile</button>
+      <div className="dashboard-content">
+        {activeTab === "overview" && <ProfileOverview candidate={candidate} />}
+        {activeTab === "edit" && <EditProfile candidate={candidate} onUpdate={fetchCandidateProfile} />}
+        {activeTab === "applications" && <ApplicationTracking />}
+        {activeTab === "recommendations" && <JobRecommendations />}
+        {activeTab === "notifications" && <Notifications />}
+      </div>
+    </div>
+  )
+}
+
+const ProfileOverview = ({ candidate }) => {
+  if (!candidate) {
+    return <div className="no-profile">Please complete your profile setup.</div>
+  }
+
+  // Format experience for display using backend DTO structure
+  const formatExperience = (experience) => {
+    if (!experience || !experience.isExperienced) return "No experience listed yet."
+    
+    const { role, company, yearsOfExperience } = experience
+    
+    let experienceText = ""
+    if (role) experienceText += role
+    if (company) experienceText += experienceText ? ` at ${company}` : company
+    if (yearsOfExperience) experienceText += experienceText ? ` (${yearsOfExperience} years)` : `${yearsOfExperience} years experience`
+    
+    return experienceText || "Experience details available"
+  }
+
+  // Format education for display using backend DTO structure
+  const formatEducation = (education) => {
+    if (!education) return "No education listed yet."
+    
+    const { degree, institution, graduationYear } = education
+    
+    let educationText = ""
+    if (degree) educationText += degree
+    if (institution) educationText += educationText ? ` from ${institution}` : institution
+    if (graduationYear) educationText += educationText ? `, ${graduationYear}` : `Graduated ${graduationYear}`
+    
+    return educationText || "Education details available"
+  }
+
+  return (
+    <div className="profile-overview">
+      <div className="profile-header">
+        <div className="profile-image">
+          {candidate.profilePicturePath ? (
+            <img src={candidate.profilePicturePath || "/placeholder.svg"} alt="Profile" />
+          ) : (
+            <div className="profile-placeholder">{candidate.name?.[0] || "U"}</div>
+          )}
         </div>
-        <button className="promo-close" type="button" aria-label="Dismiss tip" onClick={(e) => e.currentTarget.parentElement?.remove()}>✕</button>
+        <div className="profile-info">
+          <h1>{candidate.name || "Candidate Name"}</h1>
+          <p className="profile-title">{candidate.title || "Job Seeker"}</p>
+          <p className="profile-location">{candidate.location || "Location not specified"}</p>
+        </div>
       </div>
 
-      <div className="dashboard-grid">
-        <div className="dashboard-card">
-          <div className="card-header">
-            <div className="card-header-left">
-              <div className="card-icon-box blue"><RiUserLine /></div>
-              <h3 className="card-title">Profile Completeness</h3>
-            </div>
-            <span className="stat-delta positive">+15%</span>
+      <div className="profile-stats">
+        <div className="stat-card">
+          <h3>Profile Completeness</h3>
+          <div className="progress-bar">
+            <div className="progress-fill" style={{ width: `${candidate.profileCompleteness || 0}%` }}></div>
           </div>
-          <div className="card-content">
-            <div className="progress-circle">
-              <span className="progress-text">{completeness}%</span>
-            </div>
-            <p className="card-description">Complete your profile to attract employers</p>
+          <span>{candidate.profileCompleteness || 0}%</span>
+        </div>
+      </div>
+
+      <div className="profile-sections">
+        <div className="section">
+          <h3>About</h3>
+          <p>{candidate.headline || candidate.bio || "No bio provided"}</p>
+        </div>
+
+        <div className="section">
+          <h3>Skills</h3>
+          <div className="skills-list">
+            {candidate.skills?.map((skill, index) => (
+              <span key={index} className="skill-tag">
+                {skill}
+              </span>
+            )) || <p>No skills listed</p>}
           </div>
         </div>
 
-        <div className="dashboard-card">
-          <div className="card-header">
-            <div className="card-header-left">
-              <div className="card-icon-box purple"><RiFileTextLine /></div>
-              <h3 className="card-title">Skills</h3>
-            </div>
-            <span className="stat-delta neutral">+3</span>
-          </div>
-          <div className="card-content">
-            <div className="stat-number">{skillsCount}</div>
-            <p className="card-description">Skills listed on your profile</p>
-          </div>
+        <div className="section">
+          <h3>Experience</h3>
+          <p>{formatExperience(candidate.experience)}</p>
         </div>
 
-        <div className="dashboard-card">
-          <div className="card-header">
-            <div className="card-header-left">
-              <div className="card-icon-box orange"><RiStarLine /></div>
-              <h3 className="card-title">Applications</h3>
-            </div>
-            <span className="stat-delta neutral">+0</span>
-          </div>
-          <div className="card-content">
-            <div className="stat-number">{applications}</div>
-            <p className="card-description">Active job applications</p>
-          </div>
-        </div>
-
-        <div className="dashboard-card">
-          <div className="card-header">
-            <div className="card-header-left">
-              <div className="card-icon-box green"><RiEyeLine /></div>
-              <h3 className="card-title">Profile Views</h3>
-            </div>
-            <span className="stat-delta positive">+48</span>
-          </div>
-          <div className="card-content">
-            <div className="stat-number">{views}</div>
-            <p className="card-description">Views this month</p>
-          </div>
+        <div className="section">
+          <h3>Education</h3>
+          <p>{formatEducation(candidate.education)}</p>
         </div>
       </div>
     </div>
   )
 }
+
+const EditProfile = ({ candidate, onUpdate }) => {
+  const [formData, setFormData] = useState({
+    name: candidate?.name || "",
+    email: candidate?.email || "",
+    phoneNumber: candidate?.phoneNumber || "",
+    location: candidate?.location || "",
+    title: candidate?.title || "",
+    headline: candidate?.headline || candidate?.bio || "",
+    experience: candidate?.experience || {
+      isExperienced: false,
+      role: "",
+      company: "",
+      yearsOfExperience: 0
+    },
+    education: candidate?.education || {
+      degree: "",
+      institution: "",
+      graduationYear: null
+    },
+    skills: candidate?.skills || [],
+  })
+  const [newSkill, setNewSkill] = useState("")
+  const [saving, setSaving] = useState(false)
+
+  const handleInputChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    })
+  }
+
+  const handleExperienceChange = (e) => {
+    const { name, value, type, checked } = e.target
+    setFormData(prev => ({
+      ...prev,
+      experience: {
+        ...prev.experience,
+        [name]: type === 'checkbox' ? checked : value
+      }
+    }))
+  }
+
+  const handleEducationChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      education: {
+        ...prev.education,
+        [name]: value
+      }
+    }))
+  }
+
+  const addSkill = async () => {
+    if (newSkill.trim() && !formData.skills.includes(newSkill.trim())) {
+      try {
+        const updatedSkills = await candidateService.addSkill(newSkill.trim())
+        setFormData({
+          ...formData,
+          skills: updatedSkills,
+        })
+        setNewSkill("")
+      } catch (error) {
+        console.error("Error adding skill:", error)
+        alert("Error adding skill. Please try again.")
+      }
+    }
+  }
+
+  const removeSkill = async (skillToRemove) => {
+    try {
+      const updatedSkills = await candidateService.removeSkill(skillToRemove)
+      setFormData({
+        ...formData,
+        skills: updatedSkills,
+      })
+    } catch (error) {
+      console.error("Error removing skill:", error)
+      alert("Error removing skill. Please try again.")
+    }
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      await candidateService.updateProfile(formData)
+      onUpdate()
+      alert("Profile updated successfully!")
+    } catch (error) {
+      console.error("Error updating profile:", error)
+      alert("Error updating profile. Please try again.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="edit-profile">
+      <h2>Edit Profile</h2>
+      <form onSubmit={handleSubmit} className="profile-form">
+        <div className="form-group">
+          <label>Full Name</label>
+          <input type="text" name="name" value={formData.name} onChange={handleInputChange} required />
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Email</label>
+            <input type="email" name="email" value={formData.email} onChange={handleInputChange} required />
+          </div>
+          <div className="form-group">
+            <label>Phone</label>
+            <input type="tel" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} />
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label>Location</label>
+          <input type="text" name="location" value={formData.location} onChange={handleInputChange} />
+        </div>
+
+        <div className="form-group">
+          <label>Job Title</label>
+          <input type="text" name="title" value={formData.title} onChange={handleInputChange} />
+        </div>
+
+        <div className="form-group">
+          <label>Professional Bio (Headline)</label>
+          <textarea name="headline" value={formData.headline} onChange={handleInputChange} rows="4" />
+        </div>
+
+        <div className="form-section">
+          <h3>Experience</h3>
+          <div className="form-group">
+            <label>
+              <input
+                type="checkbox"
+                name="isExperienced"
+                checked={formData.experience.isExperienced || false}
+                onChange={handleExperienceChange}
+              />
+              I have work experience
+            </label>
+          </div>
+          {formData.experience.isExperienced && (
+            <>
+              <div className="form-group">
+                <label>Role/Position</label>
+                <input
+                  type="text"
+                  name="role"
+                  value={formData.experience.role || ""}
+                  onChange={handleExperienceChange}
+                  placeholder="e.g., Software Developer"
+                />
+              </div>
+              <div className="form-group">
+                <label>Company</label>
+                <input
+                  type="text"
+                  name="company"
+                  value={formData.experience.company || ""}
+                  onChange={handleExperienceChange}
+                  placeholder="Company name"
+                />
+              </div>
+              <div className="form-group">
+                <label>Years of Experience</label>
+                <input
+                  type="number"
+                  name="yearsOfExperience"
+                  value={formData.experience.yearsOfExperience || 0}
+                  onChange={handleExperienceChange}
+                  min="0"
+                />
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="form-section">
+          <h3>Education</h3>
+          <div className="form-group">
+            <label>Degree</label>
+            <input
+              type="text"
+              name="degree"
+              value={formData.education.degree || ""}
+              onChange={handleEducationChange}
+              placeholder="e.g., Bachelor of Science"
+            />
+          </div>
+          <div className="form-group">
+            <label>Institution</label>
+            <input
+              type="text"
+              name="institution"
+              value={formData.education.institution || ""}
+              onChange={handleEducationChange}
+              placeholder="University or school name"
+            />
+          </div>
+          <div className="form-group">
+            <label>Graduation Year</label>
+            <input
+              type="number"
+              name="graduationYear"
+              value={formData.education.graduationYear || ""}
+              onChange={handleEducationChange}
+              placeholder="e.g., 2023"
+              min="1900"
+              max="2030"
+            />
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label>Skills</label>
+          <div className="skills-input">
+            <input
+              type="text"
+              value={newSkill}
+              onChange={(e) => setNewSkill(e.target.value)}
+              placeholder="Add a skill"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addSkill();
+                }
+              }}
+            />
+            <button type="button" onClick={addSkill}>
+              Add
+            </button>
+          </div>
+          <div className="skills-list">
+            {formData.skills.map((skill, index) => (
+              <span key={index} className="skill-tag">
+                {skill}
+                <button type="button" onClick={() => removeSkill(skill)}>
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <button type="submit" className="save-button" disabled={saving}>
+          {saving ? "Saving..." : "Save Changes"}
+        </button>
+      </form>
+    </div>
+  )
+}
+
+const ApplicationTracking = () => {
+  return (
+    <div className="application-tracking">
+      <Applications />
+    </div>
+  )
+}
+const JobRecommendations = () => {
+  return (
+    <div className="job-recommendations">
+      <h2>Job Recommendations</h2>
+      <p className="coming-soon">This feature is coming soon!</p>
+    </div>
+  )
+}
+
+const Notifications = () => {
+  return (
+    <div className="notifications">
+      <h2>Notifications</h2>
+      <p className="coming-soon">This feature is coming soon!</p>
+    </div>
+  )
+}
+
+export default CandidateDashboard

@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
-import { RiUserLine, RiMailLine, RiBookLine, RiBriefcaseLine, RiStarLine, RiFileTextLine, RiEditLine, RiDeleteBinLine } from 'react-icons/ri';
-import { candidateService } from '../services/candidateService.jsx';
+import { useEffect, useState, useCallback } from 'react';
+import { RiUserLine, RiMailLine, RiBookLine, RiBriefcaseLine, RiStarLine, RiFileTextLine, RiEditLine } from 'react-icons/ri';
+import { candidateService } from '../services/candidateService';
+import { jobService } from '../services/jobService';
 import './CandidateProfilePage.css';
-import './candidate.css';
 
 const CandidateProfilePage = () => {
   const [candidate, setCandidate] = useState(null);
@@ -12,17 +12,88 @@ const CandidateProfilePage = () => {
   const [appsLoading, setAppsLoading] = useState(false);
   const [appsError, setAppsError] = useState('');
   const [profileCompleteness, setProfileCompleteness] = useState(0);
+  const [matches, setMatches] = useState([]);
+  const [matchesLoading, setMatchesLoading] = useState(false);
+  const [matchesError, setMatchesError] = useState('');
+  const [matchesInfo, setMatchesInfo] = useState('');
+  const [applyState, setApplyState] = useState({});
+  const [jobSearchTerm, setJobSearchTerm] = useState('');
 
-  // Load candidate profile from backend
-  useEffect(() => {
-    fetchCandidateProfile();
+  const normalizeJobs = useCallback((payload) => {
+    const rawList = Array.isArray(payload)
+      ? payload
+      : Array.isArray(payload?.content)
+        ? payload.content
+        : Array.isArray(payload?.jobs)
+          ? payload.jobs
+          : Array.isArray(payload?.items)
+            ? payload.items
+            : Array.isArray(payload?.data)
+              ? payload.data
+              : [];
+
+    return rawList.map((job, index) => {
+      const skillsArray = Array.isArray(job?.requiredSkills)
+        ? job.requiredSkills
+        : Array.isArray(job?.skills)
+          ? job.skills
+          : typeof job?.skills === 'string'
+            ? job.skills
+                .split(',')
+                .map((skill) => skill.trim())
+                .filter(Boolean)
+            : [];
+
+      return {
+        id: job?.id || job?.jobPostId || job?.jobId || `job-${index}`,
+        title: job?.title || job?.jobTitle || job?.role || 'Role not specified',
+        company: job?.companyName || job?.company || job?.employer?.name || 'Company not specified',
+        location: job?.location || job?.jobLocation || job?.city || 'Location not provided',
+        matchScore: job?.matchScore ?? job?.matchingScore ?? job?.score ?? null,
+        summary: job?.summary || job?.description || job?.shortDescription || '',
+        salary: job?.salaryRange || job?.salary || job?.compensation || '',
+        skills: skillsArray,
+        postedAt: job?.postedAt || job?.createdAt || job?.publishedAt || null,
+      };
+    });
   }, []);
 
-  const fetchCandidateProfile = async () => {
+  const reloadApplicationsSilently = useCallback(async () => {
+    try {
+      const applicationsData = await candidateService.getApplications();
+      setApplications(Array.isArray(applicationsData) ? applicationsData : []);
+    } catch (error) {
+      console.error('Failed to refresh applications:', error);
+    }
+  }, []);
+
+  const formatMatchScore = (score) => {
+    if (score === null || score === undefined) return null;
+    const numeric = Number(score);
+    if (Number.isNaN(numeric)) return null;
+    if (numeric > 0 && numeric <= 1) return Math.round(numeric * 100);
+    if (numeric > 1 && numeric <= 100) return Math.round(numeric);
+    return Math.round(numeric);
+  };
+
+  const formatDate = (value) => {
+    if (!value) return null;
+    try {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return null;
+      return date.toLocaleDateString();
+    } catch {
+      return null;
+    }
+  };
+
+  const fetchCandidateProfile = useCallback(async () => {
     try {
       setLoading(true);
       const profile = await candidateService.getProfile();
       setCandidate(profile);
+
+      await reloadApplicationsSilently();
       
       // Fetch profile completeness
       const completenessData = await candidateService.checkProfileCompleteness();
@@ -32,7 +103,12 @@ const CandidateProfilePage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [reloadApplicationsSilently]);
+
+  // Load candidate profile from backend
+  useEffect(() => {
+    fetchCandidateProfile();
+  }, [fetchCandidateProfile]);
 
   // Load candidate applications when Applications tab becomes active
   useEffect(() => {
@@ -46,6 +122,7 @@ const CandidateProfilePage = () => {
         const applicationsData = await candidateService.getApplications();
         if (!cancelled) {
           setApplications(Array.isArray(applicationsData) ? applicationsData : []);
+          setAppsError('');
         }
       } catch (err) {
         if (!cancelled) setAppsError(err?.message || 'Failed to load applications');
@@ -56,6 +133,86 @@ const CandidateProfilePage = () => {
     fetchApplications();
     return () => { cancelled = true; };
   }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== 'matches') return;
+
+    let cancelled = false;
+
+    const loadMatches = async () => {
+      setMatchesLoading(true);
+      setMatchesError('');
+      setMatchesInfo('');
+      try {
+        const keyword = jobSearchTerm.trim();
+        const params = keyword ? { keyword } : {};
+        const usePublicSearch = Boolean(keyword);
+        const data = usePublicSearch
+          ? await jobService.search(params)
+          : await jobService.searchWithMatching(params);
+        if (cancelled) return;
+        setMatches(normalizeJobs(data));
+        if (usePublicSearch) {
+          setMatchesInfo(`Showing results for "${keyword}"`);
+        }
+      } catch (primaryError) {
+        if (cancelled) return;
+        console.warn('Failed to load matched jobs, falling back to public listings', primaryError);
+        try {
+          const fallback = await jobService.listPublic();
+          if (cancelled) return;
+          setMatches(normalizeJobs(fallback));
+          const keyword = jobSearchTerm.trim();
+          const fallbackMessage = keyword
+            ? `Showing public job listings; unable to fetch results for "${keyword}".`
+            : 'Showing public job listings while personalized recommendations are unavailable.';
+          setMatchesInfo(fallbackMessage);
+          setMatchesError('');
+        } catch (fallbackError) {
+          if (cancelled) return;
+          setMatches([]);
+          setMatchesError(fallbackError?.response?.data?.message || fallbackError.message || 'Failed to load job listings');
+        }
+      } finally {
+        if (!cancelled) {
+          setMatchesLoading(false);
+        }
+      }
+    };
+
+    loadMatches();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, jobSearchTerm, normalizeJobs]);
+
+  const handleApply = async (jobId) => {
+    if (!jobId) {
+      return;
+    }
+
+    setApplyState((prev) => ({
+      ...prev,
+      [jobId]: { status: 'loading' }
+    }));
+
+    try {
+      await candidateService.applyToJob(jobId);
+      setApplyState((prev) => ({
+        ...prev,
+        [jobId]: { status: 'success' }
+      }));
+      await reloadApplicationsSilently();
+    } catch (error) {
+      setApplyState((prev) => ({
+        ...prev,
+        [jobId]: {
+          status: 'error',
+          message: error?.message || 'Failed to apply'
+        }
+      }));
+    }
+  };
 
   const statusToBadgeClass = (status) => {
     const s = String(status || '').toLowerCase();
@@ -76,14 +233,8 @@ const CandidateProfilePage = () => {
         title: profileData.title,
         headline: profileData.headline,
         skills: profileData.skills,
-        education: {
-          ...profileData.education,
-          graduationYear: profileData.education?.graduationYear ? Number(profileData.education.graduationYear) : null,
-        },
-        experience: {
-          ...profileData.experience,
-          yearsOfExperience: profileData.experience?.yearsOfExperience ? Number(profileData.experience.yearsOfExperience) : 0,
-        }
+        education: profileData.education,
+        experience: profileData.experience
       };
 
       const updatedProfile = await candidateService.updateProfile(backendProfileData);
@@ -99,56 +250,6 @@ const CandidateProfilePage = () => {
       console.error("Error updating profile:", error);
       alert("Error updating profile. Please try again.");
     }
-  };
-
-  // Format experience for display using backend DTO structure
-  const formatExperience = (experience) => {
-    if (!experience || !experience.isExperienced) {
-      return "No experience listed yet.";
-    }
-    
-    const { role, company, yearsOfExperience } = experience;
-    
-    let experienceText = "";
-    if (role) experienceText += role;
-    if (company) experienceText += experienceText ? ` at ${company}` : company;
-    if (yearsOfExperience) experienceText += experienceText ? ` (${yearsOfExperience} years)` : `${yearsOfExperience} years experience`;
-    
-    return experienceText || "Experience details available";
-  };
-
-
-  // Build resume URL and download
-  const getResumeUrl = (resumePath) => {
-    if (!resumePath) return null;
-    if (String(resumePath).startsWith('http')) return resumePath;
-    return `http://localhost:8080/uploads/resumes/${resumePath}`;
-  };
-
-  const handleDownloadResume = () => {
-    const path = candidate?.resumePath;
-    if (!path) {
-      alert('No resume available to download');
-      return;
-    }
-    const url = getResumeUrl(path);
-    if (!url) {
-      alert('Resume URL is not available');
-      return;
-    }
-    window.open(url, '_blank');
-  };  // Format education for display using backend DTO structure
-  const formatEducation = (education) => {
-    if (!education) return "No education listed yet.";
-    
-    const { degree, institution, graduationYear } = education;
-    
-    let educationText = "";
-    if (degree) educationText += degree;
-    if (institution) educationText += educationText ? ` from ${institution}` : institution;
-    if (graduationYear) educationText += educationText ? `, ${graduationYear}` : `Graduated ${graduationYear}`;
-    
-    return educationText || "Education details available";
   };
 
   if (loading) {
@@ -335,7 +436,7 @@ const CandidateProfilePage = () => {
                   <div className="resume-item">
                     <p>{candidate.resumePath ? candidate.resumePath.split('/').pop() : "No resume uploaded"}</p>
                     {candidate.resumePath && (
-                      <button className="btn-outline small" onClick={handleDownloadResume}>Download Resume</button>
+                      <button className="btn-outline small">Download</button>
                     )}
                   </div>
                 </div>
@@ -379,47 +480,96 @@ const CandidateProfilePage = () => {
         {activeTab === 'matches' && (
           <div className="matches-tab">
             <h2>Your Job Matches</h2>
-            <div className="matches-grid">
-              <div className="match-card">
-                <div className="match-card-header">
-                  <h3>Senior Frontend Developer</h3>
-                  <span className="match-score">98% Match</span>
-                </div>
-                <div className="match-card-content">
-                  <p>TechInnovate Inc.</p>
-                  <p>San Francisco, CA • Remote Possible</p>
-                  <div className="match-skills">
-                    <span>React</span>
-                    <span>TypeScript</span>
-                    <span>CSS</span>
-                  </div>
-                </div>
-                <div className="match-card-actions">
-                  <button className="btn-primary">Apply Now</button>
-                  <button className="btn-outline">View Details</button>
-                </div>
-              </div>
-
-              <div className="match-card">
-                <div className="match-card-header">
-                  <h3>UI/UX Engineer</h3>
-                  <span className="match-score">92% Match</span>
-                </div>
-                <div className="match-card-content">
-                  <p>DesignHub</p>
-                  <p>New York, NY • On-site</p>
-                  <div className="match-skills">
-                    <span>Figma</span>
-                    <span>React</span>
-                    <span>UI Design</span>
-                  </div>
-                </div>
-                <div className="match-card-actions">
-                  <button className="btn-primary">Apply Now</button>
-                  <button className="btn-outline">View Details</button>
-                </div>
-              </div>
+            <div className="matches-controls">
+              <input
+                type="text"
+                className="matches-search-input"
+                placeholder="Search jobs by keyword..."
+                value={jobSearchTerm}
+                onChange={(event) => setJobSearchTerm(event.target.value)}
+              />
+              {jobSearchTerm && (
+                <button type="button" className="btn-outline small" onClick={() => setJobSearchTerm('')}>
+                  Clear
+                </button>
+              )}
             </div>
+            {matchesLoading && (
+              <div className="match-card">
+                <div className="match-card-content">
+                  <p>Loading personalized recommendations...</p>
+                </div>
+              </div>
+            )}
+            {!matchesLoading && matchesError && (
+              <div className="match-card">
+                <div className="match-card-content">
+                  <h3>Unable to load job matches</h3>
+                  <p style={{ color: '#F44336' }}>{matchesError}</p>
+                </div>
+              </div>
+            )}
+            {!matchesLoading && !matchesError && matchesInfo && (
+              <div className="matches-info">{matchesInfo}</div>
+            )}
+            {!matchesLoading && !matchesError && matches.length === 0 && (
+              <div className="match-card">
+                <div className="match-card-content">
+                  <h3>No job matches yet</h3>
+                  <p>Keep your profile updated to see personalized recommendations here.</p>
+                </div>
+              </div>
+            )}
+            {!matchesLoading && !matchesError && matches.length > 0 && (
+              <div className="matches-grid">
+                {matches.map((job) => {
+                  const matchScore = formatMatchScore(job.matchScore);
+                  const applyStatus = applyState[job.id]?.status;
+                  const applyMessage = applyState[job.id]?.message || '';
+                  const isApplying = applyStatus === 'loading';
+                  const isApplied = applyStatus === 'success';
+                  const postedOn = formatDate(job.postedAt);
+
+                  return (
+                    <div className="match-card" key={job.id}>
+                      <div className="match-card-header">
+                        <h3>{job.title}</h3>
+                        {matchScore !== null && <span className="match-score">{matchScore}% Match</span>}
+                      </div>
+                      <div className="match-card-content">
+                        <p>{job.company}</p>
+                        <p>{job.location}</p>
+                        {job.salary && <p className="match-salary">{job.salary}</p>}
+                        {job.summary && <p className="match-summary">{job.summary}</p>}
+                        {postedOn && <p className="match-posted">Posted {postedOn}</p>}
+                        {job.skills.length > 0 && (
+                          <div className="match-skills">
+                            {job.skills.slice(0, 6).map((skill) => (
+                              <span key={`${job.id}-${skill}`} className="skill-tag">{skill}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="match-card-actions">
+                        <button
+                          className="btn-primary"
+                          disabled={isApplying || isApplied}
+                          onClick={() => handleApply(job.id)}
+                        >
+                          {isApplying ? 'Applying...' : isApplied ? 'Applied' : 'Apply Now'}
+                        </button>
+                      </div>
+                      {applyStatus === 'error' && (
+                        <p className="match-feedback error">{applyMessage}</p>
+                      )}
+                      {isApplied && (
+                        <p className="match-feedback success">Application sent!</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
@@ -512,30 +662,22 @@ const ProfileEditForm = ({ candidate, onSave }) => {
 
   const handleExperienceChange = (e) => {
     const { name, value, type, checked } = e.target;
-    let next = value;
-    if (name === 'yearsOfExperience') {
-      next = String(value || '').replace(/[^0-9]/g, '').slice(0, 2);
-    }
     setFormData(prev => ({
       ...prev,
       experience: {
         ...prev.experience,
-        [name]: type === 'checkbox' ? checked : next
+        [name]: type === 'checkbox' ? checked : value
       }
     }));
   };
 
   const handleEducationChange = (e) => {
     const { name, value } = e.target;
-    let next = value;
-    if (name === 'graduationYear') {
-      next = String(value || '').replace(/[^0-9]/g, '').slice(0, 4);
-    }
     setFormData(prev => ({
       ...prev,
       education: {
         ...prev.education,
-        [name]: next
+        [name]: value
       }
     }));
   };
@@ -702,12 +844,12 @@ const ProfileEditForm = ({ candidate, onSave }) => {
             </div>
             <div className="form-group">
               <label>Years of Experience</label>
-              <input 
-                type="text" 
-                name="yearsOfExperience" 
-                inputMode="numeric" pattern="[0-9]*"
-                value={formData.experience.yearsOfExperience ?? ''}
-                onChange={handleExperienceChange} 
+              <input
+                type="number"
+                name="yearsOfExperience"
+                value={formData.experience.yearsOfExperience || 0}
+                onChange={handleExperienceChange}
+                min="0"
               />
             </div>
           </>
@@ -739,12 +881,13 @@ const ProfileEditForm = ({ candidate, onSave }) => {
         <div className="form-group">
           <label>Graduation Year</label>
           <input
-            type="text"
+            type="number"
             name="graduationYear"
-            inputMode="numeric" pattern="[0-9]*"
-            value={formData.education.graduationYear ?? ''}
+            value={formData.education.graduationYear || ""}
             onChange={handleEducationChange}
             placeholder="e.g., 2023"
+            min="1900"
+            max="2030"
           />
         </div>
       </div>
@@ -759,4 +902,3 @@ const ProfileEditForm = ({ candidate, onSave }) => {
 };
 
 export default CandidateProfilePage;
-

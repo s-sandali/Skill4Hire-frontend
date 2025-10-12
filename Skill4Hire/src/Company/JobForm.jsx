@@ -1,6 +1,7 @@
 // src/components/JobForm.jsx - Improved version with debugging
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { jobService } from "../services/jobService";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   RiSaveLine,
   RiCloseLine,
@@ -10,12 +11,18 @@ import {
   RiBriefcaseLine,
 } from "react-icons/ri";
 
-const JobForm = ({ jobId, initialJob, onSave, onCancel }) => {
+const JobForm = ({ jobId: propJobId, initialJob, onSave, onCancel }) => {
+  const navigate = useNavigate();
+  const { id: routeJobId } = useParams();
+  const effectiveJobId = propJobId ?? routeJobId ?? null;
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [prefillLoading, setPrefillLoading] = useState(false);
+  const [fetchedJob, setFetchedJob] = useState(null);
 
-  const [job, setJob] = useState({
+  const defaultJob = useMemo(() => ({
     title: "",
     description: "",
     type: "FULL_TIME",
@@ -23,40 +30,75 @@ const JobForm = ({ jobId, initialJob, onSave, onCancel }) => {
     salary: "",
     experience: "",
     deadline: "",
-  });
+    skills: "",
+  }), []);
+
+  const mapJobToForm = useCallback((jobPayload) => ({
+    title: jobPayload?.title || "",
+    description: jobPayload?.description || "",
+    type: jobPayload?.type || "FULL_TIME",
+    location: jobPayload?.location || "",
+    salary: jobPayload?.salary ? jobPayload.salary.toString() : "",
+    experience: jobPayload?.experience ? jobPayload.experience.toString() : "",
+    deadline: jobPayload?.deadline
+      ? new Date(jobPayload.deadline).toISOString().split("T")[0]
+      : "",
+    skills: Array.isArray(jobPayload?.skills)
+      ? jobPayload.skills.join(", ")
+      : typeof jobPayload?.skills === "string"
+        ? jobPayload.skills
+    : "",
+  }), []);
+
+  const [job, setJob] = useState(() => ({ ...defaultJob }));
+
+  const sourceJob = useMemo(() => initialJob ?? fetchedJob, [initialJob, fetchedJob]);
+  const isEditMode = Boolean(effectiveJobId);
+  const prevModeRef = useRef(isEditMode);
 
   // Hydrate form when editing or reset when creating
   useEffect(() => {
-    console.log('🔄 JobForm useEffect - jobId:', jobId, 'initialJob:', initialJob);
-    
-    if (initialJob && jobId) {
-      // Editing mode - populate form with existing job data
-      console.log('✏️ Setting form for editing:', initialJob);
-      setJob({
-        title: initialJob.title || "",
-        description: initialJob.description || "",
-        type: initialJob.type || "FULL_TIME",
-        location: initialJob.location || "",
-        salary: initialJob.salary ? initialJob.salary.toString() : "",
-        experience: initialJob.experience ? initialJob.experience.toString() : "",
-        deadline: initialJob.deadline
-          ? new Date(initialJob.deadline).toISOString().split("T")[0]
-          : "",
-      });
-    } else {
-      // Creating mode - reset form
-      console.log('➕ Resetting form for creation');
-      setJob({
-        title: "",
-        description: "",
-        type: "FULL_TIME",
-        location: "",
-        salary: "",
-        experience: "",
-        deadline: "",
-      });
+    if (isEditMode && sourceJob) {
+      setJob(mapJobToForm(sourceJob));
     }
-  }, [jobId, initialJob]);
+  }, [isEditMode, mapJobToForm, sourceJob]);
+
+  useEffect(() => {
+    if (prevModeRef.current && !isEditMode) {
+      setJob({ ...defaultJob });
+    }
+    prevModeRef.current = isEditMode;
+  }, [defaultJob, isEditMode]);
+
+  // Fetch job when editing via route without initial data
+  useEffect(() => {
+    if (!isEditMode || initialJob) return;
+
+    let cancelled = false;
+    setPrefillLoading(true);
+    jobService
+      .getById(effectiveJobId)
+      .then((data) => {
+        if (!cancelled) {
+          setFetchedJob(data);
+          setError("");
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          console.error("❌ Failed to load job for editing:", err);
+          const message = err.response?.data?.message || err.message || "Unable to load job details";
+          setError(message);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setPrefillLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [effectiveJobId, initialJob, isEditMode]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -71,6 +113,13 @@ const JobForm = ({ jobId, initialJob, onSave, onCancel }) => {
       setLoading(true);
 
       // Build the job data payload
+      const normalizedSkills = job.skills
+        ? job.skills
+            .split(",")
+            .map((skill) => skill.trim())
+            .filter(Boolean)
+        : [];
+
       const jobData = {
         title: job.title.trim(),
         description: job.description.trim(),
@@ -79,23 +128,29 @@ const JobForm = ({ jobId, initialJob, onSave, onCancel }) => {
         salary: job.salary ? parseFloat(job.salary) : null,
         experience: job.experience ? parseInt(job.experience) : null,
         deadline: job.deadline,
+        skills: normalizedSkills,
       };
 
       console.log("📦 Sending job payload:", jobData);
 
       let result;
-      if (jobId) {
-        result = await jobService.update(jobId, jobData);
+      if (isEditMode) {
+        result = await jobService.update(effectiveJobId, jobData);
         setSuccess("Job updated successfully!");
       } else {
         result = await jobService.create(jobData);
         setSuccess("Job created successfully!");
       }
 
-      if (onSave) onSave(result);
-      setTimeout(() => {
-        if (onCancel) onCancel();
-      }, 1500);
+      if (onSave) {
+        onSave(result);
+      } else {
+        setTimeout(() => navigate("/jobs"), 1200);
+      }
+
+      if (onCancel) {
+        setTimeout(() => onCancel(), 1500);
+      }
     } catch (err) {
       console.error("❌ Job save error:", err);
       const errorMessage = err.response?.data?.message || 
@@ -108,16 +163,38 @@ const JobForm = ({ jobId, initialJob, onSave, onCancel }) => {
     }
   };
 
+  if (prefillLoading) {
+    return (
+      <div className="job-form-container">
+        <div className="job-form-header">
+          <div className="form-title">
+            <RiBriefcaseLine />
+            <h2>Loading job details...</h2>
+          </div>
+        </div>
+        <div className="loading-state">
+          <RiLoader4Line className="spinning" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="job-form-container">
       <div className="job-form-header">
         <div className="form-title">
           <RiBriefcaseLine />
-          <h2>{jobId ? "Edit Job Posting" : "Create New Job Posting"}</h2>
+          <h2>{isEditMode ? "Edit Job Posting" : "Create New Job Posting"}</h2>
         </div>
         <button
           className="close-form-btn"
-          onClick={onCancel}
+          onClick={() => {
+            if (onCancel) {
+              onCancel();
+            } else {
+              navigate("/jobs");
+            }
+          }}
           disabled={loading}
         >
           <RiCloseLine />
@@ -216,6 +293,21 @@ const JobForm = ({ jobId, initialJob, onSave, onCancel }) => {
           </div>
 
           <div className="form-group full-width">
+            <label htmlFor="skills">Key Skills</label>
+            <input
+              type="text"
+              id="skills"
+              name="skills"
+              value={job.skills}
+              onChange={handleChange}
+              placeholder="e.g., React, Node.js, Communication"
+            />
+            <small className="input-help-text">
+              Separate multiple skills with commas. This helps power candidate matching.
+            </small>
+          </div>
+
+          <div className="form-group full-width">
             <label htmlFor="description">Job Description *</label>
             <textarea
               id="description"
@@ -232,7 +324,7 @@ const JobForm = ({ jobId, initialJob, onSave, onCancel }) => {
         <div className="form-actions">
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? <RiLoader4Line className="spinning" /> : <RiSaveLine />}
-            {jobId ? "Update Job" : "Create Job"}
+            {isEditMode ? "Update Job" : "Create Job"}
           </button>
           <button
             type="button"

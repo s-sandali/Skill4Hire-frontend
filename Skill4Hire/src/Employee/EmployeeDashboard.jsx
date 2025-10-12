@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   RiUserLine, RiBriefcaseLine, RiFileList3Line,
   RiCalendarScheduleLine, RiLogoutBoxLine,
@@ -9,6 +9,7 @@ import {
 import EmployeeHome from "./EmployeeHome";
 import EmployeeProfile from "./EmployeeProfile";
 import RecommendationModal from "./RecommendationModal";
+import CandidateDetailsModal from "./CandidateDetailsModal";
 import { authService } from "../services/authService";
 import { employeeService } from "../services/employeeService";
 
@@ -38,22 +39,31 @@ const EmployeeDashboard = () => {
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [showRecommendModal, setShowRecommendModal] = useState(false);
   const [employeeData, setEmployeeData] = useState(null);
+  // Candidate details modal state
+  const [candidateDetailsModalOpen, setCandidateDetailsModalOpen] = useState(false);
+  const [candidateDetails, setCandidateDetails] = useState(null);
+  // Per-job recommendations state
+  const [jobRecsModalOpen, setJobRecsModalOpen] = useState(false);
+  const [selectedJobForRecs, setSelectedJobForRecs] = useState(null);
+  const [jobRecs, setJobRecs] = useState([]);
+  const [jobRecsLoading, setJobRecsLoading] = useState(false);
+  const [jobRecsError, setJobRecsError] = useState("");
 
   const goToProfile = () => setActiveTab("profile");
   const goToDashboard = () => setActiveTab("dashboard");
 
   // Fetch employee profile
-  const fetchEmployeeProfile = async () => {
+  const fetchEmployeeProfile = useCallback(async () => {
     try {
       const data = await employeeService.getProfile();
       setEmployeeData(data);
     } catch (error) {
       console.error("Error fetching employee profile:", error);
     }
-  };
+  }, []);
 
   // Fetch profile completeness
-  const fetchProfileCompleteness = async () => {
+  const fetchProfileCompleteness = useCallback(async () => {
     setLoadingCompleteness(true);
     setCompletenessError(null);
     try {
@@ -77,34 +87,15 @@ const EmployeeDashboard = () => {
     } finally {
       setLoadingCompleteness(false);
     }
-  };
-
-  // Fetch real data when tabs change
-  useEffect(() => {
-    if (activeTab === 'candidates') {
-      fetchCandidates();
-    } else if (activeTab === 'jobs') {
-      fetchJobs();
-    } else if (activeTab === 'recommendations') {
-      fetchMyRecommendations();
-    } else if (activeTab === 'dashboard') {
-      fetchDashboardMetrics();
-    }
-  }, [activeTab, searchTerm, filterStatus]);
-
-  // Fetch initial data
-  useEffect(() => {
-    fetchEmployeeProfile();
-    fetchProfileCompleteness();
   }, []);
 
   // Fetch candidates with filters
-  const fetchCandidates = async () => {
+  const fetchCandidates = useCallback(async () => {
     setLoading(true);
     try {
       const data = await employeeService.searchCandidates({
         skill: searchTerm || null,
-        minExperience: filterStatus !== 'all' && filterStatus !== 'experience' ? parseInt(filterStatus) : null,
+        minExperience: filterStatus !== 'all' && filterStatus !== 'experience' ? parseInt(filterStatus, 10) : null,
         page: 0,
         size: 10
       });
@@ -115,10 +106,10 @@ const EmployeeDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterStatus, searchTerm]);
 
   // Fetch active jobs
-  const fetchJobs = async () => {
+  const fetchJobs = useCallback(async () => {
     setLoading(true);
     try {
       const data = await employeeService.getActiveJobs(0, 10);
@@ -129,10 +120,10 @@ const EmployeeDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Fetch employee's recommendations
-  const fetchMyRecommendations = async () => {
+  const fetchMyRecommendations = useCallback(async () => {
     setLoading(true);
     try {
       const data = await employeeService.getMyRecommendations(0, 10);
@@ -143,17 +134,47 @@ const EmployeeDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Fetch dashboard metrics
-  const fetchDashboardMetrics = async () => {
+  const fetchDashboardMetrics = useCallback(async () => {
     try {
       const data = await employeeService.getDashboardMetrics();
       setDashboardMetrics(data);
     } catch (error) {
       console.error('Error fetching dashboard metrics:', error);
     }
-  };
+  }, []);
+
+  // Fetch initial data
+  useEffect(() => {
+    fetchEmployeeProfile();
+    fetchProfileCompleteness();
+  }, [fetchEmployeeProfile, fetchProfileCompleteness]);
+
+  useEffect(() => {
+    if (activeTab === 'candidates') {
+      fetchCandidates();
+    }
+  }, [activeTab, fetchCandidates]);
+
+  useEffect(() => {
+    if (activeTab === 'jobs') {
+      fetchJobs();
+    }
+  }, [activeTab, fetchJobs]);
+
+  useEffect(() => {
+    if (activeTab === 'recommendations') {
+      fetchMyRecommendations();
+    }
+  }, [activeTab, fetchMyRecommendations]);
+
+  useEffect(() => {
+    if (activeTab === 'dashboard') {
+      fetchDashboardMetrics();
+    }
+  }, [activeTab, fetchDashboardMetrics]);
 
   // Handle candidate recommendation
   const handleRecommendCandidate = (candidate) => {
@@ -182,15 +203,60 @@ const EmployeeDashboard = () => {
   const handleViewCandidate = async (candidateId) => {
     try {
       const candidate = await employeeService.getCandidateProfile(candidateId);
-      // You can show this in a modal or navigate to candidate details
-      console.log('Candidate details:', candidate);
-      alert(`Viewing candidate: ${candidate.name}\nSkills: ${candidate.skills?.join(', ')}`);
+      setCandidateDetails(candidate);
+      setCandidateDetailsModalOpen(true);
     } catch (error) {
       console.error('Error fetching candidate details:', error);
       alert('Error loading candidate details');
     }
   };
 
+  // Download candidate CV
+  const handleDownloadCv = async (candidateId) => {
+    try {
+      const { blob, filename } = await employeeService.downloadCandidateCv(candidateId);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename || 'resume.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading CV:', error);
+      alert('Failed to download CV');
+    }
+  };
+
+  // Open per-job recommendations modal and load data
+  const openJobRecommendations = async (job) => {
+    if (!job?.id) return;
+    setSelectedJobForRecs(job);
+    setJobRecsModalOpen(true);
+    setJobRecs([]);
+    setJobRecsError("");
+    setJobRecsLoading(true);
+    try {
+      const data = await employeeService.getJobRecommendations(job.id, 0, 20);
+      const list = Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
+      setJobRecs(list);
+    } catch (err) {
+      setJobRecsError(err?.message || 'Failed to load recommendations for this job');
+      setJobRecs([]);
+    } finally {
+      setJobRecsLoading(false);
+    }
+  };
+
+  const closeJobRecommendations = () => {
+    setJobRecsModalOpen(false);
+    setSelectedJobForRecs(null);
+    setJobRecs([]);
+    setJobRecsError("");
+  };
+
+  // Logout handler (used by sidebar button)
   const handleLogout = async () => {
     try {
       await authService.logout();
@@ -451,6 +517,12 @@ const EmployeeDashboard = () => {
                                   >
                                     <RiThumbUpLine /> Recommend
                                   </button>
+                                  <button
+                                      className="btn-cand-edit"
+                                      onClick={() => handleDownloadCv(candidate.id || candidate.userId)}
+                                  >
+                                    📄 Download CV
+                                  </button>
                                 </div>
                               </div>
                           ))
@@ -499,6 +571,12 @@ const EmployeeDashboard = () => {
                                 <div className="job-primary-action">
                                   <button className="btn-view">
                                     <RiEyeLine /> View Details
+                                  </button>
+                                  <button
+                                    className="btn-refresh"
+                                    onClick={() => openJobRecommendations(job)}
+                                  >
+                                    <RiThumbUpLine /> View Recommendations
                                   </button>
                                 </div>
                               </div>
@@ -560,6 +638,69 @@ const EmployeeDashboard = () => {
             jobs={jobs}
             onSubmit={submitRecommendation}
         />
+
+        {/* Candidate Details Modal */}
+        <CandidateDetailsModal
+          isOpen={candidateDetailsModalOpen}
+          onClose={() => { setCandidateDetailsModalOpen(false); setCandidateDetails(null); }}
+          candidate={candidateDetails}
+          onDownloadCv={() => candidateDetails && handleDownloadCv(candidateDetails.id || candidateDetails.userId)}
+          onRecommend={() => {
+            if (!candidateDetails) return;
+            // Ensure jobs list is available
+            if (!jobs || jobs.length === 0) {
+              fetchJobs().then(() => {
+                setSelectedCandidate(candidateDetails);
+                setShowRecommendModal(true);
+                setCandidateDetailsModalOpen(false);
+              });
+            } else {
+              setSelectedCandidate(candidateDetails);
+              setShowRecommendModal(true);
+              setCandidateDetailsModalOpen(false);
+            }
+          }}
+        />
+
+        {/* Job Recommendations Modal */}
+        {jobRecsModalOpen && (
+          <div className="modal-overlay" onClick={closeJobRecommendations}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>Recommendations for: {selectedJobForRecs?.title}</h3>
+                <button className="close-btn" onClick={closeJobRecommendations}>×</button>
+              </div>
+              <div className="modal-body">
+                {jobRecsLoading && <div className="loading-state">Loading...</div>}
+                {!jobRecsLoading && jobRecsError && (
+                  <div className="error-message">{jobRecsError}</div>
+                )}
+                {!jobRecsLoading && !jobRecsError && jobRecs.length === 0 && (
+                  <div className="no-data">No recommendations yet for this job.</div>
+                )}
+                {!jobRecsLoading && !jobRecsError && jobRecs.length > 0 && (
+                  <div className="recommendations-list">
+                    {jobRecs.map((rec, idx) => (
+                      <div key={rec.id || idx} className="recommendation-card">
+                        <div className="rec-header">
+                          <h4>{rec.candidateName || rec.candidate?.name || 'Candidate'}</h4>
+                          {rec.status && (
+                            <span className={`rec-status ${String(rec.status).toLowerCase()}`}>{rec.status}</span>
+                          )}
+                        </div>
+                        <p><strong>Job:</strong> {rec.jobTitle || selectedJobForRecs?.title}</p>
+                        {rec.note && <p><strong>Note:</strong> {rec.note}</p>}
+                        {rec.createdAt && (
+                          <p><strong>Date:</strong> {new Date(rec.createdAt).toLocaleDateString()}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
   );
 };

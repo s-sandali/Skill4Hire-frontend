@@ -32,19 +32,36 @@ export const authService = {
         email,
         password
       });
-      return response.data;
+      const data = response.data || {};
+      const id = data.id || data.userId || data.candidateId;
+      // Persist
+      localStorage.setItem('userRole', 'CANDIDATE');
+      if (id != null) localStorage.setItem('userId', String(id));
+      return { success: true, role: 'CANDIDATE', id, data };
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Candidate login failed');
     }
   },
-
   loginCompany: async (email, password) => {
     try {
       const response = await apiClient.post('/api/companies/auth/login', {
         email,
         password
       });
-      return response.data;
+
+      const data = response.data || {};
+      const id = data.id || data.userId || data.companyId;
+
+      // 👉 Save to localStorage
+      localStorage.setItem('userRole', 'COMPANY');
+      if (id != null) {
+        localStorage.setItem('userId', String(id));
+        // keep companyId for convenience if present
+        localStorage.setItem('companyId', String(id));
+      }
+
+      // Normalized payload for callers (UnifiedLogin expects success/role/id)
+      return { success: true, role: 'COMPANY', id, data };
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Company login failed');
     }
@@ -56,7 +73,11 @@ export const authService = {
         email,
         password
       });
-      return response.data;
+      const data = response.data || {};
+      const id = data.id || data.userId || data.employeeId;
+      localStorage.setItem('userRole', 'EMPLOYEE');
+      if (id != null) localStorage.setItem('userId', String(id));
+      return { success: true, role: 'EMPLOYEE', id, data };
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Employee login failed');
     }
@@ -68,7 +89,11 @@ export const authService = {
         email,
         password
       });
-      return response.data;
+      const data = response.data || {};
+      const id = data.id || data.userId || data.adminId;
+      localStorage.setItem('userRole', 'ADMIN');
+      if (id != null) localStorage.setItem('userId', String(id));
+      return { success: true, role: 'ADMIN', id, data };
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Admin login failed');
     }
@@ -140,11 +165,13 @@ export const authService = {
       const response = await apiClient.post(logoutEndpoint);
       localStorage.removeItem('userRole');
       localStorage.removeItem('userId');
+      localStorage.removeItem('companyId');
       return response.data;
     } catch (error) {
       // Clear local storage even if logout fails
       localStorage.removeItem('userRole');
       localStorage.removeItem('userId');
+      localStorage.removeItem('companyId');
       throw new Error(error.response?.data?.message || 'Logout failed');
     }
   },
@@ -176,3 +203,5 @@ export const authService = {
     }
   }
 };
+
+

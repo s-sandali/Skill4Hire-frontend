@@ -1,101 +1,63 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { candidateService } from "../../services/candidateService.jsx"
+import { candidateService } from "../../services/candidateService"
 import "../base.css"
-import "../candidate.css"
 import "./Applications.css"
 
-const fallbackData = [
-  {
-    id: "ex-1",
-    company: "TechNova Labs",
-    role: "Frontend Developer",
-    location: "Remote - North America",
-    appliedDate: "2025-09-12",
-    status: "Applied",
-    lastUpdate: "2025-09-15",
-  },
-  {
-    id: "ex-2",
-    company: "BrightPixel Studio",
-    role: "UI/UX Designer",
-    location: "Austin, TX",
-    appliedDate: "2025-08-29",
-    status: "Shortlisted",
-    lastUpdate: "2025-09-02",
-  },
-  {
-    id: "ex-3",
-    company: "CloudScale Inc.",
-    role: "Full Stack Engineer",
-    location: "New York, NY",
-    appliedDate: "2025-08-18",
-    status: "Rejected",
-    lastUpdate: "2025-08-27",
-  },
-  {
-    id: "ex-4",
-    company: "Apex Analytics",
-    role: "Data Analyst",
-    location: "London, UK",
-    appliedDate: "2025-09-05",
-    status: "Under Review",
-    lastUpdate: "2025-09-11",
-  },
-]
 export default function Applications() {
   const [apps, setApps] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
   const [query, setQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
 
-  useEffect(() => {
-    let isMounted = true
-    ;(async () => {
-      try {
-        const res = await candidateService.getApplications()
-        // Normalize to our expected shape if backend differs
-        const normalized = (Array.isArray(res) ? res : []).map((a, i) => ({
-          id: a.id || a._id || `app-${i}`,
-          company: a.company || a.companyName || a.employer?.name || "Unknown",
-          role: a.role || a.jobTitle || a.position || "Role not specified",
-          location: a.location || a.jobLocation || "Location not provided",
-          appliedDate: a.appliedDate || a.createdAt || a.dateApplied || "--",
-          status: a.status || a.applicationStatus || "Submitted",
-          lastUpdate: a.updatedAt || a.lastUpdate || a.modifiedAt || "--",
-        }))
-        if (isMounted) setApps(normalized.length ? normalized : fallbackData)
-      } catch (e) {
-        if (isMounted) setApps(fallbackData)
-      } finally {
-        if (isMounted) setLoading(false)
-      }
-    })()
-    return () => {
-      isMounted = false
+  const loadApplications = async () => {
+    setLoading(true)
+    setError("")
+    try {
+      const res = await candidateService.getApplications()
+      const list = Array.isArray(res) ? res : (Array.isArray(res?.content) ? res.content : [])
+      const normalized = list.map((a, i) => ({
+        id: a.id || a._id || `app-${i}`,
+        company: a.company || a.companyName || a.employer?.name || "Unknown",
+        role: a.role || a.jobTitle || a.position || "Role not specified",
+        location: a.location || a.jobLocation || "Location not provided",
+        appliedDate: a.appliedDate || a.appliedAt || a.createdAt || a.dateApplied || "--",
+        status: a.status || a.applicationStatus || "Applied",
+        lastUpdate: a.updatedAt || a.lastUpdate || a.modifiedAt || a.appliedAt || "--",
+      }))
+      setApps(normalized)
+    } catch (err) {
+      console.error("Failed to load applications:", err)
+      setError(err?.message || "Failed to load applications")
+      setApps([])
+    } finally {
+      setLoading(false)
     }
+  }
+
+  useEffect(() => {
+    ;(async () => {
+      await loadApplications()
+    })()
+    const onChanged = () => loadApplications()
+    window.addEventListener('applications:changed', onChanged)
+    return () => { window.removeEventListener('applications:changed', onChanged) }
   }, [])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     return apps.filter((a) => {
-      const matchesQuery = !q ||
-        a.company.toLowerCase().includes(q) ||
-        a.role.toLowerCase().includes(q)
+      const matchesQuery = !q || a.company.toLowerCase().includes(q) || a.role.toLowerCase().includes(q)
       const normalized = cls(a.status)
       const matchesStatus = statusFilter === "all" || normalized === statusFilter
       return matchesQuery && matchesStatus
     })
   }, [apps, query, statusFilter])
 
-  if (loading) {
-    return <div className="loading">Loading your applications...</div>
-  }
-
   return (
-    <div className="applications-shell">
-      <div className="applications-page">
+    <div className="applications-page">
       <div className="apps-header">
         <h1 className="apps-title">Applications</h1>
         <p className="apps-sub">Track each application and its latest status</p>
@@ -118,14 +80,21 @@ export default function Applications() {
             onChange={(e) => setStatusFilter(e.target.value)}
           >
             <option value="all">All statuses</option>
-            <option value="submitted">Submitted</option>
-            <option value="under review">Under Review</option>
+            <option value="applied">Applied</option>
+            <option value="under-review">Under Review</option>
             <option value="shortlisted">Shortlisted</option>
-            <option value="offer">Offer</option>
+            <option value="interview">Interview</option>
+            <option value="offer">Hired</option>
             <option value="rejected">Rejected</option>
           </select>
+          <button className="btn btn-secondary" onClick={loadApplications} disabled={loading} style={{ marginLeft: 8 }}>
+            Refresh
+          </button>
         </div>
       </div>
+
+      {error && <div className="error-banner">{error}</div>}
+      {loading && <div className="loading">Loading your applications...</div>}
 
       <div className="apps-card">
         <div className="apps-table-wrapper">
@@ -153,15 +122,14 @@ export default function Applications() {
                   <td className="muted">{fmt(a.lastUpdate)}</td>
                 </tr>
               ))}
-              {filtered.length === 0 && (
+              {!loading && filtered.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="empty">No applications match your search</td>
+                  <td colSpan={6} className="empty">No applications match your filters</td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-      </div>
       </div>
     </div>
   )
@@ -180,20 +148,23 @@ function fmt(d) {
 
 function cls(status) {
   const s = String(status || "").toLowerCase()
+  if (s.includes("hire")) return "offer" // map Hired to offer style
+  if (s.includes("interview")) return "interview" // custom mapping for filter; css may reuse shortlisted style
+  if (s.includes("shortlist")) return "shortlisted"
   if (s.includes("reject")) return "rejected"
-  if (s.includes("offer")) return "offer"
-  if (s.includes("interview") || s.includes("shortlist")) return "shortlisted"
   if (s.includes("review")) return "under-review"
-  return "submitted"
+  if (s.includes("apply") || s.includes("submitted")) return "applied"
+  return "applied"
 }
 
 function statusLabel(status) {
   const s = String(status || "").toLowerCase()
-  if (s.includes("interview") || s.includes("shortlist")) return "Shortlisted"
+  if (s.includes("hire")) return "Hired"
+  if (s.includes("interview")) return "Interview"
+  if (s.includes("shortlist")) return "Shortlisted"
   if (s.includes("under") && s.includes("review")) return "Under Review"
   if (s.includes("reject")) return "Rejected"
-  if (s.includes("offer")) return "Offer"
   if (s.includes("submit")) return "Submitted"
-  return status || "Submitted"
+  if (s.includes("apply")) return "Applied"
+  return status || "Applied"
 }
-

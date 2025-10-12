@@ -1,12 +1,9 @@
-/* Enhanced CandidateLayout Styles */
+/* CandidateLayout Component Styles */
 
 .candidate-layout {
   display: flex;
   min-height: 100vh;
-  background: var(--background-color, #f9fafb);
-  color: var(--text-primary);
-  font-family: var(--font-primary);
-  transition: background 0.3s ease;
+  background-color: var(--background-color);
 }
 
 .candidate-main {
@@ -14,47 +11,20 @@
   margin-left: 280px;
   display: flex;
   flex-direction: column;
-  background: var(--background-color, #f9fafb); /* unify with sidebar */
-  border-left: none; /* remove vertical divider */
-  box-shadow: none; /* remove visual gap */
-  transition: margin-left 0.3s ease, background 0.3s ease;
+  background-color: var(--background-color);
+  transition: margin-left 0.3s ease;
 }
 
 .candidate-content {
   flex: 1;
-  padding: 2rem 2.5rem;
-  background: transparent; /* avoid mismatched panel color */
+  padding: 2rem;
+  background-color: var(--background-color);
   min-height: calc(100vh - 80px);
-  border-radius: 0; /* prevent curved seam at sidebar join */
-  box-shadow: none;
-  transition: background 0.3s ease, padding 0.3s ease;
-}
-
-/* Add a subtle scroll area feel */
-.candidate-content::-webkit-scrollbar {
-  width: 8px;
-}
-.candidate-content::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-}
-.candidate-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.15);
 }
 
 /* Responsive Design */
-@media (max-width: 992px) {
-  .candidate-main {
-    margin-left: 240px;
-  }
-}
-
 @media (max-width: 768px) {
   .candidate-main {
     margin-left: 0;
-    box-shadow: none;
-  }
-  .candidate-content {
-    padding: 1.25rem;
   }
 }

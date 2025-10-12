@@ -19,6 +19,9 @@ export default function CandidateHome() {
           <Link to="/candidate-profile" className="btn btn-secondary btn-large">
             View Profile
           </Link>
+          <Link to="/candidate-jobs" className="btn btn-primary btn-large">
+            Find Jobs & Matches
+          </Link>
         </div>
       </div>
     </div>

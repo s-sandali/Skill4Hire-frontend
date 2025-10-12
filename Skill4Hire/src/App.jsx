@@ -12,10 +12,7 @@ import AdminDashboard from './Admin/AdminDashboard.jsx'
 import CandidatePage from './Candidate/CandidatePage.jsx';
 import JobPostings from "./Company/JobPostings.jsx";
 import JobForm from "./Company/JobForm.jsx";
-import CandidateLayout from './Candidate/components/CandidateLayout.jsx';
-import CandidateDashboard from './Candidate/CandidateDashboard.jsx';
-import CandidateProfilePage from './Candidate/CandidateProfilePage.jsx';
-import CandidateApplications from './Candidate/components/Applications.jsx';
+import CompanyProfilePage from './Company/CompanyProfilePage.jsx';
 import './App.css'
 
 
@@ -36,25 +33,19 @@ function App() {
         <Route path="/company-dashboard" element={<CompanyDashboard />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/candidate-home" element={<CandidatePage />} />
-        <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
-        <Route path="/candidate-profile" element={<CandidateProfilePage />} />
+        <Route path="/candidate-dashboard" element={<CandidatePage />} />
+        <Route path="/candidate-profile" element={<CandidatePage />} />
         <Route path="/candidate-setup" element={<CandidatePage />} />
-        <Route path="/candidate-applications" element={<CandidateApplications />} />
+        <Route path="/candidate-applications" element={<CandidatePage />} />
+        <Route path="/candidate-jobs" element={<CandidatePage />} />
+        <Route path="/candidate-matches" element={<CandidatePage />} />
+  <Route path="/company-profile" element={<CompanyProfilePage />} />
          <Route path="/jobs" element={<JobPostings />} />
         <Route path="/jobs/create" element={<JobForm />} />
         <Route path="/jobs/edit/:id" element={<JobForm />} />
-        <Route path="/candidate" element={<CandidateLayout />}>
-          <Route path="dashboard" element={<CandidateDashboard />} />
-          <Route path="profile" element={<CandidateProfilePage />} />
-          <Route path="edit" element={<CandidateProfilePage />} />
-          <Route path="applications" element={<CandidateApplications />} />
-          <Route path="jobs" element={<CandidateDashboard />} />
-          <Route path="notifications" element={<CandidateDashboard />} />
-        </Route>
       </Routes>
     </Router>
   )
 }
 
 export default App
-
