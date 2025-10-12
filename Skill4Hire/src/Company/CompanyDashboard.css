@@ -1,14 +1,14 @@
 :root {
   /* Core Colors */
-  --primary-bg: #0A0A3D;         /* Darkest Blue/Indigo (Main Background) */
+  --primary-bg: #0e0e65;         /* Darkest Blue/Indigo (Main Background) */
   --primary-accent: #00CFEA;     /* Cyan/Aqua (Primary CTA, Active State) */
   --highlight-cta: #4DB8FF;      /* Lighter Blue (CTA Hover/Gradient End) */
   --danger-color: #e74c3c;       /* Red */
 
   /* Theme Components - Adjusted to match the deep dark/cyan aesthetic */
-  --background-color: #0A0A3D;   /* Main Page Background Start */
-  --background-secondary: #1A1A5A; /* Main Page Background End */
-  --background-tertiary: #1B1B4D; /* Used for subtle background highlight */
+  --background-color: #040436;   /* Main Page Background Start */
+  --background-secondary: #070738; /* Main Page Background End */
+  --background-tertiary: #ffffff; /* Used for subtle background highlight */
   
   /* Card/UI Elements - These replace the white/light colors with a dark, subtle blue */
   --card-bg: #10103D;             /* Card and Header Background */
@@ -188,7 +188,6 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
- 
   background-color: var(--primary-bg); 
   min-height: calc(100vh - 150px); /* Ensures it fills vertical space */
 }
@@ -198,6 +197,10 @@
   color: var(--text-primary);
   margin-bottom: 2rem;
   font-weight: 600;
+   background: linear-gradient(135deg, var(--primary-accent) 0%, var(--highlight-cta) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .company-overview-card {
@@ -388,96 +391,110 @@
   gap: 1.5rem;
 }
 
+/* Job card: light blue surface */
 .job-card {
-  background: var(--card-bg);
+  background: #eff6ff;            /* light blue surface */
   border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--divider-border);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  padding: 1.25rem;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.12); /* blue shadow */
+  border: 5px solid #0a9ce6;      /* blue-200 border */
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .job-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.18);
+  border-color: #93c5fd;          /* blue-300 on hover */
 }
 
+/* Header inside job card */
 .job-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .job-header h3 {
   margin: 0;
-  color: var(--text-primary);
-  font-weight: 600;
+  color: #0f172a;                 /* slate-900 */
+  font-weight: 700;
 }
 
+/* Status badge */
 .status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
 }
 
 .status-badge.active {
-  background: #d4edda;
-  color: #155724;
+  background: #dcfce7;            /* green-100 */
+  color: #065f46;                  /* emerald-800 */
+  border-color: #a7f3d0;           /* emerald-200 */
 }
 
 .status-badge.expired {
-  background: #f8d7da;
-  color: #721c24;
+  background: #ffe4e6;            /* rose-100 */
+  color: #9f1239;                  /* rose-800 */
+  border-color: #fecdd3;           /* rose-200 */
 }
 
+/* Details text */
 .job-details {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .job-details p {
-  margin: 0.5rem 0;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+  margin: 0.4rem 0;
+  color: #334155;                 /* slate-700 */
+  font-size: 0.92rem;
 }
 
 .job-details strong {
-  color: var(--text-primary);
+  color: #0f172a;
   min-width: 80px;
   display: inline-block;
 }
 
+/* Clamp long description */
 .job-description {
   display: -webkit-box;
   -webkit-line-clamp: 3;
   line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  line-height: 1.5;
-  margin-top: 1rem !important;
+  line-height: 1.55;
+  margin-top: 0.75rem !important;
+  color: #334155;
 }
 
+/* Skills tags: light blue chips */
 .skills-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 1rem;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
 }
 
 .skill-tag {
-  background: linear-gradient(135deg, var(--primary-accent) 0%, var(--highlight-cta) 100%);
-  color: var(--primary-bg);
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 500;
+  background: #dbeafe;            /* indigo-100 */
+  color: #1e40af;                  /* indigo-800 */
+  border: 1px solid #bfdbfe;       /* blue-200 */
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 
+/* Actions */
 .job-actions {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.6rem;
 }
 
 .job-actions .btn-primary,
@@ -485,8 +502,19 @@
 .job-actions .btn-danger {
   flex: 1;
   justify-content: center;
-  padding: 0.5rem 1rem;
-  font-size: 0.8rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.82rem;
+}
+
+/* Optional: lighten secondary button to match light-blue theme inside cards */
+.job-card .btn-secondary {
+  background: #3e95ff;
+  color: #1f2937;
+  border: 1px solid #c7d2fe;
+}
+.job-card .btn-secondary:hover {
+  background: #a0c6f1;
+  border-color: #93c5fd;
 }
 
 /* Empty State */
