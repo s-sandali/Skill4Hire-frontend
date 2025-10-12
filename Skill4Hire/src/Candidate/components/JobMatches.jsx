@@ -19,27 +19,28 @@ const normalizeJobs = (payload) => {
             : [];
 
   return rawList.map((job, index) => {
-    const skillsArray = Array.isArray(job?.requiredSkills)
-      ? job.requiredSkills
-      : Array.isArray(job?.skills)
-        ? job.skills
-        : typeof job?.skills === 'string'
-          ? job.skills
+    const j = job?.job || job; // handle JobWithMatchScore
+    const skillsArray = Array.isArray(j?.requiredSkills)
+      ? j.requiredSkills
+      : Array.isArray(j?.skills)
+        ? j.skills
+        : typeof j?.skills === 'string'
+          ? j.skills
               .split(',')
               .map((skill) => skill.trim())
               .filter(Boolean)
           : [];
 
     return {
-      id: job?.id || job?.jobPostId || job?.jobId || `job-${index}`,
-      title: job?.title || job?.jobTitle || job?.role || 'Role not specified',
-      company: job?.companyName || job?.company || job?.employer?.name || 'Company not specified',
-      location: job?.location || job?.jobLocation || job?.city || 'Location not provided',
+      id: j?.id || j?.jobPostId || j?.jobId || `job-${index}`,
+      title: j?.title || j?.jobTitle || j?.role || 'Role not specified',
+      company: j?.companyName || j?.company || j?.employer?.name || 'Company not specified',
+      location: j?.location || j?.jobLocation || j?.city || 'Location not provided',
       matchScore: job?.matchScore ?? job?.matchingScore ?? job?.score ?? null,
-      summary: job?.summary || job?.description || job?.shortDescription || '',
-      salary: job?.salaryRange || job?.salary || job?.compensation || '',
+      summary: j?.summary || j?.description || j?.shortDescription || '',
+      salary: j?.salaryRange || j?.salary || j?.compensation || '',
       skills: skillsArray,
-      postedAt: job?.postedAt || job?.createdAt || job?.publishedAt || null,
+      postedAt: j?.postedAt || j?.createdAt || j?.publishedAt || null,
     };
   });
 };
@@ -55,12 +56,39 @@ const percent = (score) => {
 
 export default function JobMatches() {
   const [keyword, setKeyword] = useState("");
+  const [skill, setSkill] = useState("");
+  const [type, setType] = useState("");
+  const [location, setLocation] = useState("");
+  const [minSalary, setMinSalary] = useState("");
+  const [maxSalary, setMaxSalary] = useState("");
+
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [applyState, setApplyState] = useState({});
 
+  const [filterOptions, setFilterOptions] = useState({ types: [], locations: [] });
+
+  // Load filter options once
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const opts = await jobService.getFilterOptions();
+        if (cancelled) return;
+        setFilterOptions({
+          types: Array.isArray(opts?.types) ? opts.types : [],
+          locations: Array.isArray(opts?.locations) ? opts.locations : [],
+        });
+      } catch (e) {
+        // non-fatal
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Fetch jobs when filters change
   useEffect(() => {
     let cancelled = false;
 
@@ -69,23 +97,38 @@ export default function JobMatches() {
       setError("");
       setInfo("");
       try {
+        const params = {};
         const q = keyword.trim();
-        const params = q ? { keyword: q } : {};
-        const usePublic = Boolean(q);
-        const res = usePublic
-          ? await jobService.search(params)
-          : await jobService.searchWithMatching(params);
+        if (q) params.keyword = q;
+        if (type) params.type = type;
+        if (location) params.location = location;
+        const min = parseFloat(minSalary);
+        const max = parseFloat(maxSalary);
+        if (!Number.isNaN(min)) params.minSalary = min;
+        if (!Number.isNaN(max)) params.maxSalary = max;
+        if (skill.trim()) params.skill = skill.trim(); // only supported by public/basic search
+
+        const usingFilters = Boolean(type || location || skill || minSalary || maxSalary);
+
+        let res;
+        if (usingFilters || q) {
+          // Use basic search when explicit filters or keyword present
+          res = await jobService.search(params);
+          setInfo(buildInfo({ q, type, location, min, max, skill: skill.trim() }));
+        } else {
+          // No filters/keyword => try personalized matches for signed-in candidates
+          res = await jobService.searchWithMatching({});
+          setInfo('Personalized matches');
+        }
         if (cancelled) return;
         setJobs(normalizeJobs(res));
-        if (usePublic) setInfo(`Showing results for "${q}"`);
-      } catch (e1) {
+      } catch {
         if (cancelled) return;
         try {
           const fallback = await jobService.listPublic();
           if (cancelled) return;
           setJobs(normalizeJobs(fallback));
-          const q = keyword.trim();
-          setInfo(q ? `Showing public listings; personalized results unavailable for "${q}".` : 'Showing public listings; personalized results unavailable.');
+          setInfo('Showing public listings; personalized or filtered results unavailable.');
           setError("");
         } catch (e2) {
           if (cancelled) return;
@@ -99,7 +142,7 @@ export default function JobMatches() {
 
     fetchJobs();
     return () => { cancelled = true; };
-  }, [keyword]);
+  }, [keyword, skill, type, location, minSalary, maxSalary]);
 
   const handleApply = async (jobId) => {
     if (!jobId) return;
@@ -107,6 +150,7 @@ export default function JobMatches() {
     try {
       await candidateService.applyToJob(jobId);
       setApplyState((prev) => ({ ...prev, [jobId]: { status: 'success' } }));
+      try { window.dispatchEvent(new CustomEvent('applications:changed')); } catch {}
     } catch (err) {
       setApplyState((prev) => ({
         ...prev,
@@ -124,13 +168,48 @@ export default function JobMatches() {
         <p className="muted">Search public listings or see personalized matches when signed in.</p>
       </div>
 
-      <div className="jobs-controls">
+      <div className="jobs-controls" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr 1fr', gap: 8 }}>
         <input
           className="apps-input"
           type="text"
-          placeholder="Search by keyword, title, or skill..."
+          placeholder="Title or keyword"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
+        />
+        <input
+          className="apps-input"
+          type="text"
+          placeholder="Skill (e.g., React)"
+          value={skill}
+          onChange={(e) => setSkill(e.target.value)}
+        />
+        <select className="apps-select" value={type} onChange={(e) => setType(e.target.value)}>
+          <option value="">Type</option>
+          {filterOptions.types.map((t) => (
+            <option key={t} value={t}>{t}</option>
+          ))}
+        </select>
+        <select className="apps-select" value={location} onChange={(e) => setLocation(e.target.value)}>
+          <option value="">Location</option>
+          {filterOptions.locations.map((loc) => (
+            <option key={loc} value={loc}>{loc}</option>
+          ))}
+        </select>
+        <input
+          className="apps-input"
+          type="number"
+          min="0"
+          placeholder="Min Salary"
+          value={minSalary}
+          onChange={(e) => setMinSalary(e.target.value)}
+        />
+        <input
+          className="apps-input"
+          type="number"
+          min="0"
+          placeholder="Max Salary"
+          value={maxSalary}
+          onChange={(e) => setMaxSalary(e.target.value)}
         />
       </div>
 
@@ -171,9 +250,6 @@ export default function JobMatches() {
                 >
                   {apply === 'loading' ? 'Applying...' : apply === 'success' ? 'Applied' : 'Apply'}
                 </button>
-                {apply === 'error' && (
-                  <span className="error-text">{applyState[job.id]?.message}</span>
-                )}
               </div>
             </div>
           );
@@ -183,3 +259,17 @@ export default function JobMatches() {
   );
 }
 
+function buildInfo({ q, type, location, min, max, skill }) {
+  const parts = [];
+  if (q) parts.push(`keyword "${q}"`);
+  if (skill) parts.push(`skill "${skill}"`);
+  if (type) parts.push(`type ${type}`);
+  if (location) parts.push(`location ${location}`);
+  if (Number.isFinite(min) || Number.isFinite(max)) {
+    const m1 = Number.isFinite(min) ? min : 0;
+    const m2 = Number.isFinite(max) ? max : '∞';
+    parts.push(`salary ${m1}-${m2}`);
+  }
+  if (parts.length === 0) return '';
+  return `Filters: ${parts.join(', ')}`;
+}

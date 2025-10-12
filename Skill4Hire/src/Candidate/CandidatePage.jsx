@@ -9,6 +9,7 @@ import Applications from "./components/Applications.jsx"
 import ProfileSetupForm from "./components/ProfileSetupForm.jsx"
 import JobMatches from "./components/JobMatches.jsx"
 import { candidateService } from "../services/candidateService"
+import { jobService } from "../services/jobService"
 import "./base.css"
 import "./buttons.css"
 import "./dashboard.css"
@@ -17,10 +18,21 @@ export default function CandidatePage() {
   const location = useLocation()
   const [candidate, setCandidate] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [appsCount, setAppsCount] = useState(0)
+  const [appsByStatus, setAppsByStatus] = useState({})
 
   useEffect(() => {
     fetchCandidateProfile()
+    fetchApplications()
   }, [])
+
+  useEffect(() => {
+    const onAppsChanged = () => {
+      fetchApplications();
+    };
+    window.addEventListener('applications:changed', onAppsChanged);
+    return () => window.removeEventListener('applications:changed', onAppsChanged);
+  }, []);
 
   const fetchCandidateProfile = async () => {
     try {
@@ -33,24 +45,42 @@ export default function CandidatePage() {
     }
   }
 
+  const fetchApplications = async () => {
+    try {
+      const res = await candidateService.getApplications()
+      const list = Array.isArray(res) ? res : (Array.isArray(res?.content) ? res.content : [])
+      setAppsCount(list.length)
+      const byStatus = {}
+      list.forEach(a => {
+        const s = String(a.status || a.applicationStatus || 'Applied')
+        byStatus[s] = (byStatus[s] || 0) + 1
+      })
+      setAppsByStatus(byStatus)
+    } catch (err) {
+      console.warn('Failed to load applications for dashboard:', err?.message || err)
+      setAppsCount(0)
+      setAppsByStatus({})
+    }
+  }
+
   const getCurrentView = () => {
     const path = location.pathname
     
     if (path === "/candidate-dashboard") {
-      return <DashboardView candidate={candidate} />
+      return <DashboardView candidate={candidate} appsCount={appsCount} appsByStatus={appsByStatus} />
     } else if (path === "/candidate-profile") {
       return <ProfileOverview candidate={candidate} />
     } else if (path === "/candidate-applications") {
       return <Applications />
     } else if (path === "/candidate-setup") {
-      return <SetupView candidate={candidate} onUpdate={fetchCandidateProfile} />
+      return <SetupView candidate={candidate} onUpdate={() => { fetchCandidateProfile(); fetchApplications(); }} />
     } else if (path === "/candidate-home") {
       return <CandidateHome />
     } else if (path === "/candidate-jobs" || path === "/candidate-matches") {
       return <JobMatches />
     }
     
-    return <DashboardView candidate={candidate} />
+    return <DashboardView candidate={candidate} appsCount={appsCount} appsByStatus={appsByStatus} />
   }
 
   if (loading) {
@@ -64,7 +94,7 @@ export default function CandidatePage() {
   return <CandidateLayout>{getCurrentView()}</CandidateLayout>
 }
 
-const DashboardView = ({ candidate }) => {
+const DashboardView = ({ candidate, appsCount, appsByStatus }) => {
   return (
     <div className="dashboard">
       <div className="dashboard-header">
@@ -90,7 +120,7 @@ const DashboardView = ({ candidate }) => {
             <h3 className="card-title">Applications</h3>
           </div>
           <div className="card-content">
-            <div className="stat-number">0</div>
+            <div className="stat-number">{appsCount}</div>
             <p className="card-description">Active job applications</p>
           </div>
         </div>
@@ -110,8 +140,7 @@ const DashboardView = ({ candidate }) => {
             <h3 className="card-title">Job Matches</h3>
           </div>
           <div className="card-content">
-            <div className="stat-number">0</div>
-            <p className="card-description">New recommended positions</p>
+            <JobsPreview />
           </div>
         </div>
       </div>
@@ -119,15 +148,88 @@ const DashboardView = ({ candidate }) => {
       <div className="dashboard-section">
         <h2 className="section-title">Recent Activity</h2>
         <div className="activity-list">
-          <div className="activity-item">
-            <div className="activity-icon">📄</div>
-            <div className="activity-content">
-              <div className="activity-title">Profile created successfully</div>
-              <div className="activity-time">Just now</div>
+          {Object.keys(appsByStatus).length === 0 ? (
+            <div className="activity-item">
+              <div className="activity-icon">📄</div>
+              <div className="activity-content">
+                <div className="activity-title">No applications yet</div>
+                <div className="activity-time">Apply to a job to get started</div>
+              </div>
             </div>
-          </div>
+          ) : (
+            Object.entries(appsByStatus).slice(0, 3).map(([status, count]) => (
+              <div className="activity-item" key={status}>
+                <div className="activity-icon">📄</div>
+                <div className="activity-content">
+                  <div className="activity-title">{statusLabel(status)}: {count}</div>
+                  <div className="activity-time">Updated recently</div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
+    </div>
+  )
+}
+
+function JobsPreview() {
+  const [items, setItems] = useState([])
+  const [err, setErr] = useState("")
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      setLoading(true)
+      setErr("")
+      try {
+        // Try personalized matches first
+        let res
+        try {
+          res = await jobService.searchWithMatching({})
+        } catch (e) {
+          res = await jobService.listPublic()
+        }
+        if (cancelled) return
+        const list = Array.isArray(res) ? res : []
+        // Normalize like JobMatches does
+        const normalized = list.map((it, idx) => {
+          const j = it?.job || it
+          return {
+            id: j?.id || j?.jobPostId || `job-${idx}`,
+            title: j?.title || j?.jobTitle || 'Role',
+            company: j?.companyName || j?.company || 'Company',
+            location: j?.location || j?.jobLocation || '—'
+          }
+        }).slice(0, 3)
+        setItems(normalized)
+      } catch (e2) {
+        if (cancelled) return
+        setErr(e2?.message || 'Failed to load jobs')
+        setItems([])
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
+
+  if (loading) return <div className="muted">Loading jobs…</div>
+  if (err) return <div className="error-banner">{err}</div>
+  if (!items.length) return <div className="muted">No jobs to show</div>
+
+  return (
+    <div>
+      <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+        {items.map((j) => (
+          <li key={j.id} style={{ marginBottom: 8 }}>
+            <div style={{ fontWeight: 600 }}>{j.title}</div>
+            <div className="muted">{j.company} • {j.location}</div>
+          </li>
+        ))}
+      </ul>
+      <a href="/candidate-jobs" className="btn btn-secondary" style={{ marginTop: 8, display: 'inline-block' }}>View all jobs</a>
     </div>
   )
 }
@@ -142,4 +244,16 @@ const SetupView = ({ candidate, onUpdate }) => {
       <ProfileSetupForm candidate={candidate} onUpdate={onUpdate} />
     </div>
   )
+}
+
+function statusLabel(status) {
+  const s = String(status || "").toLowerCase()
+  if (s.includes("hire")) return "Hired"
+  if (s.includes("interview")) return "Interview"
+  if (s.includes("shortlist")) return "Shortlisted"
+  if (s.includes("under") && s.includes("review")) return "Under Review"
+  if (s.includes("reject")) return "Rejected"
+  if (s.includes("submit")) return "Submitted"
+  if (s.includes("apply")) return "Applied"
+  return status || "Applied"
 }
