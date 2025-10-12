@@ -1,8 +1,9 @@
 /* CompanyDashboard.css */
 .company-dashboard {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, var(--background-color) 0%, var(--background-secondary) 100%);
+  font-family: var(--font-primary);
+  color: var(--text-primary);
 }
 
 /* Loading States */
@@ -17,7 +18,7 @@
 
 .loading-spinner {
   font-size: 2.5rem;
-  color: #3498db;
+  color: var(--primary-accent);
   margin-bottom: 1rem;
 }
 
@@ -32,10 +33,10 @@
 
 /* Header */
 .dashboard-header {
-  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--card-bg) 0%, var(--light-bg) 100%);
+  color: var(--text-primary);
   padding: 1rem 2rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
 }
 
 .header-content {
@@ -54,7 +55,7 @@
 
 .logo-icon {
   font-size: 2rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   padding: 0.5rem;
   border-radius: 8px;
 }
@@ -76,13 +77,13 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 8px;
 }
 
 .user-avatar {
   font-size: 1.5rem;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
   padding: 0.5rem;
   border-radius: 50%;
 }
@@ -103,24 +104,28 @@
 }
 
 .logout-btn {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--card-bg);
   border: none;
-  color: white;
+  color: var(--text-secondary);
   padding: 0.75rem;
   border-radius: 8px;
   cursor: pointer;
-  transition: background 0.3s ease;
+  transition: all 0.3s ease;
+  border: 1px solid var(--divider-border);
 }
 
 .logout-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: linear-gradient(135deg, var(--primary-accent) 0%, var(--highlight-cta) 100%);
+  color: var(--primary-bg);
+  box-shadow: var(--shadow-md);
 }
 
 /* Navigation */
 .dashboard-nav {
-  background: white;
+  background: var(--card-bg);
   padding: 0 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
+  border-bottom: 1px solid var(--divider-border);
 }
 
 .nav-tab {
@@ -130,7 +135,7 @@
   padding: 1rem 1.5rem;
   background: none;
   border: none;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
@@ -139,14 +144,14 @@
 }
 
 .nav-tab:hover {
-  color: #3498db;
-  background: #f8fafc;
+  color: var(--primary-accent);
+  background: var(--background-secondary);
 }
 
 .nav-tab.active {
-  color: #3498db;
-  border-bottom-color: #3498db;
-  background: #f0f7ff;
+  color: var(--primary-accent);
+  border-bottom-color: var(--primary-accent);
+  background: var(--background-tertiary);
 }
 
 /* Main Content */
@@ -158,22 +163,22 @@
 
 /* Overview Tab */
 .overview-tab h2 {
-  color: #2c3e50;
+  color: var(--text-primary);
   margin-bottom: 2rem;
   font-weight: 600;
 }
 
 .company-overview-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 2rem;
   margin-bottom: 2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e2e8f0;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--divider-border);
 }
 
 .company-overview-card h3 {
-  color: #2c3e50;
+  color: var(--text-primary);
   margin-bottom: 1.5rem;
   font-weight: 600;
 }
@@ -182,7 +187,7 @@
   display: flex;
   margin-bottom: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--divider-border);
 }
 
 .company-details .detail-row:last-child {
@@ -192,12 +197,12 @@
 
 .company-details .detail-row strong {
   min-width: 150px;
-  color: #64748b;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
 .company-details .detail-row a {
-  color: #3498db;
+  color: var(--primary-accent);
   text-decoration: none;
 }
 
@@ -207,7 +212,7 @@
 
 .description p {
   margin: 0.5rem 0 0 0;
-  color: #475569;
+  color: var(--text-secondary);
   line-height: 1.6;
 }
 
@@ -220,26 +225,26 @@
 }
 
 .stat-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 1.5rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e2e8f0;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--divider-border);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-lg);
 }
 
 .stat-icon {
   font-size: 2rem;
-  color: #3498db;
-  background: #f0f7ff;
+  color: var(--primary-accent);
+  background: var(--background-tertiary);
   padding: 1rem;
   border-radius: 8px;
 }
@@ -247,13 +252,13 @@
 .stat-content h3 {
   font-size: 2rem;
   margin: 0;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-weight: 700;
 }
 
 .stat-content p {
   margin: 0.25rem 0 0 0;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.9rem;
 }
 
@@ -266,7 +271,7 @@
 }
 
 .tab-header h2 {
-  color: #2c3e50;
+  color: var(--text-primary);
   margin: 0;
   font-weight: 600;
 }
@@ -292,24 +297,24 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-accent) 0%, var(--highlight-cta) 100%);
+  color: var(--primary-bg);
 }
 
 .btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-secondary {
-  background: #f8fafc;
-  color: #475569;
-  border: 1px solid #e2e8f0;
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--divider-border);
 }
 
 .btn-secondary:hover {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
+  background: var(--background-secondary);
+  border-color: var(--border-light);
 }
 
 .btn-danger {
@@ -324,13 +329,13 @@
 
 .btn-outline {
   background: transparent;
-  color: #3498db;
-  border: 1px solid #3498db;
+  color: var(--primary-accent);
+  border: 1px solid var(--primary-accent);
 }
 
 .btn-outline:hover {
-  background: #3498db;
-  color: white;
+  background: linear-gradient(135deg, var(--primary-accent) 0%, var(--highlight-cta) 100%);
+  color: var(--primary-bg);
 }
 
 .btn-primary:disabled, .btn-secondary:disabled, .btn-danger:disabled {
@@ -352,11 +357,11 @@
 }
 
 .job-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e2e8f0;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--divider-border);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -374,7 +379,7 @@
 
 .job-header h3 {
   margin: 0;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -402,12 +407,12 @@
 
 .job-details p {
   margin: 0.5rem 0;
-  color: #475569;
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
 .job-details strong {
-  color: #2c3e50;
+  color: var(--text-primary);
   min-width: 80px;
   display: inline-block;
 }
@@ -415,6 +420,7 @@
 .job-description {
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   line-height: 1.5;
@@ -429,8 +435,8 @@
 }
 
 .skill-tag {
-  background: #3970af;
-  color: #3498db;
+  background: linear-gradient(135deg, var(--primary-accent) 0%, var(--highlight-cta) 100%);
+  color: var(--primary-bg);
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
   font-size: 0.8rem;
@@ -455,9 +461,10 @@
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--divider-border);
 }
 
 .empty-state .btn-primary {
@@ -526,13 +533,14 @@
 }
 
 .job-details-modal {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   width: 100%;
   max-width: 800px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--divider-border);
 }
 
 .modal-header {
@@ -540,16 +548,16 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem 2rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--divider-border);
   position: sticky;
   top: 0;
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px 12px 0 0;
 }
 
 .modal-header h2 {
   margin: 0;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -558,14 +566,14 @@
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #64748b;
+  color: var(--text-muted);
   padding: 0.25rem;
   border-radius: 4px;
 }
 
 .close-btn:hover {
-  background: #f1f5f9;
-  color: #2c3e50;
+  background: var(--background-secondary);
+  color: var(--text-primary);
 }
 
 .modal-content {
@@ -586,13 +594,13 @@
 }
 
 .info-item strong {
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.9rem;
   font-weight: 500;
 }
 
 .info-item span {
-  color: #2c3e50;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
@@ -601,7 +609,7 @@
 }
 
 .skills-section h3, .description-section h3, .company-section h3 {
-  color: #2c3e50;
+  color: var(--text-primary);
   margin-bottom: 1rem;
   font-weight: 600;
 }
@@ -609,15 +617,15 @@
 .job-description-full p {
   margin-bottom: 1rem;
   line-height: 1.6;
-  color: #475569;
+  color: var(--text-secondary);
 }
 
 .modal-actions {
   display: flex;
   gap: 1rem;
   padding: 1.5rem 2rem;
-  border-top: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border-top: 1px solid var(--divider-border);
+  background: var(--background-secondary);
   border-radius: 0 0 12px 12px;
 }
 
@@ -637,7 +645,7 @@
 }
 
 .recommendations-header h2 {
-  color: #2c3e50;
+  color: var(--text-primary);
   margin: 0;
   font-weight: 600;
 }
@@ -649,17 +657,17 @@
 }
 
 .recommendations-controls label {
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.9rem;
   font-weight: 500;
 }
 
 .recommendations-controls select {
   padding: 0.5rem 1rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--divider-border);
   border-radius: 8px;
-  background: white;
-  color: #2c3e50;
+  background: var(--card-bg);
+  color: var(--text-primary);
   font-size: 0.9rem;
 }
 
@@ -670,11 +678,11 @@
 }
 
 .recommendation-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e2e8f0;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--divider-border);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -692,12 +700,12 @@
 
 .recommendation-card-header h3 {
   margin: 0;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
 .recommendation-job {
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.9rem;
   margin: 0.25rem 0 0 0;
 }
@@ -719,7 +727,7 @@
 }
 
 .recommendation-summary {
-  color: #475569;
+  color: var(--text-secondary);
   line-height: 1.5;
   margin-bottom: 1.5rem;
   font-size: 0.9rem;
@@ -746,15 +754,15 @@
 }
 
 .settings-section {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e2e8f0;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--divider-border);
 }
 
 .settings-section h3 {
-  color: #2c3e50;
+  color: var(--text-primary);
   margin-bottom: 1.5rem;
   font-weight: 600;
   display: flex;
@@ -778,7 +786,7 @@
 }
 
 .setting-item label {
-  color: #2c3e50;
+  color: var(--text-primary);
   font-weight: 500;
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
@@ -788,19 +796,20 @@
 .setting-item select,
 .setting-item textarea {
   padding: 0.75rem 1rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--divider-border);
   border-radius: 8px;
   font-size: 0.9rem;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  background: white;
+  background: var(--card-bg);
+  color: var(--text-primary);
 }
 
 .setting-item input:focus,
 .setting-item select:focus,
 .setting-item textarea:focus {
   outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  border-color: var(--primary-accent);
+  box-shadow: 0 0 0 3px rgba(0, 207, 234, 0.2);
 }
 
 .setting-item textarea {
@@ -818,7 +827,7 @@
   left: 1rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .input-with-icon input {
@@ -848,7 +857,7 @@
   height: 100%;
   object-fit: contain;
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--divider-border);
 }
 
 .remove-logo-btn {
@@ -871,13 +880,13 @@
 .logo-placeholder {
   width: 120px;
   height: 120px;
-  border: 2px dashed #cbd5e1;
+  border: 2px dashed var(--divider-border);
   border-radius: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #64748b;
+  color: var(--text-muted);
   gap: 0.5rem;
 }
 
@@ -890,7 +899,7 @@
 }
 
 .upload-hint {
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.8rem;
   margin-top: 0.5rem;
 }
@@ -907,20 +916,20 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  background: #f8fafc;
+  background: var(--background-secondary);
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--divider-border);
 }
 
 .notification-info h4 {
   margin: 0 0 0.25rem 0;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
 .notification-info p {
   margin: 0;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.9rem;
 }
 
@@ -945,7 +954,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #cbd5e1;
+  background-color: var(--divider-border);
   transition: .4s;
   border-radius: 24px;
 }
@@ -963,7 +972,7 @@
 }
 
 input:checked + .slider {
-  background-color: #3498db;
+  background-color: var(--primary-accent);
 }
 
 input:checked + .slider:before {
@@ -1059,7 +1068,7 @@ input:checked + .slider:before {
   }
 
   .company-dashboard {
-    background: #2128c1 !important;
+    background: var(--background-color) !important;
   }
 
   .job-card,
@@ -1067,6 +1076,6 @@ input:checked + .slider:before {
   .settings-section {
     break-inside: avoid;
     box-shadow: none !important;
-    border: 1px solid #ddd !important;
+    border: 1px solid var(--divider-border) !important;
   }
 }
