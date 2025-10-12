@@ -1,73 +1,72 @@
-
-/* Base CSS for Candidate Portal - Professional Light Theme */
+/* Base CSS for Candidate Portal - Professional High-Contrast Light Theme */
 
 :root {
   /* Primary Colors */
-  --primary-bg: #ffffff; /* used for text on primary surfaces */
-  --primary-accent: #2563EB; /* refined blue */
-  --primary-text: #111827;
+  --primary-bg: #ffffff;
+  --primary-accent: #1E3A8A; /* deeper refined blue for stronger contrast */
+  --primary-text: #0A0F1E;   /* deep black-blue for crisp text */
 
   /* Secondary Accent Shades */
-  --highlight-cta: #3B82F6; /* lighter accent */
-  --hover-state: #93C5FD;   /* hover tint */
+  --highlight-cta: #2563EB;  /* accent blue for gradients and CTAs */
+  --hover-state: #60A5FA;    /* brighter hover tint */
   --warning-alert: #F59E0B;
-  --success: #10B981;
+  --success: #059669;
 
-  /* Neutral Colors */
-  --light-bg: #F7FAFC;   /* light panel/section */
-  --card-bg: #FFFFFF;    /* card surfaces */
-  --divider-border: #E5E7EB;
+  /* Neutral Colors (more contrast between surfaces) */
+  --light-bg: #F3F4F6;       /* panel background */
+  --card-bg: #FFFFFF;        /* card surface */
+  --divider-border: #D1D5DB; /* slightly darker border */
   --disabled-text: #9CA3AF;
 
-  /* Additional Professional Colors */
-  --primary-color: #2563EB;
+  /* Additional Accent Shades */
+  --primary-color: #1E40AF;  /* darker blue */
   --primary-hover: #1D4ED8;
   --primary-light: #60A5FA;
-  --primary-dark: #1E40AF;
+  --primary-dark: #1E3A8A;
 
-  /* Background Colors */
-  --background-color: #FFFFFF;         /* page background */
-  --background-secondary: #F8FAFC;     /* subtle alt bg */
-  --background-tertiary: #F1F5F9;      /* hover rows, etc. */
+  /* Backgrounds */
+  --background-color: #F9FAFB;
+  --background-secondary: #EEF2F7;
+  --background-tertiary: #E5E9F0;
   --surface-color: #FFFFFF;
   --card-color: #FFFFFF;
 
   /* Text Colors */
-  --text-primary: #111827;
-  --text-secondary: #4B5563;
-  --text-muted: #6B7280;
+  --text-primary: #0A0F1E;
+  --text-secondary: #2E3A4B;
+  --text-muted: #4B5563;
   --text-inverse: #FFFFFF;
 
   /* Border Colors */
-  --border-color: #E5E7EB;
-  --border-light: #ECEFF3;
+  --border-color: #CBD5E1;
+  --border-light: #E2E8F0;
   --border-focus: #2563EB;
 
   /* Status Colors */
-  --success-color: #10B981;
-  --success-hover: #0EA371;
-  --error-color: #EF4444;
-  --error-hover: #DC2626;
-  --warning-color: #F59E0B;
-  --warning-hover: #D97706;
+  --success-color: #059669;
+  --success-hover: #047857;
+  --error-color: #DC2626;
+  --error-hover: #B91C1C;
+  --warning-color: #D97706;
+  --warning-hover: #B45309;
 
-  /* Shadows (subtle for light UI) */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.06);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.08);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.12), 0 10px 10px -5px rgb(0 0 0 / 0.08);
+  /* Shadows (richer tone for contrast) */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 20px 30px rgba(0, 0, 0, 0.18);
 
   /* Border Radius */
   --radius: 8px;
   --radius-sm: 4px;
   --radius-lg: 12px;
   --radius-xl: 16px;
-  
+
   /* Typography */
-  --font-primary: 'Inter', 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-primary: 'Inter', 'Poppins', 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/* Base styles */
+/* Base Reset */
 * {
   margin: 0;
   padding: 0;
@@ -82,7 +81,7 @@ body {
   font-family: var(--font-primary);
   background-color: var(--background-color);
   color: var(--text-primary);
-  line-height: 1.6;
+  line-height: 1.7;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -109,14 +108,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--background-color) 0%, var(--background-secondary) 100%);
+  background: linear-gradient(135deg, #F9FAFB 0%, #E0E7FF 100%);
   padding: 2rem;
 }
 
 .home-content {
   text-align: center;
   max-width: 600px;
-  background: linear-gradient(135deg, var(--card-bg) 0%, var(--light-bg) 100%);
+  background: linear-gradient(135deg, #FFFFFF 0%, #F3F6FC 100%);
   padding: 3rem;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
@@ -125,8 +124,8 @@ body {
 
 .home-title {
   font-size: 3rem;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-weight: 800;
+  color: var(--primary-text);
   margin-bottom: 1rem;
   background: linear-gradient(135deg, var(--primary-accent) 0%, var(--highlight-cta) 100%);
   -webkit-background-clip: text;
@@ -159,11 +158,11 @@ body {
   }
 
   .home-title {
-    font-size: 2.5rem;
+    font-size: 2.4rem;
   }
 
   .home-description {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
   }
 
   .home-actions {

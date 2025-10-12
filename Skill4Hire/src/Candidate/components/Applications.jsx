@@ -1,8 +1,9 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { candidateService } from "../../services/candidateService"
+import { candidateService } from "../../services/candidateService.jsx"
 import "../base.css"
+import "../candidate.css"
 import "./Applications.css"
 
 const fallbackData = [
@@ -93,7 +94,8 @@ export default function Applications() {
   }
 
   return (
-    <div className="applications-page">
+    <div className="applications-shell">
+      <div className="applications-page">
       <div className="apps-header">
         <h1 className="apps-title">Applications</h1>
         <p className="apps-sub">Track each application and its latest status</p>
@@ -159,6 +161,7 @@ export default function Applications() {
             </tbody>
           </table>
         </div>
+      </div>
       </div>
     </div>
   )
