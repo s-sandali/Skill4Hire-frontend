@@ -22,9 +22,11 @@
 .apps-table .empty { text-align: center; color: var(--text-muted); padding: 1.5rem 0; }
 
 .status-badge { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 999px; font-size: 0.8rem; border: 1px solid transparent; }
+.status-badge.applied { color: var(--primary-light); border-color: var(--primary-light); background: rgba(77,184,255,0.08); }
 .status-badge.submitted { color: var(--primary-light); border-color: var(--primary-light); background: rgba(77,184,255,0.08); }
 .status-badge.under-review { color: var(--hover-state); border-color: var(--hover-state); background: rgba(178,255,255,0.08); }
 .status-badge.shortlisted { color: var(--success-color); border-color: var(--success-color); background: rgba(242,233,78,0.1); }
+.status-badge.interview { color: #9b6ef3; border-color: #9b6ef3; background: rgba(155,110,243,0.08); }
 .status-badge.offer { color: #6ef3a5; border-color: #6ef3a5; background: rgba(110,243,165,0.08); }
 .status-badge.rejected { color: var(--error-color); border-color: var(--error-color); background: rgba(255,107,0,0.08); }
 
