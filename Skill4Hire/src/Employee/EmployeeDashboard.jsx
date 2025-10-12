@@ -3,11 +3,12 @@ import { useState, useEffect } from "react";
 import {
   RiUserLine, RiBriefcaseLine, RiFileList3Line,
   RiCalendarScheduleLine, RiLogoutBoxLine,
-  RiSearchLine, RiEyeLine, RiEditLine, RiAddLine, RiDeleteBinLine,
-  RiNotification3Line
+  RiSearchLine, RiEyeLine, RiThumbUpLine,
+  RiNotification3Line, RiRefreshLine
 } from "react-icons/ri";
 import EmployeeHome from "./EmployeeHome";
 import EmployeeProfile from "./EmployeeProfile";
+import RecommendationModal from "./RecommendationModal";
 import { authService } from "../services/authService";
 import { employeeService } from "../services/employeeService";
 
@@ -23,52 +24,41 @@ const EmployeeDashboard = () => {
   const [loadingCompleteness, setLoadingCompleteness] = useState(false);
   const [completenessError, setCompletenessError] = useState(null);
 
+  // Real data states
+  const [candidates, setCandidates] = useState([]);
+  const [jobs, setJobs] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
+  const [dashboardMetrics, setDashboardMetrics] = useState({
+    totalCandidates: 0,
+    activeJobs: 0,
+    upcomingInterviews: 0,
+    newApplications: 0,
+  });
+  const [loading, setLoading] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [showRecommendModal, setShowRecommendModal] = useState(false);
+  const [employeeData, setEmployeeData] = useState(null);
+
   const goToProfile = () => setActiveTab("profile");
   const goToDashboard = () => setActiveTab("dashboard");
 
-  const employeeData = {
-    id: "emp-001",
-    name: "Sarah Johnson",
-    email: "sarah.johnson@company.com",
-    phone: "+1 (555) 123-4567",
-    department: "Human Resources",
-    position: "HR Manager",
-    location: "San Francisco, CA",
-    joinDate: "2022-03-15",
-    status: "Active",
-    skills: ["Recruitment", "Team Management"],
-    bio: "Experienced HR Manager passionate about building inclusive workplaces."
+  // Fetch employee profile
+  const fetchEmployeeProfile = async () => {
+    try {
+      const data = await employeeService.getProfile();
+      setEmployeeData(data);
+    } catch (error) {
+      console.error("Error fetching employee profile:", error);
+    }
   };
-
-  const candidates = [
-    { id:"cand-001", name:"Alex Chen", position:"Frontend Developer", status:"Interview Scheduled", experience:"3 years", matchScore:95, skills:["React","JavaScript","CSS","HTML"] },
-    { id:"cand-002", name:"Maria Rodriguez", position:"Backend Developer", status:"Under Review", experience:"5 years", matchScore:88, skills:["Node.js","Python","PostgreSQL","AWS"] },
-    { id:"cand-003", name:"David Kim", position:"Full Stack Developer", status:"Hired", experience:"4 years", matchScore:92, skills:["React","Node.js","MongoDB","TypeScript"] },
-  ];
-
-  const jobs = [
-    { id:"job-001", title:"Senior Frontend Developer", department:"Engineering", location:"San Francisco, CA", type:"Full-time", status:"Active", applicants:24, postedDate:"2024-01-10" },
-    { id:"job-002", title:"Backend Developer", department:"Engineering", location:"Remote", type:"Full-time", status:"Active", applicants:18, postedDate:"2024-01-12" },
-    { id:"job-003", title:"UI/UX Designer", department:"Design", location:"New York, NY", type:"Contract", status:"Closed", applicants:12, postedDate:"2024-01-05" },
-  ];
-
-  const filteredCandidates = candidates.filter(c => {
-    const q = searchTerm.toLowerCase();
-    const matchesSearch = c.name.toLowerCase().includes(q) || c.position.toLowerCase().includes(q);
-    const matchesFilter = filterStatus === "all" || c.status.toLowerCase().includes(filterStatus.toLowerCase());
-    return matchesSearch && matchesFilter;
-  });
 
   // Fetch profile completeness
   const fetchProfileCompleteness = async () => {
     setLoadingCompleteness(true);
     setCompletenessError(null);
     try {
-      console.log("Fetching profile completeness...");
       const data = await employeeService.getProfileCompleteness();
-      console.log("Completeness data received:", data);
 
-      // Handle different response structures
       if (data.completenessPercentage !== undefined) {
         setProfileCompleteness(data.completenessPercentage);
       } else if (data.percentage !== undefined) {
@@ -89,34 +79,132 @@ const EmployeeDashboard = () => {
     }
   };
 
-  // Refresh completeness function
-  const refreshCompleteness = () => {
-    fetchProfileCompleteness();
-  };
-
-  // Fetch completeness on component mount
+  // Fetch real data when tabs change
   useEffect(() => {
+    if (activeTab === 'candidates') {
+      fetchCandidates();
+    } else if (activeTab === 'jobs') {
+      fetchJobs();
+    } else if (activeTab === 'recommendations') {
+      fetchMyRecommendations();
+    } else if (activeTab === 'dashboard') {
+      fetchDashboardMetrics();
+    }
+  }, [activeTab, searchTerm, filterStatus]);
+
+  // Fetch initial data
+  useEffect(() => {
+    fetchEmployeeProfile();
     fetchProfileCompleteness();
   }, []);
 
+  // Fetch candidates with filters
+  const fetchCandidates = async () => {
+    setLoading(true);
+    try {
+      const data = await employeeService.searchCandidates({
+        skill: searchTerm || null,
+        minExperience: filterStatus !== 'all' && filterStatus !== 'experience' ? parseInt(filterStatus) : null,
+        page: 0,
+        size: 10
+      });
+      setCandidates(data.content || data || []);
+    } catch (error) {
+      console.error('Error fetching candidates:', error);
+      setCandidates([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch active jobs
+  const fetchJobs = async () => {
+    setLoading(true);
+    try {
+      const data = await employeeService.getActiveJobs(0, 10);
+      setJobs(data.content || data || []);
+    } catch (error) {
+      console.error('Error fetching jobs:', error);
+      setJobs([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch employee's recommendations
+  const fetchMyRecommendations = async () => {
+    setLoading(true);
+    try {
+      const data = await employeeService.getMyRecommendations(0, 10);
+      setRecommendations(data.content || data || []);
+    } catch (error) {
+      console.error('Error fetching recommendations:', error);
+      setRecommendations([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch dashboard metrics
+  const fetchDashboardMetrics = async () => {
+    try {
+      const data = await employeeService.getDashboardMetrics();
+      setDashboardMetrics(data);
+    } catch (error) {
+      console.error('Error fetching dashboard metrics:', error);
+    }
+  };
+
+  // Handle candidate recommendation
+  const handleRecommendCandidate = (candidate) => {
+    setSelectedCandidate(candidate);
+    setShowRecommendModal(true);
+  };
+
+  // Submit recommendation
+  const submitRecommendation = async (jobId, note) => {
+    try {
+      await employeeService.recommendCandidate({
+        candidateId: selectedCandidate.userId || selectedCandidate.id,
+        jobId: jobId,
+        note: note
+      });
+      setShowRecommendModal(false);
+      setSelectedCandidate(null);
+      alert('Candidate recommended successfully!');
+      fetchMyRecommendations(); // Refresh recommendations
+    } catch (error) {
+      alert('Error recommending candidate: ' + error.message);
+    }
+  };
+
+  // View candidate details
+  const handleViewCandidate = async (candidateId) => {
+    try {
+      const candidate = await employeeService.getCandidateProfile(candidateId);
+      // You can show this in a modal or navigate to candidate details
+      console.log('Candidate details:', candidate);
+      alert(`Viewing candidate: ${candidate.name}\nSkills: ${candidate.skills?.join(', ')}`);
+    } catch (error) {
+      console.error('Error fetching candidate details:', error);
+      alert('Error loading candidate details');
+    }
+  };
+
   const handleLogout = async () => {
-    try { await authService.logout(); } catch {}
-    finally {
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
       localStorage.clear();
       window.location.href = "/";
     }
   };
 
-  const dashboardMetrics = {
-    totalCandidates: 3,
-    activeJobs: 3,
-    upcomingInterviews: 5,
-    newApplications: 12,
-  };
-
   // Progress ring style based on completeness
   const progressRingStyle = {
-    background: `conic-gradient(#ff6a00 0% ${profileCompleteness}%, #f0f0f0 ${profileCompleteness}% 100%)`
+    background: `conic-gradient(#ff6a00 0% ${profileCompleteness}%, #2a2b5a ${profileCompleteness}% 100%)`
   };
 
   const iconTileStyle = {
@@ -149,10 +237,10 @@ const EmployeeDashboard = () => {
               <RiFileList3Line /> Candidates
             </button>
             <button className={`nav-item ${activeTab==="jobs" ? "active":""}`} onClick={() => setActiveTab("jobs")}>
-              <RiBriefcaseLine /> Job Postings
+              <RiBriefcaseLine /> Jobs
             </button>
-            <button className={`nav-item ${activeTab==="interviews" ? "active":""}`} onClick={() => setActiveTab("interviews")}>
-              <RiCalendarScheduleLine /> Interviews
+            <button className={`nav-item ${activeTab==="recommendations" ? "active":""}`} onClick={() => setActiveTab("recommendations")}>
+              <RiThumbUpLine /> My Recommendations
             </button>
           </nav>
           <button className="logout-btn" onClick={handleLogout}>
@@ -170,16 +258,18 @@ const EmployeeDashboard = () => {
               />
           )}
 
-          {/* DASHBOARD content with real completeness data */}
+          {/* DASHBOARD content with real data */}
           {activeTab === "dashboard" && (
               <div className="dash-wrap">
                 <div className="dash-hero cardish">
-                  <h1 className="dash-title">Welcome back</h1>
+                  <h1 className="dash-title">
+                    Welcome back, {employeeData?.name || 'Employee'}!
+                  </h1>
                   <p className="dash-sub">Here's your overview.</p>
                 </div>
 
                 <div className="dash-grid">
-                  {/* Profile Completeness - Now with real data */}
+                  {/* Profile Completeness */}
                   <div className="dash-card">
                     <div className="dash-card-head">
                       <h3>Profile<br/>Completeness</h3>
@@ -207,17 +297,6 @@ const EmployeeDashboard = () => {
                               <button
                                   className="btn-complete-profile"
                                   onClick={goToProfile}
-                                  style={{
-                                    marginTop: '10px',
-                                    padding: '8px 16px',
-                                    background: '#ff6a00',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    cursor: 'pointer',
-                                    fontSize: '14px',
-                                    width: '100%'
-                                  }}
                               >
                                 Complete Profile ({100 - Math.round(profileCompleteness)}% left)
                               </button>
@@ -226,7 +305,7 @@ const EmployeeDashboard = () => {
                     )}
 
                     {completenessError && (
-                        <p style={{ color: '#ff4444', fontSize: '12px', marginTop: '5px' }}>
+                        <p className="error-message">
                           {completenessError}
                         </p>
                     )}
@@ -258,44 +337,34 @@ const EmployeeDashboard = () => {
                     <div className="metric">{dashboardMetrics.upcomingInterviews}</div>
                     <p className="muted center">Upcoming<br/>Interviews</p>
                   </div>
-
-                  {/* New Applications */}
-                  <div className="dash-card">
-                    <div style={iconTileStyle}>
-                      <RiNotification3Line size={26} color="#fff" />
-                    </div>
-                    <div className="metric">{dashboardMetrics.newApplications}</div>
-                    <p className="muted center">New<br/>Applications</p>
-                  </div>
                 </div>
 
                 <div className="dash-section">
                   <h2 className="dash-sec-title">Recent Activity</h2>
                   <div className="dash-divider" />
 
-                  {/* Refresh button for testing */}
-                  <button
-                      onClick={refreshCompleteness}
-                      style={{
-                        padding: '8px 16px',
-                        background: '#f0f0f0',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        marginTop: '10px'
-                      }}
-                  >
-                    Refresh Completeness
-                  </button>
+                  {/* Refresh buttons */}
+                  <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                    <button
+                        onClick={fetchProfileCompleteness}
+                        className="btn btn-secondary"
+                    >
+                      <RiRefreshLine /> Refresh Completeness
+                    </button>
+                    <button
+                        onClick={fetchDashboardMetrics}
+                        className="btn btn-secondary"
+                    >
+                      <RiRefreshLine /> Refresh Metrics
+                    </button>
+                  </div>
                 </div>
               </div>
           )}
 
           {activeTab === "profile" && (
               <EmployeeProfile
-                  profileData={employeeData}
-                  onProfileUpdate={refreshCompleteness}
+                  onProfileUpdate={fetchProfileCompleteness}
               />
           )}
 
@@ -308,128 +377,189 @@ const EmployeeDashboard = () => {
                       <RiSearchLine />
                       <input
                           type="text"
-                          placeholder="Search candidates..."
+                          placeholder="Search by skill..."
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                       />
                     </div>
+                    <select
+                        className="select"
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                    >
+                      <option value="all">All Experience</option>
+                      <option value="1">1+ years</option>
+                      <option value="3">3+ years</option>
+                      <option value="5">5+ years</option>
+                    </select>
                   </div>
                 </div>
 
-                <div className="candidates-list">
-                  {filteredCandidates.map((candidate) => (
-                      <div key={candidate.id} className="candidate-card tall">
-                        <div className="cand-header">
-                          <div className="cand-left">
-                            <div className="avatar-lg"><RiUserLine /></div>
-                            <div className="cand-id">
-                              <h3 className="cand-name">{candidate.name}</h3>
-                              <div className="cand-role">{candidate.position}</div>
-                              <span className="cand-match">{candidate.matchScore}% Match</span>
-                            </div>
-                          </div>
-                          <span
-                              className={
-                                  "cand-status-badge " +
-                                  candidate.status.toLowerCase().replace(/\s+/g, "-")
-                              }
-                          >
-                      {candidate.status}
-                    </span>
-                        </div>
+                {loading ? (
+                    <div className="loading-state">Loading candidates...</div>
+                ) : (
+                    <div className="candidates-list">
+                      {candidates.length === 0 ? (
+                          <div className="no-data">No candidates found</div>
+                      ) : (
+                          candidates.map((candidate) => (
+                              <div key={candidate.id || candidate.userId} className="candidate-card tall">
+                                <div className="cand-header">
+                                  <div className="cand-left">
+                                    <div className="avatar-lg">
+                                      <RiUserLine />
+                                    </div>
+                                    <div className="cand-id">
+                                      <h3 className="cand-name">{candidate.name}</h3>
+                                      <div className="cand-role">{candidate.position || 'Candidate'}</div>
+                                      <span className="cand-match">
+                              {candidate.matchScore || 'N/A'}% Match
+                            </span>
+                                    </div>
+                                  </div>
+                                  <span className="cand-status-badge available">
+                          Available
+                        </span>
+                                </div>
 
-                        <div className="cand-experience">
-                          <strong>Experience:</strong> <span className="years">{candidate.experience}</span>
-                        </div>
+                                <div className="cand-experience">
+                                  <strong>Experience:</strong>
+                                  <span className="years">
+                          {candidate.experience?.yearsOfExperience || 'Not specified'} years
+                        </span>
+                                </div>
 
-                        <div className="cand-skills">
-                          {candidate.skills?.map((s) => (
-                              <span key={s} className="cand-skill">{s}</span>
-                          ))}
-                        </div>
+                                <div className="cand-skills">
+                                  {candidate.skills?.slice(0, 4).map((skill) => (
+                                      <span key={skill} className="cand-skill">{skill}</span>
+                                  ))}
+                                  {candidate.skills?.length > 4 && (
+                                      <span className="cand-skill">+{candidate.skills.length - 4} more</span>
+                                  )}
+                                </div>
 
-                        <div className="cand-actions">
-                          <button className="btn-cand-view" onClick={goToProfile}>
-                            <RiEyeLine /> View Profile
-                          </button>
-                          <button className="btn-cand-edit">
-                            <RiEditLine /> Edit
-                          </button>
-                        </div>
-                      </div>
-                  ))}
-                </div>
+                                <div className="cand-actions">
+                                  <button
+                                      className="btn-cand-view"
+                                      onClick={() => handleViewCandidate(candidate.id || candidate.userId)}
+                                  >
+                                    <RiEyeLine /> View Profile
+                                  </button>
+                                  <button
+                                      className="btn-cand-edit"
+                                      onClick={() => handleRecommendCandidate(candidate)}
+                                  >
+                                    <RiThumbUpLine /> Recommend
+                                  </button>
+                                </div>
+                              </div>
+                          ))
+                      )}
+                    </div>
+                )}
               </div>
           )}
 
           {activeTab === "jobs" && (
               <div className="panel jobs-panel">
                 <div className="jobs-header">
-                  <h2 className="jobs-title">Job Postings</h2>
-                  <button className="btn-post">
-                    <RiAddLine /> Post New Job
+                  <h2 className="jobs-title">Active Job Postings</h2>
+                  <button
+                      className="btn-refresh"
+                      onClick={fetchJobs}
+                      disabled={loading}
+                  >
+                    <RiRefreshLine /> Refresh
                   </button>
                 </div>
 
-                <div className="cards-grid jobs-grid">
-                  {jobs.map(job => (
-                      <div key={job.id} className="card job-card">
-                        <div className="job-card-top">
-                          <h3 className="job-title">{job.title}</h3>
-                          <span className={`job-status-badge ${job.status.toLowerCase()}`}>
-                      {job.status}
-                    </span>
-                        </div>
+                {loading ? (
+                    <div className="loading-state">Loading jobs...</div>
+                ) : (
+                    <div className="cards-grid jobs-grid">
+                      {jobs.length === 0 ? (
+                          <div className="no-data">No active jobs found</div>
+                      ) : (
+                          jobs.map(job => (
+                              <div key={job.id} className="card job-card">
+                                <div className="job-card-top">
+                                  <h3 className="job-title">{job.title}</h3>
+                                  <span className={`job-status-badge ${job.status?.toLowerCase()}`}>
+                          {job.status || 'Active'}
+                        </span>
+                                </div>
 
-                        <div className="job-meta">
-                          <p><strong>Department:</strong> {job.department}</p>
-                          <p><strong>Location:</strong> {job.location || "—"}</p>
-                          <p><strong>Type:</strong> {job.type || "Full-time"}</p>
-                          <p><strong>Applicants:</strong> {job.applicants}</p>
-                          <p><strong>Posted:</strong> {job.postedDate}</p>
-                        </div>
+                                <div className="job-meta">
+                                  <p><strong>Department:</strong> {job.department || 'Not specified'}</p>
+                                  <p><strong>Location:</strong> {job.location || 'Remote'}</p>
+                                  <p><strong>Type:</strong> {job.type || 'Full-time'}</p>
+                                  <p><strong>Posted:</strong> {new Date(job.createdAt).toLocaleDateString()}</p>
+                                </div>
 
-                        <div className="job-primary-action">
-                          <button className="btn-view">
-                            <RiEyeLine /> View Details
-                          </button>
-                        </div>
-
-                        <div className="job-secondary-actions">
-                          <button className="btn-edit-outline">
-                            <RiEditLine /> Edit
-                          </button>
-                          <button className="btn-delete-outline">
-                            <RiDeleteBinLine /> Delete
-                          </button>
-                        </div>
-                      </div>
-                  ))}
-                </div>
+                                <div className="job-primary-action">
+                                  <button className="btn-view">
+                                    <RiEyeLine /> View Details
+                                  </button>
+                                </div>
+                              </div>
+                          ))
+                      )}
+                    </div>
+                )}
               </div>
           )}
 
-          {activeTab === "interviews" && (
-              <div className="panel">
-                <h2>Interview Schedule</h2>
-                <div className="interview-card">
-                  <div className="interview-left">
-                    <span className="interview-date">Jan 25, 2024</span>
-                    <span className="interview-time">10:00 AM</span>
-                  </div>
-                  <div className="interview-mid">
-                    <h3 className="interview-title">Alex Chen - Frontend Developer</h3>
-                    <p className="interview-sub">Technical Interview - Round 2</p>
-                    <span className="interview-chip">Video Call</span>
-                  </div>
-                  <div className="interview-right">
-                    <button className="btn-join">Join Meeting</button>
-                    <button className="btn-reschedule">Reschedule</button>
-                  </div>
+          {activeTab === "recommendations" && (
+              <div className="panel recommendations-panel">
+                <div className="panel-header">
+                  <h2>My Recommendations</h2>
+                  <button
+                      className="btn-refresh"
+                      onClick={fetchMyRecommendations}
+                      disabled={loading}
+                  >
+                    <RiRefreshLine /> Refresh
+                  </button>
                 </div>
+
+                {loading ? (
+                    <div className="loading-state">Loading recommendations...</div>
+                ) : (
+                    <div className="recommendations-list">
+                      {recommendations.length === 0 ? (
+                          <div className="no-data">No recommendations yet</div>
+                      ) : (
+                          recommendations.map(rec => (
+                              <div key={rec.id} className="recommendation-card">
+                                <div className="rec-header">
+                                  <h4>Recommendation for {rec.candidateName || 'Candidate'}</h4>
+                                  <span className={`rec-status ${rec.status?.toLowerCase()}`}>
+                          {rec.status}
+                        </span>
+                                </div>
+                                <p><strong>Job:</strong> {rec.jobTitle || 'Unknown Job'}</p>
+                                <p><strong>Note:</strong> {rec.note || 'No note provided'}</p>
+                                <p><strong>Date:</strong> {new Date(rec.createdAt).toLocaleDateString()}</p>
+                              </div>
+                          ))
+                      )}
+                    </div>
+                )}
               </div>
           )}
         </main>
+
+        {/* Recommendation Modal */}
+        <RecommendationModal
+            isOpen={showRecommendModal}
+            onClose={() => {
+              setShowRecommendModal(false);
+              setSelectedCandidate(null);
+            }}
+            candidate={selectedCandidate}
+            jobs={jobs}
+            onSubmit={submitRecommendation}
+        />
       </div>
   );
 };

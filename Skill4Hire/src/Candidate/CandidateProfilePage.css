@@ -1,0 +1,273 @@
+/* Basic styles for CandidateProfilePage to avoid missing file errors
+   and provide a clean default layout. Adjust as needed. */
+
+.candidate-profile-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  color: #0f172a;
+}
+
+.loading,
+.no-profile {
+  padding: 24px;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px 20px;
+}
+
+/* Ensure central info grows and actions stay right-aligned */
+.profile-info { flex: 1; min-width: 0; }
+.profile-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+.profile-avatar img,
+.profile-avatar svg {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Override global .profile-avatar from candidate.css to keep size consistent */
+.candidate-profile-page .profile-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9; /* neutral bg when icon shows */
+  color: #0f172a;
+}
+
+/* Avoid leakage from Candidate/candidate.css .profile-stats */
+.candidate-profile-page .profile-stats {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-top: 8px;
+  padding: 0;            /* override global */
+  background: transparent;/* override global */
+  border: 0;             /* override global */
+}
+
+.stat { text-align: center; }
+.stat-number { font-size: 20px; font-weight: 700; color: #0f172a; }
+.stat-label { font-size: 13px; color: #475569; }
+
+.profile-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid #e2e8f0; /* higher contrast divider */
+}
+
+.profile-tabs .tab {
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #334155;            /* default readable */
+  font-weight: 600;
+}
+
+.profile-tabs .tab:hover { color: #1e293b; }
+.profile-tabs .tab.active {
+  border-bottom: 3px solid #0ea5e9;
+  color: #0ea5e9;
+}
+
+/* Improve tab visibility on dark backgrounds in layout */
+.candidate-profile-page .profile-tabs {
+  background: #0B1442; /* dark bar to match layout */
+  border-bottom-color: rgba(255,255,255,0.18);
+  padding: 0.25rem 0.5rem;
+}
+.candidate-profile-page .profile-tabs .tab {
+  color: #E2E8F0; /* light text for contrast */
+}
+.candidate-profile-page .profile-tabs .tab:hover {
+  color: #FFFFFF;
+  background: rgba(255,255,255,0.06);
+  border-radius: 6px;
+}
+.candidate-profile-page .profile-tabs .tab.active {
+  color: #FFFFFF;
+  border-bottom-color: #38BDF8; /* cyan accent visible on dark */
+}
+
+/* Tab content container for spacing and contrast */
+.tab-content {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+/* Overview cards layout within profile tab */
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.overview-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+.overview-card.full-width { grid-column: 1 / -1; }
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.card-icon { font-size: 20px; color: #0ea5e9; }
+.card-header h3 { margin: 0; font-size: 1rem; color: #0f172a; }
+.card-content { color: #475569; font-size: 0.95rem; }
+
+/* Outline buttons inside profile page (e.g., resume download) */
+.candidate-profile-page .btn-outline.small {
+  background: #2563eb;
+  color: #ffffff;
+  border: 1px solid #60a5fa;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.candidate-profile-page .btn-outline.small:hover {
+  background: #1d4ed8;
+  border-color: #93c5fd;
+}
+
+/* Ensure readable inputs in edit tab */
+.candidate-profile-page input,
+.candidate-profile-page textarea,
+.candidate-profile-page select {
+  color: #0f172a !important;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.candidate-profile-page input::placeholder,
+.candidate-profile-page textarea::placeholder {
+  color: #94a3b8;
+}
+
+/* Matches tab */
+.matches-tab h2 { margin-bottom: 16px; color: #0f172a; }
+
+.matches-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.match-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+.match-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.match-card-header h3 { margin: 0; color: #0f172a; font-size: 1.05rem; }
+
+.match-score {
+  background: #dbeafe; /* light blue */
+  color: #1e40af;      /* dark blue text */
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.match-card-content { color: #334155; }
+
+.match-skills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.match-skills span {
+  background: #f1f5f9;
+  color: #0f172a;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.match-card-actions { display: flex; gap: 10px; margin-top: 12px; }
+
+/* Ensure outline button is visible on white backgrounds */
+.candidate-profile-page .matches-tab .btn-outline {
+  background: #ffffff;
+  color: #0f172a;
+  border: 2px solid #0ea5e9;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.candidate-profile-page .matches-tab .btn-outline:hover {
+  background: #eff6ff;
+  color: #075985;
+  border-color: #0284c7;
+}
+
+.section {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.applications-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.badge.in-review { background: #eef2ff; color: #3730a3; }
+.badge.interview { background: #ecfdf5; color: #065f46; }
+.badge.rejected { background: #fef2f2; color: #991b1b; }
+
+.form-section { margin: 16px 0; }
+.form-group { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; }
+.form-actions { margin-top: 16px; }
+.btn-primary { background: #3b82f6; color: #fff; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .profile-header { flex-direction: column; align-items: flex-start; }
+  .profile-actions { width: 100%; justify-content: flex-start; }
+  .overview-grid { grid-template-columns: 1fr; }
+}

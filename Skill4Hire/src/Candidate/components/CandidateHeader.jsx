@@ -2,12 +2,14 @@
 
 import { FiMenu, FiSearch, FiBell, FiMessageCircle, FiLogOut } from "react-icons/fi"
 import { useNavigate } from "react-router-dom"
+import { useEffect, useState, useMemo } from "react"
 import { authService } from "../../services/authService"
 import "../base.css"
 import "./CandidateHeader.css"
 
 export default function CandidateHeader({ onMenuClick }) {
   const navigate = useNavigate()
+  const [candidate, setCandidate] = useState(null)
 
   const handleLogout = async () => {
     try {
@@ -18,6 +20,30 @@ export default function CandidateHeader({ onMenuClick }) {
       navigate('/login')
     }
   }
+
+  useEffect(() => {
+    let mounted = true
+    const fetchProfile = async () => {
+      try {
+        const { candidateService } = await import("../../services/candidateService.jsx")
+        const profile = await candidateService.getProfile()
+        if (mounted) setCandidate(profile)
+      } catch {
+        // ignore header fetch failures
+      }
+    }
+    fetchProfile()
+    return () => { mounted = false }
+  }, [])
+
+  const avatarSrc = useMemo(() => {
+    if (candidate?.profilePicturePath) {
+      return `http://localhost:8080/uploads/profile-pictures/${candidate.profilePicturePath}`
+    }
+    const seed = candidate?.email || candidate?.name || "guest"
+    // DiceBear avatar as random-but-stable fallback by seed
+    return `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(seed)}`
+  }, [candidate])
 
   return (
     <header className="header">
@@ -40,7 +66,7 @@ export default function CandidateHeader({ onMenuClick }) {
             <FiLogOut size={18} />
           </button>
           <div className="header-profile">
-            <img src="/professional-headshot.png" alt="Profile" className="profile-avatar" />
+            <img src={avatarSrc} alt="Profile" className="profile-avatar" />
           </div>
         </div>
       </div>

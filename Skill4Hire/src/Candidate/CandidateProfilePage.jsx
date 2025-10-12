@@ -1,29 +1,51 @@
 import { useEffect, useState } from 'react';
 import { RiUserLine, RiMailLine, RiBookLine, RiBriefcaseLine, RiStarLine, RiFileTextLine, RiEditLine, RiDeleteBinLine } from 'react-icons/ri';
-import CandidateProfileForm from './CandidateProfileForm';
+import { candidateService } from '../services/candidateService.jsx';
 import './CandidateProfilePage.css';
+import './candidate.css';
 
 const CandidateProfilePage = () => {
-  const [profiles, setProfiles] = useState([]);
+  const [candidate, setCandidate] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('profile');
   const [applications, setApplications] = useState([]);
   const [appsLoading, setAppsLoading] = useState(false);
   const [appsError, setAppsError] = useState('');
+  const [profileCompleteness, setProfileCompleteness] = useState(0);
+
+  // Load candidate profile from backend
+  useEffect(() => {
+    fetchCandidateProfile();
+  }, []);
+
+  const fetchCandidateProfile = async () => {
+    try {
+      setLoading(true);
+      const profile = await candidateService.getProfile();
+      setCandidate(profile);
+      
+      // Fetch profile completeness
+      const completenessData = await candidateService.checkProfileCompleteness();
+      setProfileCompleteness(completenessData.completeness || completenessData.completenessPercentage || 0);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Load candidate applications when Applications tab becomes active
   useEffect(() => {
-    const userId = localStorage.getItem('userId');
-    if (activeTab !== 'applications' || !userId) return;
+    if (activeTab !== 'applications') return;
 
     let cancelled = false;
     async function fetchApplications() {
       setAppsLoading(true);
       setAppsError('');
       try {
-        const res = await (await import('../services/applicationsService')).applicationsService.getByCandidate(userId);
+        const applicationsData = await candidateService.getApplications();
         if (!cancelled) {
-          // Expecting an array of { id, jobTitle, companyName, appliedAt, status }
-          setApplications(Array.isArray(res) ? res : (res?.data ?? []));
+          setApplications(Array.isArray(applicationsData) ? applicationsData : []);
         }
       } catch (err) {
         if (!cancelled) setAppsError(err?.message || 'Failed to load applications');
@@ -43,74 +65,152 @@ const CandidateProfilePage = () => {
     return 'in-review';
   };
 
-  // Sample data for demonstration
-  const [sampleProfile, setSampleProfile] = useState({
-    id: "sample-1",
-    name: "Alex Johnson",
-    email: "alex.johnson@example.com",
-    education: "BSc in Computer Science, University of Tech (2018-2022)",
-    experience: "2 years as Frontend Developer at TechCorp",
-    skills: ["JavaScript", "React", "CSS", "HTML", "Node.js", "UI/UX"],
-    resume: { name: "alex_johnson_resume.pdf" },
-    location: "San Francisco, CA",
-    title: "Frontend Developer"
-  });
+  const handleSaveProfile = async (profileData) => {
+    try {
+      // Map the form data to backend DTO structure
+      const backendProfileData = {
+        name: profileData.name,
+        email: profileData.email,
+        phoneNumber: profileData.phoneNumber,
+        location: profileData.location,
+        title: profileData.title,
+        headline: profileData.headline,
+        skills: profileData.skills,
+        education: {
+          ...profileData.education,
+          graduationYear: profileData.education?.graduationYear ? Number(profileData.education.graduationYear) : null,
+        },
+        experience: {
+          ...profileData.experience,
+          yearsOfExperience: profileData.experience?.yearsOfExperience ? Number(profileData.experience.yearsOfExperience) : 0,
+        }
+      };
 
-  const handleSaveProfile = (profileData) => {
-    // Update the sample profile with new data
-    const updatedProfile = {
-      ...sampleProfile,
-      ...profileData,
-      id: sampleProfile.id // Preserve the ID
-    };
-    setSampleProfile(updatedProfile);
-    
-    // Also update in the profiles array if needed
-    if (profiles.some(profile => profile.id === sampleProfile.id)) {
-      setProfiles(profiles.map(profile => 
-        profile.id === sampleProfile.id ? updatedProfile : profile
-      ));
-    } else {
-      setProfiles([...profiles, updatedProfile]);
+      const updatedProfile = await candidateService.updateProfile(backendProfileData);
+      setCandidate(updatedProfile);
+      
+      // Refresh completeness score
+      const completenessData = await candidateService.checkProfileCompleteness();
+      setProfileCompleteness(completenessData.completeness || completenessData.completenessPercentage || 0);
+      
+      setActiveTab('profile');
+      alert("Profile updated successfully!");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert("Error updating profile. Please try again.");
+    }
+  };
+
+  // Format experience for display using backend DTO structure
+  const formatExperience = (experience) => {
+    if (!experience || !experience.isExperienced) {
+      return "No experience listed yet.";
     }
     
-    setActiveTab('profile'); // Switch back to profile view after saving
+    const { role, company, yearsOfExperience } = experience;
+    
+    let experienceText = "";
+    if (role) experienceText += role;
+    if (company) experienceText += experienceText ? ` at ${company}` : company;
+    if (yearsOfExperience) experienceText += experienceText ? ` (${yearsOfExperience} years)` : `${yearsOfExperience} years experience`;
+    
+    return experienceText || "Experience details available";
   };
 
-  const handleDeleteProfile = (profileId) => {
-    setProfiles(profiles.filter(profile => profile.id !== profileId));
+
+  // Build resume URL and download
+  const getResumeUrl = (resumePath) => {
+    if (!resumePath) return null;
+    if (String(resumePath).startsWith('http')) return resumePath;
+    return `http://localhost:8080/uploads/resumes/${resumePath}`;
   };
+
+  const handleDownloadResume = () => {
+    const path = candidate?.resumePath;
+    if (!path) {
+      alert('No resume available to download');
+      return;
+    }
+    const url = getResumeUrl(path);
+    if (!url) {
+      alert('Resume URL is not available');
+      return;
+    }
+    window.open(url, '_blank');
+  };  // Format education for display using backend DTO structure
+  const formatEducation = (education) => {
+    if (!education) return "No education listed yet.";
+    
+    const { degree, institution, graduationYear } = education;
+    
+    let educationText = "";
+    if (degree) educationText += degree;
+    if (institution) educationText += educationText ? ` from ${institution}` : institution;
+    if (graduationYear) educationText += educationText ? `, ${graduationYear}` : `Graduated ${graduationYear}`;
+    
+    return educationText || "Education details available";
+  };
+
+  if (loading) {
+    return (
+      <div className="candidate-profile-page">
+        <div className="loading">Loading your profile...</div>
+      </div>
+    );
+  }
+
+  if (!candidate) {
+    return (
+      <div className="candidate-profile-page">
+        <div className="no-profile">
+          <h2>Profile not found</h2>
+          <p>Please complete your profile setup.</p>
+          <button className="btn-primary" onClick={() => setActiveTab('edit')}>
+            <RiEditLine /> Setup Profile
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="candidate-profile-page">
       <div className="profile-header">
         <div className="profile-avatar">
-          <RiUserLine />
+          {candidate.profilePicturePath ? (
+            <img src={candidate.profilePicturePath} alt="Profile" />
+          ) : (
+            <RiUserLine />
+          )}
         </div>
         <div className="profile-info">
-          <h1>{sampleProfile.name}</h1>
-          <p>{sampleProfile.title}</p>
+          <h1>{candidate.name || "Candidate Name"}</h1>
+          <p>{candidate.title || "Professional"}</p>
           <div className="profile-stats">
             <div className="stat">
-              <span className="stat-number">95%</span>
+              <span className="stat-number">{profileCompleteness}%</span>
               <span className="stat-label">Profile Score</span>
             </div>
             <div className="stat">
-              <span className="stat-number">12</span>
-              <span className="stat-label">Matches</span>
+              <span className="stat-number">{applications.length}</span>
+              <span className="stat-label">Applications</span>
             </div>
             <div className="stat">
-              <span className="stat-number">3</span>
+              <span className="stat-number">
+                {applications.filter(app => 
+                  ['interview', 'interview scheduled', 'scheduled'].includes(String(app.status || '').toLowerCase())
+                ).length}
+              </span>
               <span className="stat-label">Interviews</span>
             </div>
           </div>
         </div>
         <div className="profile-actions">
-  <button className="btn-primary" onClick={() => setActiveTab('edit')}>
-    <RiEditLine /> Edit Profile
-  </button>
-</div>
-</div>
+          <button className="btn-primary" onClick={() => setActiveTab('edit')}>
+            <RiEditLine /> Edit Profile
+          </button>
+        </div>
+      </div>
 
       <div className="profile-tabs">
         <button 
@@ -151,15 +251,19 @@ const CandidateProfilePage = () => {
                 <div className="card-content">
                   <div className="info-item">
                     <span className="info-label">Full Name</span>
-                    <span className="info-value">{sampleProfile.name}</span>
+                    <span className="info-value">{candidate.name}</span>
                   </div>
                   <div className="info-item">
                     <span className="info-label">Email</span>
-                    <span className="info-value">{sampleProfile.email}</span>
+                    <span className="info-value">{candidate.email}</span>
                   </div>
                   <div className="info-item">
                     <span className="info-label">Location</span>
-                    <span className="info-value">{sampleProfile.location}</span>
+                    <span className="info-value">{candidate.location || "Not specified"}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Phone</span>
+                    <span className="info-value">{candidate.phoneNumber || "Not provided"}</span>
                   </div>
                 </div>
               </div>
@@ -170,11 +274,17 @@ const CandidateProfilePage = () => {
                   <h3>Education</h3>
                 </div>
                 <div className="card-content">
-                  <div className="education-item">
-                    <h4>BSc in Computer Science</h4>
-                    <p>University of Technology</p>
-                    <span className="education-period">2018 - 2022</span>
-                  </div>
+                  {candidate.education ? (
+                    <div className="education-item">
+                      <h4>{candidate.education.degree || "Degree not specified"}</h4>
+                      <p>{candidate.education.institution || "Institution not specified"}</p>
+                      {candidate.education.graduationYear && (
+                        <span className="education-period">Graduated {candidate.education.graduationYear}</span>
+                      )}
+                    </div>
+                  ) : (
+                    <p>No education information available</p>
+                  )}
                 </div>
               </div>
 
@@ -184,14 +294,17 @@ const CandidateProfilePage = () => {
                   <h3>Experience</h3>
                 </div>
                 <div className="card-content">
-                  <div className="experience-item">
-                    <h4>Frontend Developer</h4>
-                    <p>TechCorp Inc.</p>
-                    <span className="experience-period">2022 - Present</span>
-                    <p className="experience-description">
-                      Developed responsive web applications using React and Node.js
-                    </p>
-                  </div>
+                  {candidate.experience && candidate.experience.isExperienced ? (
+                    <div className="experience-item">
+                      <h4>{candidate.experience.role || "Role not specified"}</h4>
+                      <p>{candidate.experience.company || "Company not specified"}</p>
+                      {candidate.experience.yearsOfExperience && (
+                        <span className="experience-period">{candidate.experience.yearsOfExperience} years of experience</span>
+                      )}
+                    </div>
+                  ) : (
+                    <p>No experience listed</p>
+                  )}
                 </div>
               </div>
 
@@ -202,9 +315,13 @@ const CandidateProfilePage = () => {
                 </div>
                 <div className="card-content">
                   <div className="skills-container">
-                    {sampleProfile.skills.map((skill, index) => (
-                      <span key={index} className="skill-tag">{skill}</span>
-                    ))}
+                    {candidate.skills && candidate.skills.length > 0 ? (
+                      candidate.skills.map((skill, index) => (
+                        <span key={index} className="skill-tag">{skill}</span>
+                      ))
+                    ) : (
+                      <p>No skills listed</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -216,8 +333,10 @@ const CandidateProfilePage = () => {
                 </div>
                 <div className="card-content">
                   <div className="resume-item">
-                    <p>{sampleProfile.resume.name}</p>
-                    <button className="btn-outline small">Download</button>
+                    <p>{candidate.resumePath ? candidate.resumePath.split('/').pop() : "No resume uploaded"}</p>
+                    {candidate.resumePath && (
+                      <button className="btn-outline small" onClick={handleDownloadResume}>Download Resume</button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -230,12 +349,16 @@ const CandidateProfilePage = () => {
                 <div className="card-content">
                   <div className="completeness-meter">
                     <div className="meter-bar">
-                      <div className="meter-fill" style={{width: '95%'}}></div>
+                      <div className="meter-fill" style={{width: `${profileCompleteness}%`}}></div>
                     </div>
-                    <span className="completeness-percent">95% Complete</span>
+                    <span className="completeness-percent">{profileCompleteness}% Complete</span>
                   </div>
                   <p className="completeness-tip">
-                    Add your portfolio to reach 100% profile completeness
+                    {profileCompleteness < 50 
+                      ? "Complete your profile to improve job matches." 
+                      : profileCompleteness < 100 
+                        ? "Your profile is looking good! Add more details to reach 100%."
+                        : "Your profile is complete! Great job!"}
                   </p>
                 </div>
               </div>
@@ -243,18 +366,17 @@ const CandidateProfilePage = () => {
           </div>
         )}
 
-         {activeTab === 'edit' && (
+        {activeTab === 'edit' && (
           <div className="edit-profile-tab">
             <h2 className="tab-title">Edit Your Profile</h2>
-            <CandidateProfileForm
-              existingProfile={sampleProfile}
-              onSave={handleSaveProfile}
-              onDelete={handleDeleteProfile}
+            <ProfileEditForm 
+              candidate={candidate} 
+              onSave={handleSaveProfile} 
             />
           </div>
         )}
 
-         {activeTab === 'matches' && (
+        {activeTab === 'matches' && (
           <div className="matches-tab">
             <h2>Your Job Matches</h2>
             <div className="matches-grid">
@@ -297,26 +419,6 @@ const CandidateProfilePage = () => {
                   <button className="btn-outline">View Details</button>
                 </div>
               </div>
-
-              <div className="match-card">
-                <div className="match-card-header">
-                  <h3>Full Stack Developer</h3>
-                  <span className="match-score">89% Match</span>
-                </div>
-                <div className="match-card-content">
-                  <p>StartUpVision</p>
-                  <p>Austin, TX • Hybrid</p>
-                  <div className="match-skills">
-                    <span>Node.js</span>
-                    <span>React</span>
-                    <span>MongoDB</span>
-                  </div>
-                </div>
-                <div className="match-card-actions">
-                  <button className="btn-primary">Apply Now</button>
-                  <button className="btn-outline">View Details</button>
-                </div>
-              </div>
             </div>
           </div>
         )}
@@ -342,7 +444,7 @@ const CandidateProfilePage = () => {
                 </div>
               )}
 
-              {!appsLoading && !appsError && applications?.length === 0 && (
+              {!appsLoading && !appsError && applications.length === 0 && (
                 <div className="application-item">
                   <div className="application-info">
                     <h3>No applications yet</h3>
@@ -351,12 +453,14 @@ const CandidateProfilePage = () => {
                 </div>
               )}
 
-              {!appsLoading && !appsError && applications?.map((app) => (
+              {!appsLoading && !appsError && applications.map((app) => (
                 <div className="application-item" key={app.id || `${app.jobId}-${app.appliedAt}`}>
                   <div className="application-info">
                     <h3>{app.jobTitle || app.title || 'Job'}</h3>
                     <p>{app.companyName || app.company || 'Company'}</p>
-                    <span className="application-date">Applied on: {new Date(app.appliedAt || app.createdAt || Date.now()).toLocaleDateString()}</span>
+                    <span className="application-date">
+                      Applied on: {new Date(app.appliedAt || app.createdAt || Date.now()).toLocaleDateString()}
+                    </span>
                   </div>
                   <div className="application-status">
                     <span className={`status-badge ${statusToBadgeClass(app.status)}`}>
@@ -373,4 +477,286 @@ const CandidateProfilePage = () => {
   );
 };
 
+// Profile Edit Form Component
+const ProfileEditForm = ({ candidate, onSave }) => {
+  const [formData, setFormData] = useState({
+    name: candidate?.name || "",
+    email: candidate?.email || "",
+    phoneNumber: candidate?.phoneNumber || "",
+    location: candidate?.location || "",
+    title: candidate?.title || "",
+    headline: candidate?.headline || "",
+    experience: candidate?.experience || {
+      isExperienced: false,
+      role: "",
+      company: "",
+      yearsOfExperience: 0
+    },
+    education: candidate?.education || {
+      degree: "",
+      institution: "",
+      graduationYear: null
+    },
+    skills: candidate?.skills || [],
+  });
+  const [newSkill, setNewSkill] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleExperienceChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    let next = value;
+    if (name === 'yearsOfExperience') {
+      next = String(value || '').replace(/[^0-9]/g, '').slice(0, 2);
+    }
+    setFormData(prev => ({
+      ...prev,
+      experience: {
+        ...prev.experience,
+        [name]: type === 'checkbox' ? checked : next
+      }
+    }));
+  };
+
+  const handleEducationChange = (e) => {
+    const { name, value } = e.target;
+    let next = value;
+    if (name === 'graduationYear') {
+      next = String(value || '').replace(/[^0-9]/g, '').slice(0, 4);
+    }
+    setFormData(prev => ({
+      ...prev,
+      education: {
+        ...prev.education,
+        [name]: next
+      }
+    }));
+  };
+
+  const addSkill = async () => {
+    if (newSkill.trim() && !formData.skills.includes(newSkill.trim())) {
+      try {
+        const updatedSkills = await candidateService.addSkill(newSkill.trim());
+        setFormData(prev => ({
+          ...prev,
+          skills: updatedSkills,
+        }));
+        setNewSkill("");
+      } catch (error) {
+        console.error("Error adding skill:", error);
+        alert("Error adding skill. Please try again.");
+      }
+    }
+  };
+
+  const removeSkill = async (skillToRemove) => {
+    try {
+      const updatedSkills = await candidateService.removeSkill(skillToRemove);
+      setFormData(prev => ({
+        ...prev,
+        skills: updatedSkills,
+      }));
+    } catch (error) {
+      console.error("Error removing skill:", error);
+      alert("Error removing skill. Please try again.");
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await onSave(formData);
+    } catch (error) {
+      console.error("Error saving profile:", error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="profile-edit-form">
+      <div className="form-section">
+        <h3>Basic Information</h3>
+        <div className="form-group">
+          <label>Full Name</label>
+          <input 
+            type="text" 
+            name="name" 
+            value={formData.name} 
+            onChange={handleInputChange} 
+            required 
+          />
+        </div>
+        <div className="form-group">
+          <label>Email</label>
+          <input 
+            type="email" 
+            name="email" 
+            value={formData.email} 
+            onChange={handleInputChange} 
+            required 
+          />
+        </div>
+        <div className="form-group">
+          <label>Phone</label>
+          <input 
+            type="tel" 
+            name="phoneNumber" 
+            value={formData.phoneNumber} 
+            onChange={handleInputChange} 
+          />
+        </div>
+        <div className="form-group">
+          <label>Location</label>
+          <input 
+            type="text" 
+            name="location" 
+            value={formData.location} 
+            onChange={handleInputChange} 
+          />
+        </div>
+        <div className="form-group">
+          <label>Professional Title</label>
+          <input 
+            type="text" 
+            name="title" 
+            value={formData.title} 
+            onChange={handleInputChange} 
+          />
+        </div>
+        <div className="form-group">
+          <label>Professional Bio (Headline)</label>
+          <textarea 
+            name="headline" 
+            value={formData.headline} 
+            onChange={handleInputChange} 
+            rows="4" 
+          />
+        </div>
+      </div>
+
+      <div className="form-section">
+        <h3>Skills</h3>
+        <div className="skills-input">
+          <input
+            type="text"
+            value={newSkill}
+            onChange={(e) => setNewSkill(e.target.value)}
+            placeholder="Add a skill"
+            onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addSkill())}
+          />
+          <button type="button" onClick={addSkill}>Add</button>
+        </div>
+        <div className="skills-list">
+          {formData.skills.map((skill, index) => (
+            <span key={index} className="skill-tag">
+              {skill}
+              <button type="button" onClick={() => removeSkill(skill)}>×</button>
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="form-section">
+        <h3>Experience</h3>
+        <div className="form-group">
+          <label>
+            <input
+              type="checkbox"
+              name="isExperienced"
+              checked={formData.experience.isExperienced || false}
+              onChange={handleExperienceChange}
+            />
+            I have work experience
+          </label>
+        </div>
+        {formData.experience.isExperienced && (
+          <>
+            <div className="form-group">
+              <label>Role/Position</label>
+              <input
+                type="text"
+                name="role"
+                value={formData.experience.role || ""}
+                onChange={handleExperienceChange}
+                placeholder="e.g., Software Developer"
+              />
+            </div>
+            <div className="form-group">
+              <label>Company</label>
+              <input
+                type="text"
+                name="company"
+                value={formData.experience.company || ""}
+                onChange={handleExperienceChange}
+                placeholder="Company name"
+              />
+            </div>
+            <div className="form-group">
+              <label>Years of Experience</label>
+              <input 
+                type="text" 
+                name="yearsOfExperience" 
+                inputMode="numeric" pattern="[0-9]*"
+                value={formData.experience.yearsOfExperience ?? ''}
+                onChange={handleExperienceChange} 
+              />
+            </div>
+          </>
+        )}
+      </div>
+
+      <div className="form-section">
+        <h3>Education</h3>
+        <div className="form-group">
+          <label>Degree</label>
+          <input
+            type="text"
+            name="degree"
+            value={formData.education.degree || ""}
+            onChange={handleEducationChange}
+            placeholder="e.g., Bachelor of Science"
+          />
+        </div>
+        <div className="form-group">
+          <label>Institution</label>
+          <input
+            type="text"
+            name="institution"
+            value={formData.education.institution || ""}
+            onChange={handleEducationChange}
+            placeholder="University or school name"
+          />
+        </div>
+        <div className="form-group">
+          <label>Graduation Year</label>
+          <input
+            type="text"
+            name="graduationYear"
+            inputMode="numeric" pattern="[0-9]*"
+            value={formData.education.graduationYear ?? ''}
+            onChange={handleEducationChange}
+            placeholder="e.g., 2023"
+          />
+        </div>
+      </div>
+
+      <div className="form-actions">
+        <button type="submit" className="btn-primary" disabled={saving}>
+          {saving ? "Saving..." : "Save Profile"}
+        </button>
+      </div>
+    </form>
+  );
+};
+
 export default CandidateProfilePage;
+

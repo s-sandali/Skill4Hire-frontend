@@ -1,49 +1,49 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { candidateService } from "../../services/candidateService"
+import { candidateService } from "../../services/candidateService.jsx"
 import "../base.css"
+import "../candidate.css"
 import "./Applications.css"
 
 const fallbackData = [
   {
     id: "ex-1",
-    company: "Acme Corp",
+    company: "TechNova Labs",
     role: "Frontend Developer",
-    location: "Remote",
-    appliedDate: "2025-09-01",
-    status: "Under Review",
-    lastUpdate: "2025-09-10",
+    location: "Remote - North America",
+    appliedDate: "2025-09-12",
+    status: "Applied",
+    lastUpdate: "2025-09-15",
   },
   {
     id: "ex-2",
-    company: "Globex",
-    role: "Backend Engineer",
-    location: "Berlin, DE",
-    appliedDate: "2025-08-26",
+    company: "BrightPixel Studio",
+    role: "UI/UX Designer",
+    location: "Austin, TX",
+    appliedDate: "2025-08-29",
     status: "Shortlisted",
-    lastUpdate: "2025-09-12",
+    lastUpdate: "2025-09-02",
   },
   {
     id: "ex-3",
-    company: "Initech",
-    role: "Full‑Stack Developer",
-    location: "Bengaluru, IN",
-    appliedDate: "2025-08-20",
+    company: "CloudScale Inc.",
+    role: "Full Stack Engineer",
+    location: "New York, NY",
+    appliedDate: "2025-08-18",
     status: "Rejected",
-    lastUpdate: "2025-09-05",
+    lastUpdate: "2025-08-27",
   },
   {
     id: "ex-4",
-    company: "Umbrella Labs",
+    company: "Apex Analytics",
     role: "Data Analyst",
     location: "London, UK",
     appliedDate: "2025-09-05",
-    status: "Submitted",
-    lastUpdate: "2025-09-05",
+    status: "Under Review",
+    lastUpdate: "2025-09-11",
   },
 ]
-
 export default function Applications() {
   const [apps, setApps] = useState([])
   const [loading, setLoading] = useState(true)
@@ -59,11 +59,11 @@ export default function Applications() {
         const normalized = (Array.isArray(res) ? res : []).map((a, i) => ({
           id: a.id || a._id || `app-${i}`,
           company: a.company || a.companyName || a.employer?.name || "Unknown",
-          role: a.role || a.jobTitle || a.position || "—",
-          location: a.location || a.jobLocation || "—",
-          appliedDate: a.appliedDate || a.createdAt || a.dateApplied || "—",
+          role: a.role || a.jobTitle || a.position || "Role not specified",
+          location: a.location || a.jobLocation || "Location not provided",
+          appliedDate: a.appliedDate || a.createdAt || a.dateApplied || "--",
           status: a.status || a.applicationStatus || "Submitted",
-          lastUpdate: a.updatedAt || a.lastUpdate || a.modifiedAt || "—",
+          lastUpdate: a.updatedAt || a.lastUpdate || a.modifiedAt || "--",
         }))
         if (isMounted) setApps(normalized.length ? normalized : fallbackData)
       } catch (e) {
@@ -94,7 +94,8 @@ export default function Applications() {
   }
 
   return (
-    <div className="applications-page">
+    <div className="applications-shell">
+      <div className="applications-page">
       <div className="apps-header">
         <h1 className="apps-title">Applications</h1>
         <p className="apps-sub">Track each application and its latest status</p>
@@ -161,12 +162,13 @@ export default function Applications() {
           </table>
         </div>
       </div>
+      </div>
     </div>
   )
 }
 
 function fmt(d) {
-  if (!d || d === "—") return "—"
+  if (!d || d === "--") return "--"
   try {
     const date = new Date(d)
     if (Number.isNaN(date.getTime())) return d
@@ -194,3 +196,4 @@ function statusLabel(status) {
   if (s.includes("submit")) return "Submitted"
   return status || "Submitted"
 }
+

@@ -45,5 +45,28 @@ export const employeeService = {
         } catch (error) {
             throw new Error(error.response?.data?.message || 'Failed to upload profile picture');
         }
+    },
+
+    // Applications: Submit a candidate to a job (EMPLOYEE)
+    submitCandidateApplication: async ({ candidateId, jobPostId }) => {
+        if (!candidateId) throw new Error('Missing candidateId');
+        if (!jobPostId) throw new Error('Missing jobPostId');
+        try {
+            const response = await apiClient.post('/api/employees/applications', {
+                candidateId,
+                jobPostId,
+            });
+            return response.data; // ApplicationDTO
+        } catch (error) {
+            // Map common backend statuses to user-friendly messages
+            const status = error.response?.status;
+            if (status === 404) {
+                throw new Error('Job not found');
+            }
+            if (status === 409) {
+                throw new Error('Duplicate application');
+            }
+            throw new Error(error.response?.data?.message || 'Failed to submit application');
+        }
     }
 };
