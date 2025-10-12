@@ -12,10 +12,32 @@ export const companyService = {
 
   updateProfile: async (profileData) => {
     try {
-      // profileData must be flat and match CompanyProfileDTO exactly
-      // Example:
-      // { name, description, phone, website, address, facebook, linkedin, twitter, logo }
-      const response = await apiClient.put('/api/companies/profile', profileData, {
+      // Map and sanitize to match CompanyProfileDTO fields exactly
+      const toAddressLine = (data) => {
+        // Prefer a precomposed address if present
+        if (data.address && !data.city && !data.state && !data.zipCode && !data.country) return data.address;
+        const parts = [
+          data.address,
+          [data.city, data.state].filter(Boolean).join(', '),
+          data.zipCode,
+          data.country
+        ].filter(Boolean);
+        return parts.join(', ');
+      };
+
+      const payload = {
+        name: profileData.name ?? profileData.companyName ?? '',
+        description: profileData.description ?? '',
+        phone: profileData.phone ?? profileData.phoneNumber ?? '',
+        website: profileData.website ?? '',
+        address: toAddressLine(profileData),
+        facebook: profileData.facebook ?? profileData.facebookUrl ?? '',
+        linkedin: profileData.linkedin ?? profileData.linkedinUrl ?? '',
+        twitter: profileData.twitter ?? profileData.twitterUrl ?? '',
+        logo: profileData.logo ?? ''
+      };
+
+      const response = await apiClient.put('/api/companies/profile', payload, {
         headers: { 'Content-Type': 'application/json' },
       });
       return response.data;
@@ -38,23 +60,36 @@ export const companyService = {
     }
   },
 
-  changePassword: async (oldPassword, newPassword) => {
+  // Backward compatible alias used by CompanyDashboard
+  updateLogo: async (file) => {
+    return companyService.uploadLogo(file);
+  },
+
+  changePassword: async (...args) => {
     try {
-      const response = await apiClient.post('/api/companies/change-password', {
-        oldPassword,
-        newPassword
-      });
+      // Accept either (oldPassword, newPassword) or ({ currentPassword, newPassword, confirmPassword })
+      let payload;
+      if (args.length === 1 && typeof args[0] === 'object') {
+        const { currentPassword, oldPassword, newPassword } = args[0] || {};
+        payload = {
+          oldPassword: currentPassword ?? oldPassword,
+          newPassword,
+        };
+      } else {
+        const [oldPassword, newPassword] = args;
+        payload = { oldPassword, newPassword };
+      }
+      const response = await apiClient.post('/api/companies/change-password', payload);
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Error changing password');
     }
   },
 
-  updateEmail: async (newEmail) => {
+  updateEmail: async (arg) => {
     try {
-      const response = await apiClient.post('/api/companies/update-email', {
-        newEmail
-      });
+      const newEmail = typeof arg === 'object' ? arg?.newEmail : arg;
+      const response = await apiClient.post('/api/companies/update-email', { newEmail });
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Error updating email');

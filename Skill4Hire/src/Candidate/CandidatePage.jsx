@@ -7,6 +7,7 @@ import CandidateHome from "./CandidateHome.jsx"
 import ProfileOverview from "./components/ProfileOverview.jsx"
 import Applications from "./components/Applications.jsx"
 import ProfileSetupForm from "./components/ProfileSetupForm.jsx"
+import JobMatches from "./components/JobMatches.jsx"
 import { candidateService } from "../services/candidateService"
 import "./base.css"
 import "./buttons.css"
@@ -45,6 +46,8 @@ export default function CandidatePage() {
       return <SetupView candidate={candidate} onUpdate={fetchCandidateProfile} />
     } else if (path === "/candidate-home") {
       return <CandidateHome />
+    } else if (path === "/candidate-jobs" || path === "/candidate-matches") {
+      return <JobMatches />
     }
     
     return <DashboardView candidate={candidate} />
