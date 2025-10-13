@@ -90,6 +90,13 @@ const CompanyDashboard = () => {
     }
   });
 
+  // Applicants state
+  const [applicants, setApplicants] = useState([]);
+  const [applicantsLoading, setApplicantsLoading] = useState(false);
+  const [applicantsError, setApplicantsError] = useState('');
+  const [selectedApplicantsJob, setSelectedApplicantsJob] = useState('all');
+  const [applicantStatusFilter, setApplicantStatusFilter] = useState('all');
+
   const formatSalary = (value) => {
     if (value === undefined || value === null || value === "") {
       return null;
@@ -384,9 +391,9 @@ const CompanyDashboard = () => {
       setSaveStatus('');
 
       const response = await companyService.uploadLogo(file);
-      
+
       setCompanyLogo(file);
-      
+
       const reader = new FileReader();
       reader.onload = (e) => {
         setLogoPreview(e.target.result);
@@ -400,7 +407,7 @@ const CompanyDashboard = () => {
 
       setSaveStatus('success');
       setSaveMessage('Logo uploaded successfully!');
-      
+
       setTimeout(() => {
         setSaveMessage('');
         setSaveStatus('');
@@ -412,7 +419,7 @@ const CompanyDashboard = () => {
       setSaveStatus('error');
       setSaveMessage(error.message || 'Failed to upload logo');
       setIsSaving(false);
-      
+
       setTimeout(() => {
         setSaveMessage('');
         setSaveStatus('');
@@ -425,7 +432,7 @@ const CompanyDashboard = () => {
     setLogoPreview(null);
     setSaveStatus('success');
     setSaveMessage('Logo removed');
-    
+
     setTimeout(() => {
       setSaveMessage('');
       setSaveStatus('');
@@ -440,7 +447,7 @@ const CompanyDashboard = () => {
         [field]: value
       }
     }));
-    
+
     if (saveMessage) {
       setSaveMessage('');
       setSaveStatus('');
@@ -452,7 +459,7 @@ const CompanyDashboard = () => {
       ...prev,
       [field]: value
     }));
-    
+
     if (saveMessage) {
       setSaveMessage('');
       setSaveStatus('');
@@ -463,7 +470,7 @@ const CompanyDashboard = () => {
     setIsSaving(true);
     setSaveMessage('');
     setSaveStatus('');
-    
+
     try {
       const settingsPayload = {
         name: companySettings.companyName,
@@ -486,24 +493,24 @@ const CompanyDashboard = () => {
       };
 
       await companyService.updateProfile(settingsPayload);
-      
+
       if (companyLogo) {
         await companyService.updateLogo(companyLogo);
       }
-      
+
       setSaveStatus('success');
       setSaveMessage('All settings saved successfully!');
-      
+
       setTimeout(() => {
         setSaveMessage('');
         setSaveStatus('');
       }, 5000);
-      
+
     } catch (error) {
       console.error('Error saving settings:', error);
       setSaveStatus('error');
       setSaveMessage(error.message || 'Failed to save settings. Please try again.');
-      
+
       setTimeout(() => {
         setSaveMessage('');
         setSaveStatus('');
@@ -518,21 +525,21 @@ const CompanyDashboard = () => {
       const currentPassword = prompt('Enter your current password:');
       const newPassword = prompt('Enter new password:');
       const confirmPassword = prompt('Confirm new password:');
-      
+
       if (currentPassword && newPassword && confirmPassword) {
         if (newPassword !== confirmPassword) {
           throw new Error('Passwords do not match');
         }
-        
+
         await companyService.changePassword({
           currentPassword,
           newPassword,
           confirmPassword
         });
-        
+
         setSaveStatus('success');
         setSaveMessage('Password changed successfully!');
-        
+
         setTimeout(() => {
           setSaveMessage('');
           setSaveStatus('');
@@ -541,7 +548,7 @@ const CompanyDashboard = () => {
     } catch (error) {
       setSaveStatus('error');
       setSaveMessage(error.message || 'Failed to change password');
-      
+
       setTimeout(() => {
         setSaveMessage('');
         setSaveStatus('');
@@ -553,16 +560,16 @@ const CompanyDashboard = () => {
     try {
       const newEmail = prompt('Enter new email address:');
       const password = prompt('Enter your password to confirm:');
-      
+
       if (newEmail && password) {
         await companyService.updateEmail({
           newEmail,
           password
         });
-        
+
         setSaveStatus('success');
         setSaveMessage('Email updated successfully! Please verify your new email.');
-        
+
         setTimeout(() => {
           setSaveMessage('');
           setSaveStatus('');
@@ -571,7 +578,7 @@ const CompanyDashboard = () => {
     } catch (error) {
       setSaveStatus('error');
       setSaveMessage(error.message || 'Failed to update email');
-      
+
       setTimeout(() => {
         setSaveMessage('');
         setSaveStatus('');
@@ -582,17 +589,17 @@ const CompanyDashboard = () => {
   const handleAccountDeletion = async () => {
     try {
       const confirmation = confirm('Are you sure you want to delete your account? This action cannot be undone.');
-      
+
       if (confirmation) {
         const password = prompt('Enter your password to confirm account deletion:');
         const confirmationText = prompt('Type "DELETE" to confirm:');
-        
+
         if (password && confirmationText === 'DELETE') {
           await companyService.deleteAccount({
             password,
             confirmation: confirmationText
           });
-          
+
           localStorage.clear();
           window.location.href = '/login';
         } else if (confirmationText !== 'DELETE') {
@@ -602,13 +609,72 @@ const CompanyDashboard = () => {
     } catch (error) {
       setSaveStatus('error');
       setSaveMessage(error.message || 'Failed to delete account');
-      
+
       setTimeout(() => {
         setSaveMessage('');
         setSaveStatus('');
       }, 5000);
     }
   };
+
+  const normalizeApplications = useCallback((payload) => {
+    const list = Array.isArray(payload) ? payload : (Array.isArray(payload?.data) ? payload.data : []);
+    return list.map((a, i) => ({
+      id: a.id || a._id || `app-${i}`,
+      candidateId: a.candidateId || a.candidate || '—',
+      jobId: a.jobPostId || a.jobId || null,
+      jobTitle: a.jobTitle || '—',
+      location: a.jobLocation || '—',
+      status: a.status || 'APPLIED',
+      appliedAt: a.appliedAt || a.createdAt || a.dateApplied || null,
+      companyName: a.companyName || '—',
+    }));
+  }, []);
+
+  const loadApplicants = useCallback(async () => {
+    setApplicantsLoading(true);
+    setApplicantsError('');
+    try {
+      const statusParam = applicantStatusFilter !== 'all' ? applicantStatusFilter : undefined;
+      let res;
+      if (selectedApplicantsJob && selectedApplicantsJob !== 'all') {
+        res = await companyService.getJobApplications(selectedApplicantsJob, statusParam);
+      } else {
+        res = await companyService.getApplications(statusParam);
+      }
+      setApplicants(normalizeApplications(res));
+    } catch (error) {
+      setApplicants([]);
+      setApplicantsError(error?.message || 'Failed to load applicants');
+    } finally {
+      setApplicantsLoading(false);
+    }
+  }, [selectedApplicantsJob, applicantStatusFilter, normalizeApplications]);
+
+  const handleUpdateApplicationStatus = async (applicationId, status) => {
+    try {
+      let reason;
+      if (status === 'REJECTED') {
+        reason = window.prompt('Please provide a reason for rejection:');
+        if (!reason || !reason.trim()) {
+          alert('Rejection reason is required.');
+          return;
+        }
+      }
+      await companyService.updateApplicationStatus(applicationId, status, reason);
+      // Update local state
+      setApplicants((prev) => prev.map((a) => (a.id === applicationId ? { ...a, status, lastUpdate: new Date().toISOString() } : a)));
+    } catch (err) {
+      alert(err?.message || 'Failed to update application status');
+    }
+  };
+
+  // Auto-load applicants when Applicants tab is active
+  useEffect(() => {
+    if (activeTab === 'applicants') {
+      loadApplicants();
+    }
+  }, [activeTab, loadApplicants]);
 
   return (
     <div className="company-dashboard">
@@ -663,7 +729,13 @@ const CompanyDashboard = () => {
             >
               <RiBriefcaseLine /> Job Postings
             </button>
-            <button 
+            <button
+              className={`nav-tab ${activeTab === 'applicants' ? 'active' : ''}`}
+              onClick={() => setActiveTab('applicants')}
+            >
+              <RiCheckLine /> Applicants
+            </button>
+            <button
               className={`nav-tab ${activeTab === 'recommendations' ? 'active' : ''}`}
               onClick={() => setActiveTab('recommendations')}
             >
@@ -984,6 +1056,119 @@ const CompanyDashboard = () => {
                       </div>
                     )}
                   </>
+                )}
+              </div>
+            )}
+            {activeTab === 'applicants' && (
+              <div className="applicants-tab">
+                <div className="tab-header">
+                  <h2>Applicants</h2>
+                  <div className="header-actions" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <select
+                      value={selectedApplicantsJob}
+                      onChange={(e) => setSelectedApplicantsJob(e.target.value)}
+                      title="Filter by job"
+                    >
+                      <option value="all">All jobs</option>
+                      {jobPostings.map((job) => (
+                        <option key={job.id} value={job.id}>{job.title || job.jobTitle || 'Untitled'}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={applicantStatusFilter}
+                      onChange={(e) => setApplicantStatusFilter(e.target.value)}
+                      title="Filter by status"
+                    >
+                      <option value="all">All statuses</option>
+                      <option value="APPLIED">Applied</option>
+                      <option value="SHORTLISTED">Shortlisted</option>
+                      <option value="INTERVIEW">Interview</option>
+                      <option value="HIRED">Hired</option>
+                      <option value="REJECTED">Rejected</option>
+                    </select>
+                    <button className="btn-secondary" onClick={loadApplicants} disabled={applicantsLoading}>
+                      <RiRefreshLine /> Refresh
+                    </button>
+                  </div>
+                </div>
+
+                {applicantsError && (
+                  <div className="error-message">
+                    <RiErrorWarningLine /> {applicantsError}
+                  </div>
+                )}
+                {applicantsLoading && (
+                  <div className="loading-container">
+                    <div className="loading-spinner"><RiLoader4Line className="spin" /></div>
+                    <p>Loading applicants...</p>
+                  </div>
+                )}
+                {!applicantsLoading && applicants.length === 0 && !applicantsError && (
+                  <div className="empty-state">
+                    <p>No applicants found for the selected filters.</p>
+                  </div>
+                )}
+
+                {!applicantsLoading && applicants.length > 0 && (
+                  <div className="apps-table-wrapper">
+                    <table className="apps-table">
+                      <thead>
+                        <tr>
+                          <th>Candidate</th>
+                          <th>Job</th>
+                          <th>Location</th>
+                          <th>Applied</th>
+                          <th>Status</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {applicants.map((a) => (
+                          <tr key={a.id}>
+                            <td>{a.candidateId}</td>
+                            <td>{a.jobTitle}</td>
+                            <td className="muted">{a.location}</td>
+                            <td className="muted">{a.appliedAt ? new Date(a.appliedAt).toLocaleDateString() : '—'}</td>
+                            <td>
+                              <span className={`status-badge ${String(a.status).toLowerCase()}`}>{a.status}</span>
+                            </td>
+                            <td>
+                              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                <button
+                                  className="btn-outline small"
+                                  disabled={a.status === 'SHORTLISTED'}
+                                  onClick={() => handleUpdateApplicationStatus(a.id, 'SHORTLISTED')}
+                                >
+                                  Shortlist
+                                </button>
+                                <button
+                                  className="btn-outline small"
+                                  disabled={a.status === 'INTERVIEW'}
+                                  onClick={() => handleUpdateApplicationStatus(a.id, 'INTERVIEW')}
+                                >
+                                  Interview
+                                </button>
+                                <button
+                                  className="btn-outline small"
+                                  disabled={a.status === 'HIRED'}
+                                  onClick={() => handleUpdateApplicationStatus(a.id, 'HIRED')}
+                                >
+                                  Hire
+                                </button>
+                                <button
+                                  className="btn-danger small"
+                                  disabled={a.status === 'REJECTED'}
+                                  onClick={() => handleUpdateApplicationStatus(a.id, 'REJECTED')}
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 )}
               </div>
             )}

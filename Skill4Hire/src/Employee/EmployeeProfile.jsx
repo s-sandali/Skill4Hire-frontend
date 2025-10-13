@@ -14,6 +14,31 @@ import "../Candidate/buttons.css";
 import "./EmployeeProfile.css";
 import { employeeService } from "../services/employeeService.jsx";
 
+const resolveUploadedPath = (payload) => {
+    if (!payload) return null;
+    if (typeof payload === "string") return payload;
+
+    const directPath =
+        payload.profilePicturePath ||
+        payload.profilePictureUrl ||
+        payload.fileDownloadUri ||
+        payload.url ||
+        payload.path ||
+        payload.location;
+
+    if (directPath) return directPath;
+
+    if (payload.data) {
+        return resolveUploadedPath(payload.data);
+    }
+
+    if (Array.isArray(payload) && payload.length > 0) {
+        return resolveUploadedPath(payload[0]);
+    }
+
+    return null;
+};
+
 const toDateInputValue = (d) => {
     if (!d) return "";
     const date = typeof d === "string" ? new Date(d) : d;
@@ -29,6 +54,8 @@ export default function EmployeeProfile() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
+    const [uploadError, setUploadError] = useState("");
+    const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
     const [profile, setProfile] = useState({
         id: null,
@@ -57,7 +84,13 @@ export default function EmployeeProfile() {
         (async () => {
             try {
                 const data = await employeeService.getProfile(); // GET /me
-                if (!cancelled && data) setProfile((p) => ({ ...p, ...data }));
+                if (!cancelled && data) {
+                    setProfile((p) => ({
+                        ...p,
+                        ...data,
+                        photoPreviewUrl: data.profilePicturePath || p.photoPreviewUrl,
+                    }));
+                }
             } catch {
                 /* keep defaults */
             } finally {
@@ -72,15 +105,64 @@ export default function EmployeeProfile() {
     const onChange = (key) => (e) =>
         setProfile((prev) => ({ ...prev, [key]: e.target.value }));
 
-    const handlePhotoUpload = (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        const url = URL.createObjectURL(file);
-        setProfile((p) => ({ ...p, photoPreviewUrl: url }));
+    useEffect(() => {
+        const currentUrl = profile.photoPreviewUrl;
+        return () => {
+            if (currentUrl && currentUrl.startsWith("blob:")) {
+                URL.revokeObjectURL(currentUrl);
+            }
+        };
+    }, [profile.photoPreviewUrl]);
 
+    const handlePhotoUpload = async (e) => {
+    const inputEl = e.target;
+    const file = inputEl.files?.[0];
+        if (!file) return;
+
+        if (!file.type?.startsWith("image/")) {
+            setUploadError("Please select a valid image file.");
+            return;
+        }
+
+        setUploadError("");
+        const previousPreview = profile.photoPreviewUrl;
+        const previousPath = profile.profilePicturePath;
+        const previewUrl = URL.createObjectURL(file);
+        setProfile((p) => ({ ...p, photoPreviewUrl: previewUrl }));
+        setUploadingPhoto(true);
+        try {
+            const uploadResponse = await employeeService.uploadProfilePicture(file);
+            const uploadedPath = resolveUploadedPath(uploadResponse);
+
+            if (uploadedPath) {
+                setProfile((p) => ({
+                    ...p,
+                    profilePicturePath: uploadedPath,
+                    photoPreviewUrl: uploadedPath,
+                }));
+            } else {
+                setUploadError("Upload succeeded, but no image path was returned.");
+            }
+        } catch (err) {
+            setUploadError(err.message || "Failed to upload profile photo.");
+            setProfile((p) => ({
+                ...p,
+                photoPreviewUrl: previousPreview,
+                profilePicturePath: previousPath,
+            }));
+        } finally {
+            setUploadingPhoto(false);
+            if (inputEl) {
+                inputEl.value = "";
+            }
+        }
     };
 
     const handleSave = async () => {
+        if (uploadingPhoto) {
+            setError("Please wait for the profile photo upload to finish before saving.");
+            return;
+        }
         setSaving(true);
         setError("");
         try {
@@ -103,8 +185,13 @@ export default function EmployeeProfile() {
                 bio: profile.bio,
             };
             const saved = await employeeService.updateProfile(payload); // PUT /me
-            setProfile((p) => ({ ...p, ...saved }));
+            setProfile((prev) => ({
+                ...prev,
+                ...saved,
+                photoPreviewUrl: saved?.profilePicturePath || saved?.profilePictureUrl || prev.photoPreviewUrl,
+            }));
             setEditing(false);
+            setUploadError("");
         } catch (e) {
             setError(e.message || "Failed to save profile.");
         } finally {
@@ -161,6 +248,8 @@ export default function EmployeeProfile() {
                             title="Upload photo"
                         />
                     )}
+                    {uploadingPhoto && <p className="upload-status">Uploading photo…</p>}
+                    {uploadError && <p className="error-message">{uploadError}</p>}
                 </div>
 
                 {/* Middle: name, role, rows */}
@@ -283,7 +372,7 @@ export default function EmployeeProfile() {
                             <button
                                 className="btn btn-primary pill"
                                 onClick={handleSave}
-                                disabled={saving}
+                                disabled={saving || uploadingPhoto}
                             >
                                 <RiSaveLine /> {saving ? "Saving…" : "Save"}
                             </button>

@@ -124,5 +124,49 @@ export const companyService = {
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Failed to fetch job recommendations');
     }
+  },
+
+  // ================= Applicants Management =================
+  getApplications: async (status) => {
+    try {
+      const params = status ? { status } : undefined;
+      const { data } = await apiClient.get('/api/companies/applications', { params });
+      return data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch applications');
+    }
+  },
+
+  getJobApplications: async (jobId, status) => {
+    try {
+      if (!jobId) throw new Error('Missing job identifier');
+      const params = status ? { status } : undefined;
+      const { data } = await apiClient.get(`/api/companies/jobs/${jobId}/applications`, { params });
+      return data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch job applications');
+    }
+  },
+
+  updateApplicationStatus: async (applicationId, status, reason) => {
+    try {
+      if (!applicationId) throw new Error('Missing application identifier');
+      if (!status) throw new Error('Missing status');
+      const payload = { status, reason };
+      const { data } = await apiClient.put(`/api/companies/applications/${applicationId}/status`, payload);
+      return data;
+    } catch (error) {
+      const code = error.response?.status;
+      if (code === 400) {
+        throw new Error(error.response?.data?.message || 'Bad request: invalid status or missing reason');
+      }
+      if (code === 403) {
+        throw new Error('You do not have permission to update this application');
+      }
+      if (code === 404) {
+        throw new Error('Application not found');
+      }
+      throw new Error(error.response?.data?.message || 'Failed to update application status');
+    }
   }
 };
