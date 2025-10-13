@@ -35,7 +35,7 @@ import './CompanyDashboard.css';
 const CompanyDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Job-related state
   const [jobPostings, setJobPostings] = useState([]);
   const [jobsLoading, setJobsLoading] = useState(false);
@@ -62,25 +62,25 @@ const CompanyDashboard = () => {
     email: "",
     phone: "",
     website: "",
-    
+
     // Address
     address: "",
     city: "",
     state: "",
     zipCode: "",
     country: "",
-    
+
     // Company Details
     industry: "",
     companySize: "",
     founded: "",
     description: "",
-    
+
     // Social Media
     linkedinUrl: "",
     twitterUrl: "",
     facebookUrl: "",
-    
+
     // Preferences
     notifications: {
       emailAlerts: true,
@@ -89,6 +89,13 @@ const CompanyDashboard = () => {
       weeklyReports: true
     }
   });
+
+  // Applicants state
+  const [applicants, setApplicants] = useState([]);
+  const [applicantsLoading, setApplicantsLoading] = useState(false);
+  const [applicantsError, setApplicantsError] = useState('');
+  const [selectedApplicantsJob, setSelectedApplicantsJob] = useState('all');
+  const [applicantStatusFilter, setApplicantStatusFilter] = useState('all');
 
   const formatSalary = (value) => {
     if (value === undefined || value === null || value === "") {
@@ -103,9 +110,9 @@ const CompanyDashboard = () => {
     if (Array.isArray(rawSkills)) return rawSkills.filter(Boolean);
     if (typeof rawSkills === 'string') {
       return rawSkills
-        .split(',')
-        .map((skill) => skill.trim())
-        .filter(Boolean);
+          .split(',')
+          .map((skill) => skill.trim())
+          .filter(Boolean);
     }
     return [];
   }, []);
@@ -113,22 +120,22 @@ const CompanyDashboard = () => {
 
   const normalizeRecommendations = useCallback((payload) => {
     const rawList = Array.isArray(payload)
-      ? payload
-      : Array.isArray(payload?.recommendations)
-        ? payload.recommendations
-        : Array.isArray(payload?.data)
-          ? payload.data
-          : [];
+        ? payload
+        : Array.isArray(payload?.recommendations)
+            ? payload.recommendations
+            : Array.isArray(payload?.data)
+                ? payload.data
+                : [];
 
     return rawList.map((item, index) => {
       const skillsArray = Array.isArray(item?.skills)
-        ? item.skills
-        : typeof item?.skills === 'string'
           ? item.skills
-              .split(',')
-              .map((skill) => skill.trim())
-              .filter(Boolean)
-          : [];
+          : typeof item?.skills === 'string'
+              ? item.skills
+                  .split(',')
+                  .map((skill) => skill.trim())
+                  .filter(Boolean)
+              : [];
 
       return {
         id: item?.id || item?._id || item?.candidateId || `rec-${index}`,
@@ -149,8 +156,8 @@ const CompanyDashboard = () => {
     setRecommendationsError('');
     try {
       const data = jobId && jobId !== 'all'
-        ? await companyService.getRecommendationsForJob(jobId)
-        : await companyService.getRecommendations();
+          ? await companyService.getRecommendationsForJob(jobId)
+          : await companyService.getRecommendations();
       setRecommendations(normalizeRecommendations(data));
     } catch (error) {
       const message = error.response?.data?.message || error.message || 'Failed to load recommendations';
@@ -167,7 +174,7 @@ const CompanyDashboard = () => {
       setJobsLoading(true);
       setJobError('');
       console.log('Loading job postings...');
-      
+
       const jobs = await jobService.getAll();
       console.log('Loaded jobs:', jobs);
       const normalizedJobs = Array.isArray(jobs) ? jobs : [];
@@ -192,10 +199,10 @@ const CompanyDashboard = () => {
     try {
       setJobsLoading(true);
       await jobService.remove(jobId);
-      
+
       // Remove from local state
       setJobPostings(prevJobs => prevJobs.filter(job => job.id !== jobId));
-      
+
       console.log('Job deleted successfully');
     } catch (error) {
       console.error('Failed to delete job:', error);
@@ -208,10 +215,10 @@ const CompanyDashboard = () => {
   // Handle job creation/editing
   const handleJobSave = async (savedJob) => {
     console.log('Job saved:', savedJob);
-    
+
     // Refresh job list
     await loadJobPostings();
-    
+
     // Close form
     setShowJobForm(false);
     setEditingJob(null);
@@ -286,15 +293,15 @@ const CompanyDashboard = () => {
     try {
       setIsLoading(true);
       console.log('Loading company profile...');
-      
+
       const profileData = await companyService.getProfile();
       console.log('Raw profile data from API:', profileData);
-      
+
       if (!profileData) {
         console.log('No profile data received');
         return;
       }
-      
+
       const mappedSettings = {
         companyName: profileData.name || "",
         email: profileData.email || "",
@@ -320,13 +327,13 @@ const CompanyDashboard = () => {
           weeklyReports: false
         }
       };
-      
+
       setCompanySettings(mappedSettings);
 
       if (profileData.logo) {
         setLogoPreview(profileData.logo);
       }
-      
+
     } catch (error) {
       console.error('Failed to load company profile:', error);
       if (error.response?.status === 403) {
@@ -384,9 +391,9 @@ const CompanyDashboard = () => {
       setSaveStatus('');
 
       const response = await companyService.uploadLogo(file);
-      
+
       setCompanyLogo(file);
-      
+
       const reader = new FileReader();
       reader.onload = (e) => {
         setLogoPreview(e.target.result);
@@ -400,7 +407,7 @@ const CompanyDashboard = () => {
 
       setSaveStatus('success');
       setSaveMessage('Logo uploaded successfully!');
-      
+
       setTimeout(() => {
         setSaveMessage('');
         setSaveStatus('');
@@ -412,7 +419,7 @@ const CompanyDashboard = () => {
       setSaveStatus('error');
       setSaveMessage(error.message || 'Failed to upload logo');
       setIsSaving(false);
-      
+
       setTimeout(() => {
         setSaveMessage('');
         setSaveStatus('');
@@ -425,7 +432,7 @@ const CompanyDashboard = () => {
     setLogoPreview(null);
     setSaveStatus('success');
     setSaveMessage('Logo removed');
-    
+
     setTimeout(() => {
       setSaveMessage('');
       setSaveStatus('');
@@ -440,7 +447,7 @@ const CompanyDashboard = () => {
         [field]: value
       }
     }));
-    
+
     if (saveMessage) {
       setSaveMessage('');
       setSaveStatus('');
@@ -452,7 +459,7 @@ const CompanyDashboard = () => {
       ...prev,
       [field]: value
     }));
-    
+
     if (saveMessage) {
       setSaveMessage('');
       setSaveStatus('');
@@ -463,7 +470,7 @@ const CompanyDashboard = () => {
     setIsSaving(true);
     setSaveMessage('');
     setSaveStatus('');
-    
+
     try {
       const settingsPayload = {
         name: companySettings.companyName,
@@ -486,24 +493,24 @@ const CompanyDashboard = () => {
       };
 
       await companyService.updateProfile(settingsPayload);
-      
+
       if (companyLogo) {
         await companyService.updateLogo(companyLogo);
       }
-      
+
       setSaveStatus('success');
       setSaveMessage('All settings saved successfully!');
-      
+
       setTimeout(() => {
         setSaveMessage('');
         setSaveStatus('');
       }, 5000);
-      
+
     } catch (error) {
       console.error('Error saving settings:', error);
       setSaveStatus('error');
       setSaveMessage(error.message || 'Failed to save settings. Please try again.');
-      
+
       setTimeout(() => {
         setSaveMessage('');
         setSaveStatus('');
@@ -518,21 +525,21 @@ const CompanyDashboard = () => {
       const currentPassword = prompt('Enter your current password:');
       const newPassword = prompt('Enter new password:');
       const confirmPassword = prompt('Confirm new password:');
-      
+
       if (currentPassword && newPassword && confirmPassword) {
         if (newPassword !== confirmPassword) {
           throw new Error('Passwords do not match');
         }
-        
+
         await companyService.changePassword({
           currentPassword,
           newPassword,
           confirmPassword
         });
-        
+
         setSaveStatus('success');
         setSaveMessage('Password changed successfully!');
-        
+
         setTimeout(() => {
           setSaveMessage('');
           setSaveStatus('');
@@ -541,7 +548,7 @@ const CompanyDashboard = () => {
     } catch (error) {
       setSaveStatus('error');
       setSaveMessage(error.message || 'Failed to change password');
-      
+
       setTimeout(() => {
         setSaveMessage('');
         setSaveStatus('');
@@ -553,16 +560,16 @@ const CompanyDashboard = () => {
     try {
       const newEmail = prompt('Enter new email address:');
       const password = prompt('Enter your password to confirm:');
-      
+
       if (newEmail && password) {
         await companyService.updateEmail({
           newEmail,
           password
         });
-        
+
         setSaveStatus('success');
         setSaveMessage('Email updated successfully! Please verify your new email.');
-        
+
         setTimeout(() => {
           setSaveMessage('');
           setSaveStatus('');
@@ -571,7 +578,7 @@ const CompanyDashboard = () => {
     } catch (error) {
       setSaveStatus('error');
       setSaveMessage(error.message || 'Failed to update email');
-      
+
       setTimeout(() => {
         setSaveMessage('');
         setSaveStatus('');
@@ -582,17 +589,17 @@ const CompanyDashboard = () => {
   const handleAccountDeletion = async () => {
     try {
       const confirmation = confirm('Are you sure you want to delete your account? This action cannot be undone.');
-      
+
       if (confirmation) {
         const password = prompt('Enter your password to confirm account deletion:');
         const confirmationText = prompt('Type "DELETE" to confirm:');
-        
+
         if (password && confirmationText === 'DELETE') {
           await companyService.deleteAccount({
             password,
             confirmation: confirmationText
           });
-          
+
           localStorage.clear();
           window.location.href = '/login';
         } else if (confirmationText !== 'DELETE') {
@@ -602,7 +609,7 @@ const CompanyDashboard = () => {
     } catch (error) {
       setSaveStatus('error');
       setSaveMessage(error.message || 'Failed to delete account');
-      
+
       setTimeout(() => {
         setSaveMessage('');
         setSaveStatus('');
@@ -610,865 +617,1042 @@ const CompanyDashboard = () => {
     }
   };
 
+  const normalizeApplications = useCallback((payload) => {
+    const list = Array.isArray(payload) ? payload : (Array.isArray(payload?.data) ? payload.data : []);
+    return list.map((a, i) => ({
+      id: a.id || a._id || `app-${i}`,
+      candidateId: a.candidateId || a.candidate || '—',
+      jobId: a.jobPostId || a.jobId || null,
+      jobTitle: a.jobTitle || '—',
+      location: a.jobLocation || '—',
+      status: a.status || 'APPLIED',
+      appliedAt: a.appliedAt || a.createdAt || a.dateApplied || null,
+      companyName: a.companyName || '—',
+    }));
+  }, []);
+
+  const loadApplicants = useCallback(async () => {
+    setApplicantsLoading(true);
+    setApplicantsError('');
+    try {
+      const statusParam = applicantStatusFilter !== 'all' ? applicantStatusFilter : undefined;
+      let res;
+      if (selectedApplicantsJob && selectedApplicantsJob !== 'all') {
+        res = await companyService.getJobApplications(selectedApplicantsJob, statusParam);
+      } else {
+        res = await companyService.getApplications(statusParam);
+      }
+      setApplicants(normalizeApplications(res));
+    } catch (error) {
+      setApplicants([]);
+      setApplicantsError(error?.message || 'Failed to load applicants');
+    } finally {
+      setApplicantsLoading(false);
+    }
+  }, [selectedApplicantsJob, applicantStatusFilter, normalizeApplications]);
+
+  const handleUpdateApplicationStatus = async (applicationId, status) => {
+    try {
+      let reason;
+      if (status === 'REJECTED') {
+        reason = window.prompt('Please provide a reason for rejection:');
+        if (!reason || !reason.trim()) {
+          alert('Rejection reason is required.');
+          return;
+        }
+      }
+      await companyService.updateApplicationStatus(applicationId, status, reason);
+      // Update local state
+      setApplicants((prev) => prev.map((a) => (a.id === applicationId ? { ...a, status, lastUpdate: new Date().toISOString() } : a)));
+    } catch (err) {
+      alert(err?.message || 'Failed to update application status');
+    }
+  };
+
+  // Auto-load applicants when Applicants tab is active
+  useEffect(() => {
+    if (activeTab === 'applicants') {
+      loadApplicants();
+    }
+  }, [activeTab, loadApplicants]);
+
   return (
-    <div className="company-dashboard">
-      {isLoading ? (
-        <div className="loading-container">
-          <div className="loading-spinner">
-            <RiLoader4Line className="spin" />
-          </div>
-          <p>Loading company profile...</p>
-        </div>
-      ) : (
-        <>
-          {/* Header */}
-          <header className="dashboard-header">
-            <div className="header-content">
-              <div className="header-left">
-                <div className="logo-section">
-                  <div className="logo-icon">
-                    <RiBuildingLine />
-                  </div>
-                  <h1>Company Dashboard</h1>
-                </div>
+      <div className="company-dashboard">
+        {isLoading ? (
+            <div className="loading-container">
+              <div className="loading-spinner">
+                <RiLoader4Line className="spin" />
               </div>
-              <div className="header-right">
-                <div className="user-info">
-                  <div className="user-avatar">
-                    <RiBuildingLine />
-                  </div>
-                  <div className="user-details">
-                    <span className="user-name">{companySettings.companyName || 'Your Company'}</span>
-                    <span className="user-role">{companySettings.industry || 'Industry not set'}</span>
-                  </div>
-                </div>
-                <button className="logout-btn" onClick={handleLogout}>
-                  <RiLogoutBoxLine />
-                </button>
-              </div>
+              <p>Loading company profile...</p>
             </div>
-          </header>
-
-          {/* Navigation Tabs */}
-          <nav className="dashboard-nav">
-            <button 
-              className={`nav-tab ${activeTab === 'overview' ? 'active' : ''}`}
-              onClick={() => setActiveTab('overview')}
-            >
-              <RiBarChartBoxLine /> Overview
-            </button>
-            <button 
-              className={`nav-tab ${activeTab === 'jobs' ? 'active' : ''}`}
-              onClick={() => setActiveTab('jobs')}
-            >
-              <RiBriefcaseLine /> Job Postings
-            </button>
-            <button 
-              className={`nav-tab ${activeTab === 'recommendations' ? 'active' : ''}`}
-              onClick={() => setActiveTab('recommendations')}
-            >
-              <RiStarLine /> Recommendations
-            </button>
-            <button 
-              className={`nav-tab ${activeTab === 'settings' ? 'active' : ''}`}
-              onClick={() => setActiveTab('settings')}
-            >
-              <RiSettingsLine /> Settings
-            </button>
-          </nav>
-
-          {/* Main Content */}
-          <main className="dashboard-main">
-            {activeTab === 'overview' && (
-              <div className="overview-tab">
-                <h2>Welcome back, {companySettings.companyName || 'Your Company'}!</h2>
-                
-                <div className="company-overview-card">
-                  <h3>Company Profile</h3>
-                  <div className="company-details">
-                    <div className="detail-row">
-                      <strong>Company Name:</strong> {companySettings.companyName || 'Not set'}
-                    </div>
-                    <div className="detail-row">
-                      <strong>Industry:</strong> {companySettings.industry || 'Not specified'}
-                    </div>
-                    <div className="detail-row">
-                      <strong>Company Size:</strong> {companySettings.companySize || 'Not specified'}
-                    </div>
-                    <div className="detail-row">
-                      <strong>Founded:</strong> {companySettings.founded || 'Not specified'}
-                    </div>
-                    <div className="detail-row">
-                      <strong>Website:</strong> {companySettings.website ? (
-                        <a href={companySettings.website} target="_blank" rel="noopener noreferrer">
-                          {companySettings.website}
-                        </a>
-                      ) : 'Not set'}
-                    </div>
-                    <div className="detail-row">
-                      <strong>Location:</strong> {
-                        [companySettings.city, companySettings.state, companySettings.country]
-                          .filter(Boolean).join(', ') || 'Not specified'
-                      }
-                    </div>
-                    {companySettings.description && (
-                      <div className="detail-row description">
-                        <strong>Description:</strong>
-                        <p>{companySettings.description}</p>
+        ) : (
+            <>
+              {/* Header */}
+              <header className="dashboard-header">
+                <div className="header-content">
+                  <div className="header-left">
+                    <div className="logo-section">
+                      <div className="logo-icon">
+                        <RiBuildingLine />
                       </div>
-                    )}
+                      <h1>Company Dashboard</h1>
+                    </div>
+                  </div>
+                  <div className="header-right">
+                    <div className="user-info">
+                      <div className="user-avatar">
+                        <RiBuildingLine />
+                      </div>
+                      <div className="user-details">
+                        <span className="user-name">{companySettings.companyName || 'Your Company'}</span>
+                        <span className="user-role">{companySettings.industry || 'Industry not set'}</span>
+                      </div>
+                    </div>
+                    <button className="logout-btn" onClick={handleLogout}>
+                      <RiLogoutBoxLine />
+                    </button>
                   </div>
                 </div>
+              </header>
 
-                <div className="stats-grid">
-                  <div className="stat-card">
-                    <div className="stat-icon">
-                      <RiBriefcaseLine />
-                    </div>
-                    <div className="stat-content">
-                      <h3>{jobPostings.length}</h3>
-                      <p>Active Job Postings</p>
-                    </div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="stat-icon">
-                      <RiStarLine />
-                    </div>
-                    <div className="stat-content">
-                      <h3>{recommendations.length}</h3>
-                      <p>Saved Recommendations</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+              {/* Navigation Tabs */}
+              <nav className="dashboard-nav">
+                <button
+                    className={`nav-tab ${activeTab === 'overview' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('overview')}
+                >
+                  <RiBarChartBoxLine /> Overview
+                </button>
+                <button
+                    className={`nav-tab ${activeTab === 'jobs' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('jobs')}
+                >
+                  <RiBriefcaseLine /> Job Postings
+                </button>
+                <button
+                    className={`nav-tab ${activeTab === 'applicants' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('applicants')}
+                >
+                  <RiCheckLine /> Applicants
+                </button>
+                <button
+                    className={`nav-tab ${activeTab === 'recommendations' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('recommendations')}
+                >
+                  <RiStarLine /> Recommendations
+                </button>
+                <button
+                    className={`nav-tab ${activeTab === 'settings' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('settings')}
+                >
+                  <RiSettingsLine /> Settings
+                </button>
+              </nav>
 
-            {activeTab === 'jobs' && (
-              <div className="jobs-tab">
-                {showJobForm ? (
-                  <JobForm
-                    jobId={editingJob?.id}
-                    initialJob={editingJob}
-                    onSave={handleJobSave}
-                    onCancel={handleJobFormCancel}
-                  />
-                ) : (
-                  <>
-                    <div className="tab-header">
-                      <h2>Job Postings</h2>
-                      <div className="header-actions">
-                        <button 
-                          className="btn-secondary"
-                          onClick={loadJobPostings}
-                          disabled={jobsLoading}
-                          title="Refresh job postings"
-                        >
-                          <RiRefreshLine />
-                        </button>
-                        <button 
-                          className="btn-primary"
-                          onClick={handleCreateNewJob}
-                          disabled={jobsLoading}
-                        >
-                          <RiAddLine /> Post New Job
-                        </button>
-                      </div>
-                    </div>
+              {/* Main Content */}
+              <main className="dashboard-main">
+                {activeTab === 'overview' && (
+                    <div className="overview-tab">
+                      <h2>Welcome back, {companySettings.companyName || 'Your Company'}!</h2>
 
-                    {jobError && (
-                      <div className="error-message">
-                        <RiErrorWarningLine />
-                        {jobError}
-                        <button 
-                          className="retry-btn"
-                          onClick={loadJobPostings}
-                          disabled={jobsLoading}
-                        >
-                          Retry
-                        </button>
-                      </div>
-                    )}
-
-                    {jobsLoading ? (
-                      <div className="loading-container">
-                        <div className="loading-spinner">
-                          <RiLoader4Line className="spin" />
+                      <div className="company-overview-card">
+                        <h3>Company Profile</h3>
+                        <div className="company-details">
+                          <div className="detail-row">
+                            <strong>Company Name:</strong> {companySettings.companyName || 'Not set'}
+                          </div>
+                          <div className="detail-row">
+                            <strong>Industry:</strong> {companySettings.industry || 'Not specified'}
+                          </div>
+                          <div className="detail-row">
+                            <strong>Company Size:</strong> {companySettings.companySize || 'Not specified'}
+                          </div>
+                          <div className="detail-row">
+                            <strong>Founded:</strong> {companySettings.founded || 'Not specified'}
+                          </div>
+                          <div className="detail-row">
+                            <strong>Website:</strong> {companySettings.website ? (
+                              <a href={companySettings.website} target="_blank" rel="noopener noreferrer">
+                                {companySettings.website}
+                              </a>
+                          ) : 'Not set'}
+                          </div>
+                          <div className="detail-row">
+                            <strong>Location:</strong> {
+                              [companySettings.city, companySettings.state, companySettings.country]
+                                  .filter(Boolean).join(', ') || 'Not specified'
+                          }
+                          </div>
+                          {companySettings.description && (
+                              <div className="detail-row description">
+                                <strong>Description:</strong>
+                                <p>{companySettings.description}</p>
+                              </div>
+                          )}
                         </div>
-                        <p>Loading job postings...</p>
                       </div>
-                    ) : jobPostings.length === 0 ? (
-                      <div className="empty-state">
-                        <RiBriefcaseLine />
-                        <h3>No job postings yet</h3>
-                        <p>Create your first job posting to start attracting candidates.</p>
-                        <button 
-                          className="btn-primary"
-                          onClick={handleCreateNewJob}
-                        >
-                          <RiAddLine /> Post Your First Job
-                        </button>
+
+                      <div className="stats-grid">
+                        <div className="stat-card">
+                          <div className="stat-icon">
+                            <RiBriefcaseLine />
+                          </div>
+                          <div className="stat-content">
+                            <h3>{jobPostings.length}</h3>
+                            <p>Active Job Postings</p>
+                          </div>
+                        </div>
+                        <div className="stat-card">
+                          <div className="stat-icon">
+                            <RiStarLine />
+                          </div>
+                          <div className="stat-content">
+                            <h3>{recommendations.length}</h3>
+                            <p>Saved Recommendations</p>
+                          </div>
+                        </div>
                       </div>
-                    ) : (
-                      <div className="jobs-grid">
-                        {jobPostings.map(job => (
-                          <div key={job.id} className="job-card">
-                            <div className="job-header">
-                              <h3>{job.title}</h3>
-                              <span className={`status-badge ${getJobStatusClass(job)}`}>
+                    </div>
+                )}
+
+                {activeTab === 'jobs' && (
+                    <div className="jobs-tab">
+                      {showJobForm ? (
+                          <JobForm
+                              jobId={editingJob?.id}
+                              initialJob={editingJob}
+                              onSave={handleJobSave}
+                              onCancel={handleJobFormCancel}
+                          />
+                      ) : (
+                          <>
+                            <div className="tab-header">
+                              <h2>Job Postings</h2>
+                              <div className="header-actions">
+                                <button
+                                    className="btn-secondary"
+                                    onClick={loadJobPostings}
+                                    disabled={jobsLoading}
+                                    title="Refresh job postings"
+                                >
+                                  <RiRefreshLine />
+                                </button>
+                                <button
+                                    className="btn-primary"
+                                    onClick={handleCreateNewJob}
+                                    disabled={jobsLoading}
+                                >
+                                  <RiAddLine /> Post New Job
+                                </button>
+                              </div>
+                            </div>
+
+                            {jobError && (
+                                <div className="error-message">
+                                  <RiErrorWarningLine />
+                                  {jobError}
+                                  <button
+                                      className="retry-btn"
+                                      onClick={loadJobPostings}
+                                      disabled={jobsLoading}
+                                  >
+                                    Retry
+                                  </button>
+                                </div>
+                            )}
+
+                            {jobsLoading ? (
+                                <div className="loading-container">
+                                  <div className="loading-spinner">
+                                    <RiLoader4Line className="spin" />
+                                  </div>
+                                  <p>Loading job postings...</p>
+                                </div>
+                            ) : jobPostings.length === 0 ? (
+                                <div className="empty-state">
+                                  <RiBriefcaseLine />
+                                  <h3>No job postings yet</h3>
+                                  <p>Create your first job posting to start attracting candidates.</p>
+                                  <button
+                                      className="btn-primary"
+                                      onClick={handleCreateNewJob}
+                                  >
+                                    <RiAddLine /> Post Your First Job
+                                  </button>
+                                </div>
+                            ) : (
+                                <div className="jobs-grid">
+                                  {jobPostings.map(job => (
+                                      <div key={job.id} className="job-card">
+                                        <div className="job-header">
+                                          <h3>{job.title}</h3>
+                                          <span className={`status-badge ${getJobStatusClass(job)}`}>
                                 {formatJobStatus(job)}
                               </span>
-                            </div>
-                            <div className="job-details">
-                              <p><strong>Type:</strong> {job.type}</p>
-                              <p><strong>Location:</strong> {job.location}</p>
-                              {formatSalary(job.salary) && (
-                                <p><strong>Salary:</strong> ${formatSalary(job.salary)}</p>
-                              )}
-                              {job.experience && <p><strong>Experience:</strong> {job.experience} years</p>}
-                              {job.deadline && (
-                                <p><strong>Deadline:</strong> {new Date(job.deadline).toLocaleDateString()}</p>
-                              )}
-                              <p className="job-description">{job.description}</p>
-                              {toSkillList(job.skills).length > 0 && (
-                                <div className="skills-list" aria-label="Required skills">
-                                  {toSkillList(job.skills).map((skill) => (
-                                    <span key={skill} className="skill-tag">{skill}</span>
+                                        </div>
+                                        <div className="job-details">
+                                          <p><strong>Type:</strong> {job.type}</p>
+                                          <p><strong>Location:</strong> {job.location}</p>
+                                          {formatSalary(job.salary) && (
+                                              <p><strong>Salary:</strong> ${formatSalary(job.salary)}</p>
+                                          )}
+                                          {job.experience && <p><strong>Experience:</strong> {job.experience} years</p>}
+                                          {job.deadline && (
+                                              <p><strong>Deadline:</strong> {new Date(job.deadline).toLocaleDateString()}</p>
+                                          )}
+                                          <p className="job-description">{job.description}</p>
+                                          {toSkillList(job.skills).length > 0 && (
+                                              <div className="skills-list" aria-label="Required skills">
+                                                {toSkillList(job.skills).map((skill) => (
+                                                    <span key={skill} className="skill-tag">{skill}</span>
+                                                ))}
+                                              </div>
+                                          )}
+                                        </div>
+                                        <div className="job-actions">
+                                          <button
+                                              className="btn-primary"
+                                              onClick={() => handleViewJobDetails(job)}
+                                          >
+                                            <RiEyeLine /> View Details
+                                          </button>
+                                          <button
+                                              className="btn-secondary"
+                                              onClick={() => handleEditJob(job)}
+                                          >
+                                            <RiEditLine /> Edit
+                                          </button>
+                                          <button
+                                              className="btn-danger"
+                                              onClick={() => handleDeleteJob(job.id)}
+                                              disabled={jobsLoading}
+                                          >
+                                            <RiDeleteBinLine /> Delete
+                                          </button>
+                                        </div>
+                                      </div>
                                   ))}
                                 </div>
-                              )}
-                            </div>
-                            <div className="job-actions">
-                              <button 
-                                className="btn-primary"
-                                onClick={() => handleViewJobDetails(job)}
-                              >
-                                <RiEyeLine /> View Details
-                              </button>
-                              <button 
-                                className="btn-secondary"
-                                onClick={() => handleEditJob(job)}
-                              >
-                                <RiEditLine /> Edit
-                              </button>
-                              <button 
-                                className="btn-danger"
-                                onClick={() => handleDeleteJob(job.id)}
-                                disabled={jobsLoading}
-                              >
-                                <RiDeleteBinLine /> Delete
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                            )}
 
-                    {/* Job Details Modal */}
-                    {showJobDetails && selectedJob && (
-                      <div className="modal-overlay" onClick={handleCloseJobDetails}>
-                        <div className="job-details-modal" onClick={(e) => e.stopPropagation()}>
-                          <div className="modal-header">
-                            <h2>{selectedJob.title}</h2>
-                            <button className="close-btn" onClick={handleCloseJobDetails}>
-                              <RiCloseLine />
-                            </button>
-                          </div>
-                          <div className="modal-content">
-                            <div className="job-info-grid">
-                              <div className="info-item">
-                                <strong>Job Type:</strong>
-                                <span>{selectedJob.type}</span>
-                              </div>
-                              <div className="info-item">
-                                <strong>Location:</strong>
-                                <span>{selectedJob.location}</span>
-                              </div>
-                              <div className="info-item">
-                                <strong>Status:</strong>
-                                <span className={`status-badge ${getJobStatusClass(selectedJob)}`}>
+                            {/* Job Details Modal */}
+                            {showJobDetails && selectedJob && (
+                                <div className="modal-overlay" onClick={handleCloseJobDetails}>
+                                  <div className="job-details-modal" onClick={(e) => e.stopPropagation()}>
+                                    <div className="modal-header">
+                                      <h2>{selectedJob.title}</h2>
+                                      <button className="close-btn" onClick={handleCloseJobDetails}>
+                                        <RiCloseLine />
+                                      </button>
+                                    </div>
+                                    <div className="modal-content">
+                                      <div className="job-info-grid">
+                                        <div className="info-item">
+                                          <strong>Job Type:</strong>
+                                          <span>{selectedJob.type}</span>
+                                        </div>
+                                        <div className="info-item">
+                                          <strong>Location:</strong>
+                                          <span>{selectedJob.location}</span>
+                                        </div>
+                                        <div className="info-item">
+                                          <strong>Status:</strong>
+                                          <span className={`status-badge ${getJobStatusClass(selectedJob)}`}>
                                   {formatJobStatus(selectedJob)}
                                 </span>
-                              </div>
-                              {formatSalary(selectedJob.salary) && (
-                                <div className="info-item">
-                                  <strong>Salary:</strong>
-                                  <span>${formatSalary(selectedJob.salary)}</span>
+                                        </div>
+                                        {formatSalary(selectedJob.salary) && (
+                                            <div className="info-item">
+                                              <strong>Salary:</strong>
+                                              <span>${formatSalary(selectedJob.salary)}</span>
+                                            </div>
+                                        )}
+                                        {selectedJob.experience && (
+                                            <div className="info-item">
+                                              <strong>Experience Required:</strong>
+                                              <span>{selectedJob.experience} years</span>
+                                            </div>
+                                        )}
+                                        {selectedJob.deadline && (
+                                            <div className="info-item">
+                                              <strong>Application Deadline:</strong>
+                                              <span>{new Date(selectedJob.deadline).toLocaleDateString()}</span>
+                                            </div>
+                                        )}
+                                        {selectedJob.createdAt && (
+                                            <div className="info-item">
+                                              <strong>Posted Date:</strong>
+                                              <span>{new Date(selectedJob.createdAt).toLocaleDateString()}</span>
+                                            </div>
+                                        )}
+                                        {selectedJob.updatedAt && (
+                                            <div className="info-item">
+                                              <strong>Last Updated:</strong>
+                                              <span>{new Date(selectedJob.updatedAt).toLocaleDateString()}</span>
+                                            </div>
+                                        )}
+                                      </div>
+                                      {toSkillList(selectedJob.skills).length > 0 && (
+                                          <div className="skills-section">
+                                            <h3>Key Skills</h3>
+                                            <div className="skills-list">
+                                              {toSkillList(selectedJob.skills).map((skill) => (
+                                                  <span key={skill} className="skill-tag">{skill}</span>
+                                              ))}
+                                            </div>
+                                          </div>
+                                      )}
+                                      <div className="description-section">
+                                        <h3>Job Description</h3>
+                                        <div className="job-description-full">
+                                          {selectedJob.description.split('\n').map((paragraph, index) => (
+                                              <p key={index}>{paragraph}</p>
+                                          ))}
+                                        </div>
+                                      </div>
+                                      {selectedJob.company && (
+                                          <div className="company-section">
+                                            <h3>Company Information</h3>
+                                            <div className="company-info">
+                                              <p><strong>Company:</strong> {selectedJob.company.name || companySettings.companyName}</p>
+                                              {selectedJob.company.industry && (
+                                                  <p><strong>Industry:</strong> {selectedJob.company.industry}</p>
+                                              )}
+                                              {selectedJob.company.website && (
+                                                  <p><strong>Website:</strong>
+                                                    <a href={selectedJob.company.website} target="_blank" rel="noopener noreferrer">
+                                                      {selectedJob.company.website}
+                                                    </a>
+                                                  </p>
+                                              )}
+                                            </div>
+                                          </div>
+                                      )}
+                                    </div>
+                                    <div className="modal-actions">
+                                      <button
+                                          className="btn-primary"
+                                          onClick={() => {
+                                            handleCloseJobDetails();
+                                            handleEditJob(selectedJob);
+                                          }}
+                                      >
+                                        <RiEditLine /> Edit Job
+                                      </button>
+                                      <button
+                                          className="btn-danger"
+                                          onClick={() => {
+                                            handleCloseJobDetails();
+                                            handleDeleteJob(selectedJob.id);
+                                          }}
+                                      >
+                                        <RiDeleteBinLine /> Delete Job
+                                      </button>
+                                      <button className="btn-secondary" onClick={handleCloseJobDetails}>
+                                        Close
+                                      </button>
+                                    </div>
+                                  </div>
                                 </div>
-                              )}
-                              {selectedJob.experience && (
-                                <div className="info-item">
-                                  <strong>Experience Required:</strong>
-                                  <span>{selectedJob.experience} years</span>
-                                </div>
-                              )}
-                              {selectedJob.deadline && (
-                                <div className="info-item">
-                                  <strong>Application Deadline:</strong>
-                                  <span>{new Date(selectedJob.deadline).toLocaleDateString()}</span>
-                                </div>
-                              )}
-                              {selectedJob.createdAt && (
-                                <div className="info-item">
-                                  <strong>Posted Date:</strong>
-                                  <span>{new Date(selectedJob.createdAt).toLocaleDateString()}</span>
-                                </div>
-                              )}
-                              {selectedJob.updatedAt && (
-                                <div className="info-item">
-                                  <strong>Last Updated:</strong>
-                                  <span>{new Date(selectedJob.updatedAt).toLocaleDateString()}</span>
-                                </div>
-                              )}
-                            </div>
-                            {toSkillList(selectedJob.skills).length > 0 && (
-                              <div className="skills-section">
-                                <h3>Key Skills</h3>
-                                <div className="skills-list">
-                                  {toSkillList(selectedJob.skills).map((skill) => (
-                                    <span key={skill} className="skill-tag">{skill}</span>
-                                  ))}
-                                </div>
-                              </div>
                             )}
-                            <div className="description-section">
-                              <h3>Job Description</h3>
-                              <div className="job-description-full">
-                                {selectedJob.description.split('\n').map((paragraph, index) => (
-                                  <p key={index}>{paragraph}</p>
-                                ))}
-                              </div>
-                            </div>
-                            {selectedJob.company && (
-                              <div className="company-section">
-                                <h3>Company Information</h3>
-                                <div className="company-info">
-                                  <p><strong>Company:</strong> {selectedJob.company.name || companySettings.companyName}</p>
-                                  {selectedJob.company.industry && (
-                                    <p><strong>Industry:</strong> {selectedJob.company.industry}</p>
-                                  )}
-                                  {selectedJob.company.website && (
-                                    <p><strong>Website:</strong> 
-                                      <a href={selectedJob.company.website} target="_blank" rel="noopener noreferrer">
-                                        {selectedJob.company.website}
-                                      </a>
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                          <div className="modal-actions">
-                            <button 
-                              className="btn-primary"
-                              onClick={() => {
-                                handleCloseJobDetails();
-                                handleEditJob(selectedJob);
-                              }}
-                            >
-                              <RiEditLine /> Edit Job
-                            </button>
-                            <button 
-                              className="btn-danger"
-                              onClick={() => {
-                                handleCloseJobDetails();
-                                handleDeleteJob(selectedJob.id);
-                              }}
-                            >
-                              <RiDeleteBinLine /> Delete Job
-                            </button>
-                            <button className="btn-secondary" onClick={handleCloseJobDetails}>
-                              Close
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            )}
-            {activeTab === 'recommendations' && (
-              <div className="recommendations-tab">
-                <div className="recommendations-header">
-                  <h2>Candidate Recommendations</h2>
-                  <div className="recommendations-controls">
-                    <label htmlFor="recommendations-job-filter">Filter by job</label>
-                    <select
-                      id="recommendations-job-filter"
-                      value={selectedRecommendationJob}
-                      onChange={(event) => setSelectedRecommendationJob(event.target.value)}
-                    >
-                      <option value="all">All active jobs</option>
-                      {jobPostings.map((job) => (
-                        <option key={job.id} value={job.id}>
-                          {job.title || job.jobTitle || 'Untitled position'}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      type="button"
-                      className="btn-outline"
-                      onClick={() => loadRecommendations(selectedRecommendationJob)}
-                    >
-                      <RiRefreshLine /> Refresh
-                    </button>
-                  </div>
-                </div>
-
-                {recommendationsLoading && (
-                  <div className="recommendations-loading">
-                    <RiLoader4Line className="spin" />
-                    <p>Fetching recommended candidates...</p>
-                  </div>
-                )}
-
-                {!recommendationsLoading && recommendationsError && (
-                  <div className="recommendations-error">
-                    <RiErrorWarningLine />
-                    <span>{recommendationsError}</span>
-                  </div>
-                )}
-
-                {!recommendationsLoading && !recommendationsError && recommendations.length === 0 && (
-                  <div className="recommendations-empty">
-                    <p>No recommendations available yet. Post a job or adjust your filters to see matches.</p>
-                  </div>
-                )}
-
-                {!recommendationsLoading && !recommendationsError && recommendations.length > 0 && (
-                  <div className="recommendations-list">
-                    {recommendations.map((rec) => {
-                      const score = typeof rec.matchScore === 'number'
-                        ? Math.round(rec.matchScore > 0 && rec.matchScore <= 1 ? rec.matchScore * 100 : rec.matchScore)
-                        : null;
-
-                      return (
-                        <div key={rec.id} className="recommendation-card">
-                          <div className="recommendation-card-header">
-                            <div>
-                              <h3>{rec.candidateName}</h3>
-                              <p className="recommendation-job">{rec.jobTitle || 'General fit'}</p>
-                            </div>
-                            {score !== null && <span className="recommendation-score">{score}% Match</span>}
-                          </div>
-
-                          {rec.skills.length > 0 && (
-                            <div className="recommendation-skills">
-                              {rec.skills.slice(0, 8).map((skill) => (
-                                <span key={`${rec.id}-${skill}`} className="skill-tag">{skill}</span>
-                              ))}
-                            </div>
-                          )}
-
-                          {rec.summary && <p className="recommendation-summary">{rec.summary}</p>}
-
-                          <div className="recommendation-actions">
-                            {rec.resumeUrl && (
-                              <a
-                                href={rec.resumeUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="btn-outline small"
-                              >
-                                <RiDownloadLine /> Resume
-                              </a>
-                            )}
-                            {rec.email && (
-                              <a href={`mailto:${rec.email}`} className="btn-primary small">
-                                <RiMailLine /> Contact
-                              </a>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-            {activeTab === 'settings' && (
-              <div className="settings-tab">
-                <div className="tab-header">
-                  <h2>Company Settings</h2>
-                  <div className="save-section">
-                    {saveMessage && (
-                      <div className={`save-message ${saveStatus}`}>
-                        {saveStatus === 'success' && <RiCheckLine />}
-                        {saveStatus === 'error' && <RiErrorWarningLine />}
-                        {saveMessage}
-                      </div>
-                    )}
-                    <button 
-                      className={`btn-primary ${isSaving ? 'loading' : ''}`} 
-                      onClick={handleSaveSettings}
-                      disabled={isSaving}
-                    >
-                      {isSaving ? (
-                        <>
-                          <RiLoader4Line className="spinning" /> Saving...
-                        </>
-                      ) : (
-                        <>
-                          <RiSaveLine /> Save All Changes
-                        </>
+                          </>
                       )}
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="settings-sections">
-                  {/* Company Logo Section */}
-                  <div className="settings-section">
-                    <h3><RiImageLine /> Company Logo</h3>
-                    <div className="logo-upload-section">
-                      <div className="current-logo">
-                        {logoPreview ? (
-                          <div className="logo-preview-container">
-                            <img src={logoPreview} alt="Company Logo Preview" className="logo-preview" />
-                            <button 
-                              type="button" 
-                              className="remove-logo-btn"
-                              onClick={handleRemoveLogo}
-                              title="Remove logo"
+                    </div>
+                )}
+                {activeTab === 'applicants' && (
+                    <div className="applicants-tab">
+                      <div className="tab-header">
+                        <h2>Applicants</h2>
+                        <div className="header-actions" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <select
+                              value={selectedApplicantsJob}
+                              onChange={(e) => setSelectedApplicantsJob(e.target.value)}
+                              title="Filter by job"
+                          >
+                            <option value="all">All jobs</option>
+                            {jobPostings.map((job) => (
+                                <option key={job.id} value={job.id}>{job.title || job.jobTitle || 'Untitled'}</option>
+                            ))}
+                          </select>
+                          <select
+                              value={applicantStatusFilter}
+                              onChange={(e) => setApplicantStatusFilter(e.target.value)}
+                              title="Filter by status"
+                          >
+                            <option value="all">All statuses</option>
+                            <option value="APPLIED">Applied</option>
+                            <option value="SHORTLISTED">Shortlisted</option>
+                            <option value="INTERVIEW">Interview</option>
+                            <option value="HIRED">Hired</option>
+                            <option value="REJECTED">Rejected</option>
+                          </select>
+                          <button className="btn-secondary" onClick={loadApplicants} disabled={applicantsLoading}>
+                            <RiRefreshLine /> Refresh
+                          </button>
+                        </div>
+                      </div>
+
+                      {applicantsError && (
+                          <div className="error-message">
+                            <RiErrorWarningLine /> {applicantsError}
+                          </div>
+                      )}
+                      {applicantsLoading && (
+                          <div className="loading-container">
+                            <div className="loading-spinner"><RiLoader4Line className="spin" /></div>
+                            <p>Loading applicants...</p>
+                          </div>
+                      )}
+                      {!applicantsLoading && applicants.length === 0 && !applicantsError && (
+                          <div className="empty-state">
+                            <p>No applicants found for the selected filters.</p>
+                          </div>
+                      )}
+
+                      {!applicantsLoading && applicants.length > 0 && (
+                          <div className="apps-table-wrapper">
+                            <table className="apps-table">
+                              <thead>
+                              <tr>
+                                <th>Candidate</th>
+                                <th>Job</th>
+                                <th>Location</th>
+                                <th>Applied</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                              </tr>
+                              </thead>
+                              <tbody>
+                              {applicants.map((a) => (
+                                  <tr key={a.id}>
+                                    <td>{a.candidateId}</td>
+                                    <td>{a.jobTitle}</td>
+                                    <td className="muted">{a.location}</td>
+                                    <td className="muted">{a.appliedAt ? new Date(a.appliedAt).toLocaleDateString() : '—'}</td>
+                                    <td>
+                                      <span className={`status-badge ${String(a.status).toLowerCase()}`}>{a.status}</span>
+                                    </td>
+                                    <td>
+                                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                        <button
+                                            className="btn-outline small"
+                                            disabled={a.status === 'SHORTLISTED'}
+                                            onClick={() => handleUpdateApplicationStatus(a.id, 'SHORTLISTED')}
+                                        >
+                                          Shortlist
+                                        </button>
+                                        <button
+                                            className="btn-outline small"
+                                            disabled={a.status === 'INTERVIEW'}
+                                            onClick={() => handleUpdateApplicationStatus(a.id, 'INTERVIEW')}
+                                        >
+                                          Interview
+                                        </button>
+                                        <button
+                                            className="btn-outline small"
+                                            disabled={a.status === 'HIRED'}
+                                            onClick={() => handleUpdateApplicationStatus(a.id, 'HIRED')}
+                                        >
+                                          Hire
+                                        </button>
+                                        <button
+                                            className="btn-danger small"
+                                            disabled={a.status === 'REJECTED'}
+                                            onClick={() => handleUpdateApplicationStatus(a.id, 'REJECTED')}
+                                        >
+                                          Reject
+                                        </button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                              ))}
+                              </tbody>
+                            </table>
+                          </div>
+                      )}
+                    </div>
+                )}
+                {activeTab === 'recommendations' && (
+                    <div className="recommendations-tab">
+                      <div className="recommendations-header">
+                        <h2>Candidate Recommendations</h2>
+                        <div className="recommendations-controls">
+                          <label htmlFor="recommendations-job-filter">Filter by job</label>
+                          <select
+                              id="recommendations-job-filter"
+                              value={selectedRecommendationJob}
+                              onChange={(event) => setSelectedRecommendationJob(event.target.value)}
+                          >
+                            <option value="all">All active jobs</option>
+                            {jobPostings.map((job) => (
+                                <option key={job.id} value={job.id}>
+                                  {job.title || job.jobTitle || 'Untitled position'}
+                                </option>
+                            ))}
+                          </select>
+                          <button
+                              type="button"
+                              className="btn-outline"
+                              onClick={() => loadRecommendations(selectedRecommendationJob)}
+                          >
+                            <RiRefreshLine /> Refresh
+                          </button>
+                        </div>
+                      </div>
+
+                      {recommendationsLoading && (
+                          <div className="recommendations-loading">
+                            <RiLoader4Line className="spin" />
+                            <p>Fetching recommended candidates...</p>
+                          </div>
+                      )}
+
+                      {!recommendationsLoading && recommendationsError && (
+                          <div className="recommendations-error">
+                            <RiErrorWarningLine />
+                            <span>{recommendationsError}</span>
+                          </div>
+                      )}
+
+                      {!recommendationsLoading && !recommendationsError && recommendations.length === 0 && (
+                          <div className="recommendations-empty">
+                            <p>No recommendations available yet. Post a job or adjust your filters to see matches.</p>
+                          </div>
+                      )}
+
+                      {!recommendationsLoading && !recommendationsError && recommendations.length > 0 && (
+                          <div className="recommendations-list">
+                            {recommendations.map((rec) => {
+                              const score = typeof rec.matchScore === 'number'
+                                  ? Math.round(rec.matchScore > 0 && rec.matchScore <= 1 ? rec.matchScore * 100 : rec.matchScore)
+                                  : null;
+
+                              return (
+                                  <div key={rec.id} className="recommendation-card">
+                                    <div className="recommendation-card-header">
+                                      <div>
+                                        <h3>{rec.candidateName}</h3>
+                                        <p className="recommendation-job">{rec.jobTitle || 'General fit'}</p>
+                                      </div>
+                                      {score !== null && <span className="recommendation-score">{score}% Match</span>}
+                                    </div>
+
+                                    {rec.skills.length > 0 && (
+                                        <div className="recommendation-skills">
+                                          {rec.skills.slice(0, 8).map((skill) => (
+                                              <span key={`${rec.id}-${skill}`} className="skill-tag">{skill}</span>
+                                          ))}
+                                        </div>
+                                    )}
+
+                                    {rec.summary && <p className="recommendation-summary">{rec.summary}</p>}
+
+                                    <div className="recommendation-actions">
+                                      {rec.resumeUrl && (
+                                          <a
+                                              href={rec.resumeUrl}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="btn-outline small"
+                                          >
+                                            <RiDownloadLine /> Resume
+                                          </a>
+                                      )}
+                                      {rec.email && (
+                                          <a href={`mailto:${rec.email}`} className="btn-primary small">
+                                            <RiMailLine /> Contact
+                                          </a>
+                                      )}
+                                    </div>
+                                  </div>
+                              );
+                            })}
+                          </div>
+                      )}
+                    </div>
+                )}
+                {activeTab === 'settings' && (
+                    <div className="settings-tab">
+                      <div className="tab-header">
+                        <h2>Company Settings</h2>
+                        <div className="save-section">
+                          {saveMessage && (
+                              <div className={`save-message ${saveStatus}`}>
+                                {saveStatus === 'success' && <RiCheckLine />}
+                                {saveStatus === 'error' && <RiErrorWarningLine />}
+                                {saveMessage}
+                              </div>
+                          )}
+                          <button
+                              className={`btn-primary ${isSaving ? 'loading' : ''}`}
+                              onClick={handleSaveSettings}
+                              disabled={isSaving}
+                          >
+                            {isSaving ? (
+                                <>
+                                  <RiLoader4Line className="spinning" /> Saving...
+                                </>
+                            ) : (
+                                <>
+                                  <RiSaveLine /> Save All Changes
+                                </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="settings-sections">
+                        {/* Company Logo Section */}
+                        <div className="settings-section">
+                          <h3><RiImageLine /> Company Logo</h3>
+                          <div className="logo-upload-section">
+                            <div className="current-logo">
+                              {logoPreview ? (
+                                  <div className="logo-preview-container">
+                                    <img src={logoPreview} alt="Company Logo Preview" className="logo-preview" />
+                                    <button
+                                        type="button"
+                                        className="remove-logo-btn"
+                                        onClick={handleRemoveLogo}
+                                        title="Remove logo"
+                                    >
+                                      <RiCloseLine />
+                                    </button>
+                                  </div>
+                              ) : (
+                                  <div className="logo-placeholder">
+                                    <RiImageLine />
+                                    <span>No logo uploaded</span>
+                                  </div>
+                              )}
+                            </div>
+                            <div className="logo-upload-controls">
+                              <input
+                                  type="file"
+                                  id="logo-upload"
+                                  accept="image/png,image/jpeg,image/jpg,image/svg+xml"
+                                  onChange={handleLogoUpload}
+                                  style={{ display: 'none' }}
+                                  disabled={isSaving}
+                              />
+                              <label
+                                  htmlFor="logo-upload"
+                                  className={`btn-secondary ${isSaving ? 'disabled' : ''}`}
+                              >
+                                {isSaving ? (
+                                    <>
+                                      <RiLoader4Line className="spinning" /> Uploading...
+                                    </>
+                                ) : (
+                                    <>
+                                      <RiUploadCloudLine /> {logoPreview ? 'Change Logo' : 'Upload Logo'}
+                                    </>
+                                )}
+                              </label>
+                              <p className="upload-hint">
+                                Recommended: 200x200px, max 5MB (PNG, JPG, SVG)
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Basic Company Information */}
+                        <div className="settings-section">
+                          <h3><RiBuildingLine /> Basic Information</h3>
+                          <div className="settings-grid">
+                            <div className="setting-item">
+                              <label>Company Name *</label>
+                              <input
+                                  type="text"
+                                  value={companySettings.companyName}
+                                  onChange={(e) => handleBasicSettingsChange('companyName', e.target.value)}
+                                  placeholder="Enter company name"
+                              />
+                            </div>
+                            <div className="setting-item">
+                              <label>Industry *</label>
+                              <select
+                                  value={companySettings.industry}
+                                  onChange={(e) => handleBasicSettingsChange('industry', e.target.value)}
+                              >
+                                <option value="">Select Industry</option>
+                                <option value="Technology">Technology</option>
+                                <option value="Healthcare">Healthcare</option>
+                                <option value="Finance">Finance</option>
+                                <option value="Education">Education</option>
+                                <option value="Manufacturing">Manufacturing</option>
+                                <option value="Retail">Retail</option>
+                                <option value="Other">Other</option>
+                              </select>
+                            </div>
+                            <div className="setting-item">
+                              <label>Company Size</label>
+                              <select
+                                  value={companySettings.companySize}
+                                  onChange={(e) => handleBasicSettingsChange('companySize', e.target.value)}
+                              >
+                                <option value="">Select Size</option>
+                                <option value="1-10 employees">1-10 employees</option>
+                                <option value="11-50 employees">11-50 employees</option>
+                                <option value="51-100 employees">51-100 employees</option>
+                                <option value="100-500 employees">100-500 employees</option>
+                                <option value="500+ employees">500+ employees</option>
+                              </select>
+                            </div>
+                            <div className="setting-item">
+                              <label>Founded Year</label>
+                              <input
+                                  type="number"
+                                  value={companySettings.founded}
+                                  onChange={(e) => handleBasicSettingsChange('founded', e.target.value)}
+                                  placeholder="e.g., 2018"
+                                  min="1800"
+                                  max={new Date().getFullYear()}
+                              />
+                            </div>
+                          </div>
+                          <div className="setting-item full-width">
+                            <label>Company Description</label>
+                            <textarea
+                                value={companySettings.description}
+                                onChange={(e) => handleBasicSettingsChange('description', e.target.value)}
+                                placeholder="Describe your company, mission, and values..."
+                                rows="4"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Contact Information */}
+                        <div className="settings-section">
+                          <h3><RiMailLine /> Contact Information</h3>
+                          <div className="settings-grid">
+                            <div className="setting-item">
+                              <label>Email Address *</label>
+                              <div className="input-with-icon">
+                                <RiMailLine />
+                                <input
+                                    type="email"
+                                    value={companySettings.email}
+                                    onChange={(e) => handleBasicSettingsChange('email', e.target.value)}
+                                    placeholder="company@example.com"
+                                />
+                              </div>
+                            </div>
+                            <div className="setting-item">
+                              <label>Phone Number</label>
+                              <div className="input-with-icon">
+                                <RiPhoneLine />
+                                <input
+                                    type="tel"
+                                    value={companySettings.phone}
+                                    onChange={(e) => handleBasicSettingsChange('phone', e.target.value)}
+                                    placeholder="+1 (555) 123-4567"
+                                />
+                              </div>
+                            </div>
+                            <div className="setting-item">
+                              <label>Website</label>
+                              <div className="input-with-icon">
+                                <RiGlobalLine />
+                                <input
+                                    type="url"
+                                    value={companySettings.website}
+                                    onChange={(e) => handleBasicSettingsChange('website', e.target.value)}
+                                    placeholder="https://yourcompany.com"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Address Information */}
+                        <div className="settings-section">
+                          <h3><RiMapPinLine /> Address</h3>
+                          <div className="settings-grid">
+                            <div className="setting-item full-width">
+                              <label>Street Address</label>
+                              <input
+                                  type="text"
+                                  value={companySettings.address}
+                                  onChange={(e) => handleBasicSettingsChange('address', e.target.value)}
+                                  placeholder="123 Business Street"
+                              />
+                            </div>
+                            <div className="setting-item">
+                              <label>City</label>
+                              <input
+                                  type="text"
+                                  value={companySettings.city}
+                                  onChange={(e) => handleBasicSettingsChange('city', e.target.value)}
+                                  placeholder="San Francisco"
+                              />
+                            </div>
+                            <div className="setting-item">
+                              <label>State/Province</label>
+                              <input
+                                  type="text"
+                                  value={companySettings.state}
+                                  onChange={(e) => handleBasicSettingsChange('state', e.target.value)}
+                                  placeholder="CA"
+                              />
+                            </div>
+                            <div className="setting-item">
+                              <label>ZIP/Postal Code</label>
+                              <input
+                                  type="text"
+                                  value={companySettings.zipCode}
+                                  onChange={(e) => handleBasicSettingsChange('zipCode', e.target.value)}
+                                  placeholder="94102"
+                              />
+                            </div>
+                            <div className="setting-item">
+                              <label>Country</label>
+                              <select
+                                  value={companySettings.country}
+                                  onChange={(e) => handleBasicSettingsChange('country', e.target.value)}
+                              >
+                                <option value="">Select Country</option>
+                                <option value="United States">United States</option>
+                                <option value="Canada">Canada</option>
+                                <option value="United Kingdom">United Kingdom</option>
+                                <option value="Australia">Australia</option>
+                                <option value="Germany">Germany</option>
+                                <option value="France">France</option>
+                                <option value="Other">Other</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Social Media */}
+                        <div className="settings-section">
+                          <h3><RiGlobalLine /> Social Media</h3>
+                          <div className="settings-grid">
+                            <div className="setting-item">
+                              <label>LinkedIn URL</label>
+                              <input
+                                  type="url"
+                                  value={companySettings.linkedinUrl}
+                                  onChange={(e) => handleBasicSettingsChange('linkedinUrl', e.target.value)}
+                                  placeholder="https://linkedin.com/company/yourcompany"
+                              />
+                            </div>
+                            <div className="setting-item">
+                              <label>Twitter URL</label>
+                              <input
+                                  type="url"
+                                  value={companySettings.twitterUrl}
+                                  onChange={(e) => handleBasicSettingsChange('twitterUrl', e.target.value)}
+                                  placeholder="https://twitter.com/yourcompany"
+                              />
+                            </div>
+                            <div className="setting-item">
+                              <label>Facebook URL</label>
+                              <input
+                                  type="url"
+                                  value={companySettings.facebookUrl}
+                                  onChange={(e) => handleBasicSettingsChange('facebookUrl', e.target.value)}
+                                  placeholder="https://facebook.com/yourcompany"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Notification Preferences */}
+                        <div className="settings-section">
+                          <h3><RiNotificationLine /> Notification Preferences</h3>
+                          <div className="notification-settings">
+                            <div className="notification-item">
+                              <div className="notification-info">
+                                <h4>Email Alerts</h4>
+                                <p>Receive important updates via email</p>
+                              </div>
+                              <label className="toggle-switch">
+                                <input
+                                    type="checkbox"
+                                    checked={companySettings.notifications.emailAlerts}
+                                    onChange={(e) => handleSettingsChange('notifications', 'emailAlerts', e.target.checked)}
+                                />
+                                <span className="slider"></span>
+                              </label>
+                            </div>
+                            <div className="notification-item">
+                              <div className="notification-info">
+                                <h4>SMS Alerts</h4>
+                                <p>Get urgent notifications via SMS</p>
+                              </div>
+                              <label className="toggle-switch">
+                                <input
+                                    type="checkbox"
+                                    checked={companySettings.notifications.smsAlerts}
+                                    onChange={(e) => handleSettingsChange('notifications', 'smsAlerts', e.target.checked)}
+                                />
+                                <span className="slider"></span>
+                              </label>
+                            </div>
+                            <div className="notification-item">
+                              <div className="notification-info">
+                                <h4>Application Updates</h4>
+                                <p>Notifications when candidates apply to your jobs</p>
+                              </div>
+                              <label className="toggle-switch">
+                                <input
+                                    type="checkbox"
+                                    checked={companySettings.notifications.applicationUpdates}
+                                    onChange={(e) => handleSettingsChange('notifications', 'applicationUpdates', e.target.checked)}
+                                />
+                                <span className="slider"></span>
+                              </label>
+                            </div>
+                            <div className="notification-item">
+                              <div className="notification-info">
+                                <h4>Weekly Reports</h4>
+                                <p>Receive weekly analytics and performance reports</p>
+                              </div>
+                              <label className="toggle-switch">
+                                <input
+                                    type="checkbox"
+                                    checked={companySettings.notifications.weeklyReports}
+                                    onChange={(e) => handleSettingsChange('notifications', 'weeklyReports', e.target.checked)}
+                                />
+                                <span className="slider"></span>
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Account Security */}
+                        <div className="settings-section">
+                          <h3><RiLockLine /> Account Security</h3>
+                          <div className="security-actions">
+                            <button
+                                className="btn-secondary"
+                                onClick={handlePasswordChange}
                             >
-                              <RiCloseLine />
+                              <RiLockLine /> Change Password
+                            </button>
+                            <button
+                                className="btn-secondary"
+                                onClick={handleEmailUpdate}
+                            >
+                              <RiMailLine /> Update Email
+                            </button>
+                            <button
+                                className="btn-danger"
+                                onClick={handleAccountDeletion}
+                            >
+                              <RiDeleteBinLine /> Delete Account
                             </button>
                           </div>
-                        ) : (
-                          <div className="logo-placeholder">
-                            <RiImageLine />
-                            <span>No logo uploaded</span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="logo-upload-controls">
-                        <input
-                          type="file"
-                          id="logo-upload"
-                          accept="image/png,image/jpeg,image/jpg,image/svg+xml"
-                          onChange={handleLogoUpload}
-                          style={{ display: 'none' }}
-                          disabled={isSaving}
-                        />
-                        <label 
-                          htmlFor="logo-upload" 
-                          className={`btn-secondary ${isSaving ? 'disabled' : ''}`}
-                        >
-                          {isSaving ? (
-                            <>
-                              <RiLoader4Line className="spinning" /> Uploading...
-                            </>
-                          ) : (
-                            <>
-                              <RiUploadCloudLine /> {logoPreview ? 'Change Logo' : 'Upload Logo'}
-                            </>
-                          )}
-                        </label>
-                        <p className="upload-hint">
-                          Recommended: 200x200px, max 5MB (PNG, JPG, SVG)
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Basic Company Information */}
-                  <div className="settings-section">
-                    <h3><RiBuildingLine /> Basic Information</h3>
-                    <div className="settings-grid">
-                      <div className="setting-item">
-                        <label>Company Name *</label>
-                        <input 
-                          type="text" 
-                          value={companySettings.companyName}
-                          onChange={(e) => handleBasicSettingsChange('companyName', e.target.value)}
-                          placeholder="Enter company name"
-                        />
-                      </div>
-                      <div className="setting-item">
-                        <label>Industry *</label>
-                        <select 
-                          value={companySettings.industry}
-                          onChange={(e) => handleBasicSettingsChange('industry', e.target.value)}
-                        >
-                          <option value="">Select Industry</option>
-                          <option value="Technology">Technology</option>
-                          <option value="Healthcare">Healthcare</option>
-                          <option value="Finance">Finance</option>
-                          <option value="Education">Education</option>
-                          <option value="Manufacturing">Manufacturing</option>
-                          <option value="Retail">Retail</option>
-                          <option value="Other">Other</option>
-                        </select>
-                      </div>
-                      <div className="setting-item">
-                        <label>Company Size</label>
-                        <select 
-                          value={companySettings.companySize}
-                          onChange={(e) => handleBasicSettingsChange('companySize', e.target.value)}
-                        >
-                          <option value="">Select Size</option>
-                          <option value="1-10 employees">1-10 employees</option>
-                          <option value="11-50 employees">11-50 employees</option>
-                          <option value="51-100 employees">51-100 employees</option>
-                          <option value="100-500 employees">100-500 employees</option>
-                          <option value="500+ employees">500+ employees</option>
-                        </select>
-                      </div>
-                      <div className="setting-item">
-                        <label>Founded Year</label>
-                        <input 
-                          type="number" 
-                          value={companySettings.founded}
-                          onChange={(e) => handleBasicSettingsChange('founded', e.target.value)}
-                          placeholder="e.g., 2018"
-                          min="1800"
-                          max={new Date().getFullYear()}
-                        />
-                      </div>
-                    </div>
-                    <div className="setting-item full-width">
-                      <label>Company Description</label>
-                      <textarea 
-                        value={companySettings.description}
-                        onChange={(e) => handleBasicSettingsChange('description', e.target.value)}
-                        placeholder="Describe your company, mission, and values..."
-                        rows="4"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Contact Information */}
-                  <div className="settings-section">
-                    <h3><RiMailLine /> Contact Information</h3>
-                    <div className="settings-grid">
-                      <div className="setting-item">
-                        <label>Email Address *</label>
-                        <div className="input-with-icon">
-                          <RiMailLine />
-                          <input 
-                            type="email" 
-                            value={companySettings.email}
-                            onChange={(e) => handleBasicSettingsChange('email', e.target.value)}
-                            placeholder="company@example.com"
-                          />
-                        </div>
-                      </div>
-                      <div className="setting-item">
-                        <label>Phone Number</label>
-                        <div className="input-with-icon">
-                          <RiPhoneLine />
-                          <input 
-                            type="tel" 
-                            value={companySettings.phone}
-                            onChange={(e) => handleBasicSettingsChange('phone', e.target.value)}
-                            placeholder="+1 (555) 123-4567"
-                          />
-                        </div>
-                      </div>
-                      <div className="setting-item">
-                        <label>Website</label>
-                        <div className="input-with-icon">
-                          <RiGlobalLine />
-                          <input 
-                            type="url" 
-                            value={companySettings.website}
-                            onChange={(e) => handleBasicSettingsChange('website', e.target.value)}
-                            placeholder="https://yourcompany.com"
-                          />
                         </div>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Address Information */}
-                  <div className="settings-section">
-                    <h3><RiMapPinLine /> Address</h3>
-                    <div className="settings-grid">
-                      <div className="setting-item full-width">
-                        <label>Street Address</label>
-                        <input 
-                          type="text" 
-                          value={companySettings.address}
-                          onChange={(e) => handleBasicSettingsChange('address', e.target.value)}
-                          placeholder="123 Business Street"
-                        />
-                      </div>
-                      <div className="setting-item">
-                        <label>City</label>
-                        <input 
-                          type="text" 
-                          value={companySettings.city}
-                          onChange={(e) => handleBasicSettingsChange('city', e.target.value)}
-                          placeholder="San Francisco"
-                        />
-                      </div>
-                      <div className="setting-item">
-                        <label>State/Province</label>
-                        <input 
-                          type="text" 
-                          value={companySettings.state}
-                          onChange={(e) => handleBasicSettingsChange('state', e.target.value)}
-                          placeholder="CA"
-                        />
-                      </div>
-                      <div className="setting-item">
-                        <label>ZIP/Postal Code</label>
-                        <input 
-                          type="text" 
-                          value={companySettings.zipCode}
-                          onChange={(e) => handleBasicSettingsChange('zipCode', e.target.value)}
-                          placeholder="94102"
-                        />
-                      </div>
-                      <div className="setting-item">
-                        <label>Country</label>
-                        <select 
-                          value={companySettings.country}
-                          onChange={(e) => handleBasicSettingsChange('country', e.target.value)}
-                        >
-                          <option value="">Select Country</option>
-                          <option value="United States">United States</option>
-                          <option value="Canada">Canada</option>
-                          <option value="United Kingdom">United Kingdom</option>
-                          <option value="Australia">Australia</option>
-                          <option value="Germany">Germany</option>
-                          <option value="France">France</option>
-                          <option value="Other">Other</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Social Media */}
-                  <div className="settings-section">
-                    <h3><RiGlobalLine /> Social Media</h3>
-                    <div className="settings-grid">
-                      <div className="setting-item">
-                        <label>LinkedIn URL</label>
-                        <input 
-                          type="url" 
-                          value={companySettings.linkedinUrl}
-                          onChange={(e) => handleBasicSettingsChange('linkedinUrl', e.target.value)}
-                          placeholder="https://linkedin.com/company/yourcompany"
-                        />
-                      </div>
-                      <div className="setting-item">
-                        <label>Twitter URL</label>
-                        <input 
-                          type="url" 
-                          value={companySettings.twitterUrl}
-                          onChange={(e) => handleBasicSettingsChange('twitterUrl', e.target.value)}
-                          placeholder="https://twitter.com/yourcompany"
-                        />
-                      </div>
-                      <div className="setting-item">
-                        <label>Facebook URL</label>
-                        <input 
-                          type="url" 
-                          value={companySettings.facebookUrl}
-                          onChange={(e) => handleBasicSettingsChange('facebookUrl', e.target.value)}
-                          placeholder="https://facebook.com/yourcompany"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Notification Preferences */}
-                  <div className="settings-section">
-                    <h3><RiNotificationLine /> Notification Preferences</h3>
-                    <div className="notification-settings">
-                      <div className="notification-item">
-                        <div className="notification-info">
-                          <h4>Email Alerts</h4>
-                          <p>Receive important updates via email</p>
-                        </div>
-                        <label className="toggle-switch">
-                          <input 
-                            type="checkbox" 
-                            checked={companySettings.notifications.emailAlerts}
-                            onChange={(e) => handleSettingsChange('notifications', 'emailAlerts', e.target.checked)}
-                          />
-                          <span className="slider"></span>
-                        </label>
-                      </div>
-                      <div className="notification-item">
-                        <div className="notification-info">
-                          <h4>SMS Alerts</h4>
-                          <p>Get urgent notifications via SMS</p>
-                        </div>
-                        <label className="toggle-switch">
-                          <input 
-                            type="checkbox" 
-                            checked={companySettings.notifications.smsAlerts}
-                            onChange={(e) => handleSettingsChange('notifications', 'smsAlerts', e.target.checked)}
-                          />
-                          <span className="slider"></span>
-                        </label>
-                      </div>
-                      <div className="notification-item">
-                        <div className="notification-info">
-                          <h4>Application Updates</h4>
-                          <p>Notifications when candidates apply to your jobs</p>
-                        </div>
-                        <label className="toggle-switch">
-                          <input 
-                            type="checkbox" 
-                            checked={companySettings.notifications.applicationUpdates}
-                            onChange={(e) => handleSettingsChange('notifications', 'applicationUpdates', e.target.checked)}
-                          />
-                          <span className="slider"></span>
-                        </label>
-                      </div>
-                      <div className="notification-item">
-                        <div className="notification-info">
-                          <h4>Weekly Reports</h4>
-                          <p>Receive weekly analytics and performance reports</p>
-                        </div>
-                        <label className="toggle-switch">
-                          <input 
-                            type="checkbox" 
-                            checked={companySettings.notifications.weeklyReports}
-                            onChange={(e) => handleSettingsChange('notifications', 'weeklyReports', e.target.checked)}
-                          />
-                          <span className="slider"></span>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Account Security */}
-                  <div className="settings-section">
-                    <h3><RiLockLine /> Account Security</h3>
-                    <div className="security-actions">
-                      <button 
-                        className="btn-secondary"
-                        onClick={handlePasswordChange}
-                      >
-                        <RiLockLine /> Change Password
-                      </button>
-                      <button 
-                        className="btn-secondary"
-                        onClick={handleEmailUpdate}
-                      >
-                        <RiMailLine /> Update Email
-                      </button>
-                      <button 
-                        className="btn-danger"
-                        onClick={handleAccountDeletion}
-                      >
-                        <RiDeleteBinLine /> Delete Account
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </main>
-        </>
-      )}
-    </div>
+                )}
+              </main>
+            </>
+        )}
+      </div>
   );
 };
 
 export default CompanyDashboard;
-
