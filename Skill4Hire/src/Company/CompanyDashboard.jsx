@@ -20,6 +20,8 @@ import {
   RiSaveLine,
   RiLockLine,
   RiNotificationLine,
+  RiInboxLine,
+  RiTimeLine,
   RiCheckLine,
   RiErrorWarningLine,
   RiLoader4Line,
@@ -90,6 +92,12 @@ const CompanyDashboard = () => {
     }
   });
 
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notificationsError, setNotificationsError] = useState('');
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+
   // Applicants state
   const [applicants, setApplicants] = useState([]);
   const [applicantsLoading, setApplicantsLoading] = useState(false);
@@ -105,6 +113,15 @@ const CompanyDashboard = () => {
     return Number.isFinite(numeric) ? numeric.toLocaleString() : value;
   };
 
+  const formatNotificationTime = (value) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+    return date.toLocaleString();
+  };
+
   const toSkillList = useCallback((rawSkills) => {
     if (!rawSkills) return [];
     if (Array.isArray(rawSkills)) return rawSkills.filter(Boolean);
@@ -116,6 +133,12 @@ const CompanyDashboard = () => {
     }
     return [];
   }, []);
+
+  const getJobTitle = useCallback((jobId) => {
+    if (!jobId) return '';
+    const match = jobPostings.find((job) => job.id === jobId || job.jobPostId === jobId);
+    return match?.title || match?.jobTitle || '';
+  }, [jobPostings]);
 
 
   const normalizeRecommendations = useCallback((payload) => {
@@ -150,6 +173,64 @@ const CompanyDashboard = () => {
       };
     });
   }, []);
+
+  const loadNotifications = useCallback(async () => {
+    setNotificationsLoading(true);
+    setNotificationsError('');
+    try {
+      const data = await companyService.getNotifications();
+      const list = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.data)
+              ? data.data
+              : [];
+      setNotifications(list);
+    } catch (err) {
+      setNotifications([]);
+      setNotificationsError(err?.message || 'Failed to load notifications');
+    } finally {
+      setNotificationsLoading(false);
+    }
+  }, []);
+
+  const handleRefreshNotifications = useCallback(() => {
+    loadNotifications();
+  }, [loadNotifications]);
+
+  const handleMarkAllNotificationsRead = useCallback(async () => {
+    try {
+      await companyService.markAllNotificationsRead();
+      setNotifications((prev) => prev.map((notification) => ({ ...notification, read: true })));
+      setNotificationsError('');
+    } catch (err) {
+      setNotificationsError(err?.message || 'Failed to mark notifications as read');
+    }
+  }, []);
+
+  const handleMarkNotificationRead = useCallback(async (notificationId) => {
+    try {
+      await companyService.markNotificationRead(notificationId);
+      setNotifications((prev) => prev.map((notification) =>
+        notification.id === notificationId ? { ...notification, read: true } : notification
+      ));
+      setNotificationsError('');
+    } catch (err) {
+      setNotificationsError(err?.message || 'Failed to update notification');
+    }
+  }, []);
+
+  const handleDeleteNotification = useCallback(async (notificationId) => {
+    try {
+      await companyService.deleteNotification(notificationId);
+      setNotifications((prev) => prev.filter((notification) => notification.id !== notificationId));
+    } catch (err) {
+      setNotificationsError(err?.message || 'Failed to remove notification');
+    }
+  }, []);
+
+  const handleToggleNotifications = () => {
+    setShowNotifications((prev) => !prev);
+  };
 
   const loadRecommendations = useCallback(async (jobId = 'all') => {
     setRecommendationsLoading(true);
@@ -287,6 +368,15 @@ const CompanyDashboard = () => {
       window.location.href = '/login';
     }
   };
+
+  useEffect(() => {
+    loadNotifications();
+  }, [loadNotifications]);
+
+  useEffect(() => {
+    const unread = notifications.filter((notification) => !notification?.read).length;
+    setUnreadNotifications(unread);
+  }, [notifications]);
 
   // Load company profile data
   const loadCompanyProfile = useCallback(async () => {
@@ -707,6 +797,119 @@ const CompanyDashboard = () => {
                         <span className="user-name">{companySettings.companyName || 'Your Company'}</span>
                         <span className="user-role">{companySettings.industry || 'Industry not set'}</span>
                       </div>
+                    </div>
+                    <div className="notification-wrapper">
+                      <button
+                          type="button"
+                          className={`notifications-btn${showNotifications ? ' active' : ''}`}
+                          onClick={handleToggleNotifications}
+                          aria-label="Notifications"
+                      >
+                        <RiNotificationLine />
+                        {unreadNotifications > 0 && (
+                            <span className="notifications-badge">
+                              {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                            </span>
+                        )}
+                      </button>
+                      {showNotifications && (
+                          <div className="notifications-panel">
+                            <div className="notifications-header">
+                              <h4>Notifications</h4>
+                              <div className="notifications-actions">
+                                <button
+                                    type="button"
+                                    className="btn-outline small"
+                                    onClick={handleMarkAllNotificationsRead}
+                                    disabled={!unreadNotifications}
+                                >
+                                  <RiCheckLine /> Mark all read
+                                </button>
+                                <button
+                                    type="button"
+                                    className="icon-button"
+                                    onClick={handleRefreshNotifications}
+                                    title="Refresh notifications"
+                                >
+                                  <RiRefreshLine />
+                                </button>
+                                <button
+                                    type="button"
+                                    className="icon-button"
+                                    onClick={() => setShowNotifications(false)}
+                                    title="Close"
+                                >
+                                  <RiCloseLine />
+                                </button>
+                              </div>
+                            </div>
+                            {notificationsLoading ? (
+                                <div className="notifications-loading">
+                                  <RiLoader4Line className="spin" />
+                                  <span>Loading notifications...</span>
+                                </div>
+                            ) : notificationsError ? (
+                                <div className="notifications-error">
+                                  <RiErrorWarningLine />
+                                  <span>{notificationsError}</span>
+                                </div>
+                            ) : notifications.length === 0 ? (
+                                <div className="notifications-empty">
+                                  <RiInboxLine />
+                                  <p>No notifications yet</p>
+                                </div>
+                            ) : (
+                                <ul className="notifications-list">
+                                  {notifications.map((notification, index) => {
+                                    const notificationId = notification.id || notification._id || `notification-${index}`;
+                                    return (
+                                        <li
+                                            key={notificationId}
+                                            className={`notification-item ${notification.read ? 'read' : 'unread'}`}
+                                        >
+                                          <div className="notification-main">
+                                            <p className="notification-message">{notification.message}</p>
+                                            <div className="notification-meta">
+                                              <span className="notification-time">
+                                                <RiTimeLine /> {formatNotificationTime(notification.createdAt)}
+                                              </span>
+                                              {notification.jobPostId && (
+                                                  <span className="notification-job">
+                                                    Job: {getJobTitle(notification.jobPostId) || notification.jobPostId}
+                                                  </span>
+                                              )}
+                                              {notification.type && (
+                                                  <span className="notification-type">
+                                                    {notification.type.replace(/_/g, ' ')}
+                                                  </span>
+                                              )}
+                                            </div>
+                                          </div>
+                                          <div className="notification-item-actions">
+                                            {!notification.read && (
+                                                <button
+                                                    type="button"
+                                                    className="btn-outline small"
+                                                    onClick={() => handleMarkNotificationRead(notificationId)}
+                                                >
+                                                  <RiCheckLine /> Mark read
+                                                </button>
+                                            )}
+                                            <button
+                                                type="button"
+                                                className="btn-danger small"
+                                                onClick={() => handleDeleteNotification(notificationId)}
+                                            >
+                                              <RiDeleteBinLine /> Dismiss
+                                            </button>
+                                          </div>
+                                        </li>
+                                    );
+                                  })}
+                                </ul>
+                            )}
+                          </div>
+                      )}
                     </div>
                     <button className="logout-btn" onClick={handleLogout}>
                       <RiLogoutBoxLine />

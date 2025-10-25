@@ -126,6 +126,60 @@ export const companyService = {
     }
   },
 
+  // ================= Notification Centre =================
+  getNotifications: async () => {
+    try {
+      const { data } = await apiClient.get('/api/companies/notifications');
+      return data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch notifications');
+    }
+  },
+
+  getUnreadNotifications: async () => {
+    try {
+      const { data } = await apiClient.get('/api/companies/notifications/unread');
+      return data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch unread notifications');
+    }
+  },
+
+  getNotificationCount: async () => {
+    try {
+      const { data } = await apiClient.get('/api/companies/notifications/count');
+      return data?.unreadCount ?? 0;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch notification count');
+    }
+  },
+
+  markNotificationRead: async (notificationId) => {
+    try {
+      if (!notificationId) throw new Error('Missing notification identifier');
+      await apiClient.put(`/api/companies/notifications/${notificationId}/read`);
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to mark notification as read');
+    }
+  },
+
+  markAllNotificationsRead: async () => {
+    try {
+      await apiClient.put('/api/companies/notifications/read-all');
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to mark notifications as read');
+    }
+  },
+
+  deleteNotification: async (notificationId) => {
+    try {
+      if (!notificationId) throw new Error('Missing notification identifier');
+      await apiClient.delete(`/api/companies/notifications/${notificationId}`);
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to delete notification');
+    }
+  },
+
   // ================= Applicants Management =================
   getApplications: async (status) => {
     try {
