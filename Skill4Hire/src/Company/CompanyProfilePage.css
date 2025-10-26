@@ -1,99 +1,66 @@
-/* Company Profile Page Styles */
+@import "../Candidate/base.css";
+@import "../Candidate/buttons.css";
+
 .company-profile-page {
   min-height: 100vh;
-  background-color: #0A0A3D;
-  position: relative;
+  background: var(--background);
+  padding: 2.5rem 1.5rem;
 }
 
-/* Loading Overlay */
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(10, 10, 61, 0.8);
+.company-profile-page .page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.company-profile-page .page-breadcrumb {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
-  z-index: 1000;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
 }
 
-.loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid #2D2D5A;
-  border-top: 4px solid #00CFEA;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
+.company-profile-page .page-breadcrumb a {
+  color: inherit;
+  text-decoration: none;
 }
 
-.loading-overlay p {
-  color: #FFFFFF;
-  font-size: 1.1rem;
+.company-profile-page .page-breadcrumb a:hover {
+  color: var(--accent);
+}
+
+.company-profile-page .page-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+.company-profile-page .page-title h1 {
   margin: 0;
+  font-size: 2rem;
+  color: var(--text-primary);
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+.company-profile-page .page-title .page-actions {
+  display: flex;
+  gap: 0.75rem;
 }
 
-/* Message Styles */
-.message {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  padding: 1rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 600;
-  z-index: 1001;
-  animation: slideInRight 0.3s ease-out;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+.company-profile-page .page-title .btn-outline {
+  border-radius: 0.8rem;
+  padding: 0.55rem 1.2rem;
 }
 
-.message.success {
-  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
-  color: #FFFFFF;
-  border-left: 4px solid #2E7D32;
-}
-
-.message.error {
-  background: linear-gradient(135deg, #FF6B00 0%, #FF8F33 100%);
-  color: #FFFFFF;
-  border-left: 4px solid #E65100;
-}
-
-@keyframes slideInRight {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-/* Responsive adjustments */
 @media (max-width: 768px) {
-  .message {
-    top: 10px;
-    right: 10px;
-    left: 10px;
-    animation: slideInDown 0.3s ease-out;
+  .company-profile-page {
+    padding: 2rem 1.1rem;
   }
-  
-  @keyframes slideInDown {
-    from {
-      transform: translateY(-100%);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
+
+  .company-profile-page .page-title h1 {
+    font-size: 1.6rem;
   }
 }
