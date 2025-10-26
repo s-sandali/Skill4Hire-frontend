@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   RiBuildingLine,
   RiBriefcaseLine,
@@ -20,6 +20,8 @@ import {
   RiSaveLine,
   RiLockLine,
   RiNotificationLine,
+  RiInboxLine,
+  RiTimeLine,
   RiCheckLine,
   RiErrorWarningLine,
   RiLoader4Line,
@@ -32,9 +34,70 @@ import { jobService } from '../services/jobService';
 import JobForm from './JobForm';
 import './CompanyDashboard.css';
 
+const defaultNotificationPreferences = {
+  emailAlerts: true,
+  smsAlerts: false,
+  applicationUpdates: true,
+  weeklyReports: true,
+  jobAlerts: true
+};
+
+const buildDefaultCompanySettings = () => ({
+  companyName: '',
+  email: '',
+  phone: '',
+  website: '',
+  address: '',
+  city: '',
+  state: '',
+  zipCode: '',
+  country: '',
+  industry: '',
+  companySize: '',
+  founded: '',
+  description: '',
+  linkedinUrl: '',
+  twitterUrl: '',
+  facebookUrl: '',
+  notifications: { ...defaultNotificationPreferences },
+  logo: ''
+});
+
+const loadCachedCompanySettings = () => {
+  if (typeof window === 'undefined') {
+    return buildDefaultCompanySettings();
+  }
+
+  try {
+    const cached = window.localStorage.getItem('companyProfileCache');
+    if (!cached) {
+      return buildDefaultCompanySettings();
+    }
+
+    const parsed = JSON.parse(cached);
+    return {
+      ...buildDefaultCompanySettings(),
+      ...parsed,
+      notifications: {
+        ...defaultNotificationPreferences,
+        ...(parsed.notifications || {})
+      }
+    };
+  } catch (error) {
+    console.warn('Unable to load cached company profile', error);
+    return buildDefaultCompanySettings();
+  }
+};
+
 const CompanyDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isLoading, setIsLoading] = useState(true);
+  const initialCompanySettings = useMemo(() => loadCachedCompanySettings(), []);
+  const hasLoadedProfileRef = useRef(Boolean(
+      initialCompanySettings.companyName ||
+      initialCompanySettings.email ||
+      initialCompanySettings.logo
+  ));
 
   // Job-related state
   const [jobPostings, setJobPostings] = useState([]);
@@ -51,44 +114,42 @@ const CompanyDashboard = () => {
   const [selectedRecommendationJob, setSelectedRecommendationJob] = useState('all');
 
   // Company settings state
-  const [companyLogo, setCompanyLogo] = useState(null);
-  const [logoPreview, setLogoPreview] = useState(null);
+  const [companySettings, setCompanySettings] = useState(initialCompanySettings);
+  const [logoPreview, setLogoPreview] = useState(() => initialCompanySettings.logo || null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
   const [saveStatus, setSaveStatus] = useState(''); // 'success', 'error', ''
-  const [companySettings, setCompanySettings] = useState({
-    // Basic Information
-    companyName: "",
-    email: "",
-    phone: "",
-    website: "",
 
-    // Address
-    address: "",
-    city: "",
-    state: "",
-    zipCode: "",
-    country: "",
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notificationsError, setNotificationsError] = useState('');
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
-    // Company Details
-    industry: "",
-    companySize: "",
-    founded: "",
-    description: "",
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const hasPersistableData = Boolean(
+        companySettings.companyName ||
+        companySettings.email ||
+        companySettings.phone ||
+        companySettings.website ||
+        companySettings.address ||
+        companySettings.description ||
+        companySettings.logo
+    );
 
-    // Social Media
-    linkedinUrl: "",
-    twitterUrl: "",
-    facebookUrl: "",
+    if (!hasPersistableData && !hasLoadedProfileRef.current) return;
 
-    // Preferences
-    notifications: {
-      emailAlerts: true,
-      smsAlerts: false,
-      applicationUpdates: true,
-      weeklyReports: true
+    if (hasPersistableData && !hasLoadedProfileRef.current) {
+      hasLoadedProfileRef.current = true;
     }
-  });
+
+    try {
+      window.localStorage.setItem('companyProfileCache', JSON.stringify(companySettings));
+    } catch (error) {
+      console.warn('Unable to cache company profile', error);
+    }
+  }, [companySettings]);
 
   // Applicants state
   const [applicants, setApplicants] = useState([]);
@@ -105,6 +166,80 @@ const CompanyDashboard = () => {
     return Number.isFinite(numeric) ? numeric.toLocaleString() : value;
   };
 
+  const formatNotificationTime = (value) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+    return date.toLocaleString();
+  };
+
+  const normalizeLogo = useCallback((rawLogo) => {
+    if (!rawLogo) return null;
+    const serialized = String(rawLogo).trim();
+    return serialized.startsWith('data:')
+        ? serialized
+        : `data:image/png;base64,${serialized}`;
+  }, []);
+
+  const resizeImageToSquare = useCallback((file, size = 900) => {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      const objectUrl = URL.createObjectURL(file);
+
+      image.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const context = canvas.getContext('2d');
+
+        if (!context) {
+          URL.revokeObjectURL(objectUrl);
+          reject(new Error('Unable to process image'));
+          return;
+        }
+
+        const shortestEdge = Math.min(image.width, image.height);
+        const offsetX = (image.width - shortestEdge) / 2;
+        const offsetY = (image.height - shortestEdge) / 2;
+
+        context.drawImage(
+            image,
+            offsetX,
+            offsetY,
+            shortestEdge,
+            shortestEdge,
+            0,
+            0,
+            size,
+            size
+        );
+
+        canvas.toBlob((blob) => {
+          URL.revokeObjectURL(objectUrl);
+          if (!blob) {
+            reject(new Error('Unable to finalize image'));
+            return;
+          }
+
+          const processedFile = new File([blob], file.name.replace(/\.[^.]+$/, '.png'), {
+            type: 'image/png'
+          });
+          const preview = canvas.toDataURL('image/png');
+          resolve({ file: processedFile, preview });
+        }, 'image/png');
+      };
+
+      image.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error('Failed to read image'));
+      };
+
+      image.src = objectUrl;
+    });
+  }, []);
+
   const toSkillList = useCallback((rawSkills) => {
     if (!rawSkills) return [];
     if (Array.isArray(rawSkills)) return rawSkills.filter(Boolean);
@@ -116,6 +251,12 @@ const CompanyDashboard = () => {
     }
     return [];
   }, []);
+
+  const getJobTitle = useCallback((jobId) => {
+    if (!jobId) return '';
+    const match = jobPostings.find((job) => job.id === jobId || job.jobPostId === jobId);
+    return match?.title || match?.jobTitle || '';
+  }, [jobPostings]);
 
 
   const normalizeRecommendations = useCallback((payload) => {
@@ -150,6 +291,64 @@ const CompanyDashboard = () => {
       };
     });
   }, []);
+
+  const loadNotifications = useCallback(async () => {
+    setNotificationsLoading(true);
+    setNotificationsError('');
+    try {
+      const data = await companyService.getNotifications();
+      const list = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.data)
+              ? data.data
+              : [];
+      setNotifications(list);
+    } catch (err) {
+      setNotifications([]);
+      setNotificationsError(err?.message || 'Failed to load notifications');
+    } finally {
+      setNotificationsLoading(false);
+    }
+  }, []);
+
+  const handleRefreshNotifications = useCallback(() => {
+    loadNotifications();
+  }, [loadNotifications]);
+
+  const handleMarkAllNotificationsRead = useCallback(async () => {
+    try {
+      await companyService.markAllNotificationsRead();
+      setNotifications((prev) => prev.map((notification) => ({ ...notification, read: true })));
+      setNotificationsError('');
+    } catch (err) {
+      setNotificationsError(err?.message || 'Failed to mark notifications as read');
+    }
+  }, []);
+
+  const handleMarkNotificationRead = useCallback(async (notificationId) => {
+    try {
+      await companyService.markNotificationRead(notificationId);
+      setNotifications((prev) => prev.map((notification) =>
+        notification.id === notificationId ? { ...notification, read: true } : notification
+      ));
+      setNotificationsError('');
+    } catch (err) {
+      setNotificationsError(err?.message || 'Failed to update notification');
+    }
+  }, []);
+
+  const handleDeleteNotification = useCallback(async (notificationId) => {
+    try {
+      await companyService.deleteNotification(notificationId);
+      setNotifications((prev) => prev.filter((notification) => notification.id !== notificationId));
+    } catch (err) {
+      setNotificationsError(err?.message || 'Failed to remove notification');
+    }
+  }, []);
+
+  const handleToggleNotifications = () => {
+    setShowNotifications((prev) => !prev);
+  };
 
   const loadRecommendations = useCallback(async (jobId = 'all') => {
     setRecommendationsLoading(true);
@@ -288,6 +487,15 @@ const CompanyDashboard = () => {
     }
   };
 
+  useEffect(() => {
+    loadNotifications();
+  }, [loadNotifications]);
+
+  useEffect(() => {
+    const unread = notifications.filter((notification) => !notification?.read).length;
+    setUnreadNotifications(unread);
+  }, [notifications]);
+
   // Load company profile data
   const loadCompanyProfile = useCallback(async () => {
     try {
@@ -302,36 +510,38 @@ const CompanyDashboard = () => {
         return;
       }
 
-      const mappedSettings = {
-        companyName: profileData.name || "",
-        email: profileData.email || "",
-        phone: profileData.phone || "",
-        website: profileData.website || "",
-        address: profileData.address || "",
-        city: profileData.city || "",
-        state: profileData.state || "",
-        zipCode: profileData.zipCode || "",
-        country: profileData.country || "",
-        industry: profileData.industry || "",
-        companySize: profileData.companySize || "",
-        founded: profileData.founded || "",
-        description: profileData.description || "",
-        linkedinUrl: profileData.linkedin || "",
-        twitterUrl: profileData.twitter || "",
-        facebookUrl: profileData.facebook || "",
-        notifications: {
-          emailAlerts: true,
-          smsAlerts: false,
-          applicationUpdates: true,
-          jobAlerts: true,
-          weeklyReports: false
-        }
-      };
+      const normalizedLogo = profileData.logo ? normalizeLogo(profileData.logo) : '';
 
-      setCompanySettings(mappedSettings);
+      setCompanySettings((prev) => {
+        const nextSettings = {
+        ...prev,
+        companyName: profileData.name ?? profileData.companyName ?? prev.companyName ?? "",
+        email: profileData.email ?? profileData.contactEmail ?? prev.email ?? "",
+        phone: profileData.phone ?? profileData.phoneNumber ?? prev.phone ?? "",
+        website: profileData.website ?? profileData.site ?? prev.website ?? "",
+        address: profileData.address ?? prev.address ?? "",
+        city: profileData.city ?? prev.city ?? "",
+        state: profileData.state ?? prev.state ?? "",
+        zipCode: profileData.zipCode ?? profileData.postalCode ?? prev.zipCode ?? "",
+        country: profileData.country ?? prev.country ?? "",
+        industry: profileData.industry ?? profileData.companyIndustry ?? prev.industry ?? "",
+        companySize: profileData.companySize ?? profileData.size ?? prev.companySize ?? "",
+        founded: profileData.founded ?? profileData.foundedYear ?? prev.founded ?? "",
+        description: profileData.description ?? prev.description ?? "",
+        linkedinUrl: profileData.linkedin ?? profileData.linkedinUrl ?? prev.linkedinUrl ?? "",
+        twitterUrl: profileData.twitter ?? profileData.twitterUrl ?? prev.twitterUrl ?? "",
+        facebookUrl: profileData.facebook ?? profileData.facebookUrl ?? prev.facebookUrl ?? "",
+        notifications: prev.notifications,
+        logo: normalizedLogo || prev.logo || ''
+        };
 
-      if (profileData.logo) {
-        setLogoPreview(profileData.logo);
+        return nextSettings;
+      });
+
+      hasLoadedProfileRef.current = true;
+
+      if (normalizedLogo) {
+        setLogoPreview(normalizedLogo);
       }
 
     } catch (error) {
@@ -346,7 +556,7 @@ const CompanyDashboard = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [normalizeLogo]);
 
   // Load profile data and jobs when component mounts
   useEffect(() => {
@@ -368,7 +578,8 @@ const CompanyDashboard = () => {
 
   // Logo upload handler
   const handleLogoUpload = async (event) => {
-    const file = event.target.files[0];
+    const inputElement = event.target;
+    const file = inputElement.files[0];
     if (!file) return;
 
     try {
@@ -390,53 +601,72 @@ const CompanyDashboard = () => {
       setSaveMessage('Uploading logo...');
       setSaveStatus('');
 
-      const response = await companyService.uploadLogo(file);
+      const { file: processedFile, preview } = await resizeImageToSquare(file, 900);
+      setLogoPreview(preview);
+      setCompanySettings((prev) => ({ ...prev, logo: preview }));
 
-      setCompanyLogo(file);
+      const response = await companyService.uploadLogo(processedFile);
+      const serverLogo = response && (response.logo || response.logoUrl)
+          ? normalizeLogo(response.logo || response.logoUrl)
+          : null;
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setLogoPreview(e.target.result);
-      };
-      reader.readAsDataURL(file);
-
-      // Prefer server-provided URL/path if returned
-      if (response && (response.logo || response.logoUrl)) {
-        setLogoPreview(response.logo || response.logoUrl);
+      if (serverLogo) {
+        setLogoPreview(serverLogo);
+        setCompanySettings((prev) => ({ ...prev, logo: serverLogo }));
       }
 
       setSaveStatus('success');
       setSaveMessage('Logo uploaded successfully!');
+      inputElement.value = '';
 
       setTimeout(() => {
         setSaveMessage('');
         setSaveStatus('');
-        setIsSaving(false);
       }, 3000);
 
     } catch (error) {
       console.error('Logo upload failed:', error);
       setSaveStatus('error');
       setSaveMessage(error.message || 'Failed to upload logo');
-      setIsSaving(false);
+      inputElement.value = '';
 
       setTimeout(() => {
         setSaveMessage('');
         setSaveStatus('');
       }, 5000);
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const handleRemoveLogo = () => {
-    setCompanyLogo(null);
-    setLogoPreview(null);
-    setSaveStatus('success');
-    setSaveMessage('Logo removed');
-
-    setTimeout(() => {
-      setSaveMessage('');
+  const handleRemoveLogo = async () => {
+    try {
+      setIsSaving(true);
       setSaveStatus('');
-    }, 2000);
+      setSaveMessage('Removing logo...');
+
+      await companyService.removeLogo();
+      setLogoPreview(null);
+  setCompanySettings((prev) => ({ ...prev, logo: '' }));
+      setSaveStatus('success');
+      setSaveMessage('Logo removed successfully!');
+
+      setTimeout(() => {
+        setSaveMessage('');
+        setSaveStatus('');
+      }, 3000);
+    } catch (error) {
+      console.error('Logo removal failed:', error);
+      setSaveStatus('error');
+      setSaveMessage(error.message || 'Failed to remove logo');
+
+      setTimeout(() => {
+        setSaveMessage('');
+        setSaveStatus('');
+      }, 5000);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleSettingsChange = (section, field, value) => {
@@ -493,10 +723,6 @@ const CompanyDashboard = () => {
       };
 
       await companyService.updateProfile(settingsPayload);
-
-      if (companyLogo) {
-        await companyService.updateLogo(companyLogo);
-      }
 
       setSaveStatus('success');
       setSaveMessage('All settings saved successfully!');
@@ -700,17 +926,136 @@ const CompanyDashboard = () => {
                   </div>
                   <div className="header-right">
                     <div className="user-info">
-                      <div className="user-avatar">
-                        <RiBuildingLine />
+                      <div className={`user-avatar${logoPreview ? ' has-logo' : ''}`}>
+                        {logoPreview ? (
+                            <img src={logoPreview} alt={`${companySettings.companyName || 'Company'} logo`} />
+                        ) : (
+                            <RiBuildingLine />
+                        )}
                       </div>
                       <div className="user-details">
                         <span className="user-name">{companySettings.companyName || 'Your Company'}</span>
                         <span className="user-role">{companySettings.industry || 'Industry not set'}</span>
                       </div>
                     </div>
-                    <button className="logout-btn" onClick={handleLogout}>
-                      <RiLogoutBoxLine />
-                    </button>
+                    <div className="header-actions">
+                      <div className="notification-wrapper">
+                        <button
+                            type="button"
+                            className={`notifications-btn${showNotifications ? ' active' : ''}`}
+                            onClick={handleToggleNotifications}
+                            aria-label="Notifications"
+                        >
+                          <RiNotificationLine />
+                          {unreadNotifications > 0 && (
+                              <span className="notifications-badge">
+                                {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                              </span>
+                          )}
+                        </button>
+                        {showNotifications && (
+                            <div className="notifications-panel">
+                              <div className="notifications-header">
+                                <h4>Notifications</h4>
+                                <div className="notifications-actions">
+                                  <button
+                                      type="button"
+                                      className="btn-outline small"
+                                      onClick={handleMarkAllNotificationsRead}
+                                      disabled={!unreadNotifications}
+                                  >
+                                    <RiCheckLine /> Mark all read
+                                  </button>
+                                  <button
+                                      type="button"
+                                      className="icon-button"
+                                      onClick={handleRefreshNotifications}
+                                      title="Refresh notifications"
+                                  >
+                                    <RiRefreshLine />
+                                  </button>
+                                  <button
+                                      type="button"
+                                      className="icon-button"
+                                      onClick={() => setShowNotifications(false)}
+                                      title="Close"
+                                  >
+                                    <RiCloseLine />
+                                  </button>
+                                </div>
+                              </div>
+                              {notificationsLoading ? (
+                                  <div className="notifications-loading">
+                                    <RiLoader4Line className="spin" />
+                                    <span>Loading notifications...</span>
+                                  </div>
+                              ) : notificationsError ? (
+                                  <div className="notifications-error">
+                                    <RiErrorWarningLine />
+                                    <span>{notificationsError}</span>
+                                  </div>
+                              ) : notifications.length === 0 ? (
+                                  <div className="notifications-empty">
+                                    <RiInboxLine />
+                                    <p>No notifications yet</p>
+                                  </div>
+                              ) : (
+                                  <ul className="notifications-list">
+                                    {notifications.map((notification, index) => {
+                                      const notificationId = notification.id || notification._id || `notification-${index}`;
+                                      return (
+                                          <li
+                                              key={notificationId}
+                                              className={`notification-item ${notification.read ? 'read' : 'unread'}`}
+                                          >
+                                            <div className="notification-main">
+                                              <p className="notification-message">{notification.message}</p>
+                                              <div className="notification-meta">
+                                                <span className="notification-time">
+                                                  <RiTimeLine /> {formatNotificationTime(notification.createdAt)}
+                                                </span>
+                                                {notification.jobPostId && (
+                                                    <span className="notification-job">
+                                                      Job: {getJobTitle(notification.jobPostId) || notification.jobPostId}
+                                                    </span>
+                                                )}
+                                                {notification.type && (
+                                                    <span className="notification-type">
+                                                      {notification.type.replace(/_/g, ' ')}
+                                                    </span>
+                                                )}
+                                              </div>
+                                            </div>
+                                            <div className="notification-item-actions">
+                                              {!notification.read && (
+                                                  <button
+                                                      type="button"
+                                                      className="btn-outline small"
+                                                      onClick={() => handleMarkNotificationRead(notificationId)}
+                                                  >
+                                                    <RiCheckLine /> Mark read
+                                                  </button>
+                                              )}
+                                              <button
+                                                  type="button"
+                                                  className="btn-danger small"
+                                                  onClick={() => handleDeleteNotification(notificationId)}
+                                              >
+                                                <RiDeleteBinLine /> Dismiss
+                                              </button>
+                                            </div>
+                                          </li>
+                                      );
+                                    })}
+                                  </ul>
+                              )}
+                            </div>
+                        )}
+                      </div>
+                      <button className="logout-btn" onClick={handleLogout}>
+                        <RiLogoutBoxLine />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </header>
