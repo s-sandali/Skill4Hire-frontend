@@ -53,7 +53,6 @@ const CompanyDashboard = () => {
   const [selectedRecommendationJob, setSelectedRecommendationJob] = useState('all');
 
   // Company settings state
-  const [companyLogo, setCompanyLogo] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
@@ -121,6 +120,14 @@ const CompanyDashboard = () => {
     }
     return date.toLocaleString();
   };
+
+  const normalizeLogo = useCallback((rawLogo) => {
+    if (!rawLogo) return null;
+    const serialized = String(rawLogo).trim();
+    return serialized.startsWith('data:')
+        ? serialized
+        : `data:image/png;base64,${serialized}`;
+  }, []);
 
   const toSkillList = useCallback((rawSkills) => {
     if (!rawSkills) return [];
@@ -421,7 +428,7 @@ const CompanyDashboard = () => {
       setCompanySettings(mappedSettings);
 
       if (profileData.logo) {
-        setLogoPreview(profileData.logo);
+        setLogoPreview(normalizeLogo(profileData.logo));
       }
 
     } catch (error) {
@@ -436,7 +443,7 @@ const CompanyDashboard = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [normalizeLogo]);
 
   // Load profile data and jobs when component mounts
   useEffect(() => {
@@ -482,8 +489,6 @@ const CompanyDashboard = () => {
 
       const response = await companyService.uploadLogo(file);
 
-      setCompanyLogo(file);
-
       const reader = new FileReader();
       reader.onload = (e) => {
         setLogoPreview(e.target.result);
@@ -492,8 +497,9 @@ const CompanyDashboard = () => {
 
       // Prefer server-provided URL/path if returned
       if (response && (response.logo || response.logoUrl)) {
-        setLogoPreview(response.logo || response.logoUrl);
+        setLogoPreview(normalizeLogo(response.logo || response.logoUrl));
       }
+
 
       setSaveStatus('success');
       setSaveMessage('Logo uploaded successfully!');
@@ -517,16 +523,33 @@ const CompanyDashboard = () => {
     }
   };
 
-  const handleRemoveLogo = () => {
-    setCompanyLogo(null);
-    setLogoPreview(null);
-    setSaveStatus('success');
-    setSaveMessage('Logo removed');
-
-    setTimeout(() => {
-      setSaveMessage('');
+  const handleRemoveLogo = async () => {
+    try {
+      setIsSaving(true);
       setSaveStatus('');
-    }, 2000);
+      setSaveMessage('Removing logo...');
+
+      await companyService.removeLogo();
+      setLogoPreview(null);
+      setSaveStatus('success');
+      setSaveMessage('Logo removed successfully!');
+
+      setTimeout(() => {
+        setSaveMessage('');
+        setSaveStatus('');
+      }, 3000);
+    } catch (error) {
+      console.error('Logo removal failed:', error);
+      setSaveStatus('error');
+      setSaveMessage(error.message || 'Failed to remove logo');
+
+      setTimeout(() => {
+        setSaveMessage('');
+        setSaveStatus('');
+      }, 5000);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleSettingsChange = (section, field, value) => {
@@ -583,10 +606,6 @@ const CompanyDashboard = () => {
       };
 
       await companyService.updateProfile(settingsPayload);
-
-      if (companyLogo) {
-        await companyService.updateLogo(companyLogo);
-      }
 
       setSaveStatus('success');
       setSaveMessage('All settings saved successfully!');
@@ -790,8 +809,12 @@ const CompanyDashboard = () => {
                   </div>
                   <div className="header-right">
                     <div className="user-info">
-                      <div className="user-avatar">
-                        <RiBuildingLine />
+                      <div className={`user-avatar${logoPreview ? ' has-logo' : ''}`}>
+                        {logoPreview ? (
+                            <img src={logoPreview} alt={`${companySettings.companyName || 'Company'} logo`} />
+                        ) : (
+                            <RiBuildingLine />
+                        )}
                       </div>
                       <div className="user-details">
                         <span className="user-name">{companySettings.companyName || 'Your Company'}</span>

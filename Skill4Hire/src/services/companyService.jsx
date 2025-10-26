@@ -31,9 +31,16 @@ export const companyService = {
         phone: profileData.phone ?? profileData.phoneNumber ?? '',
         website: profileData.website ?? '',
         address: toAddressLine(profileData),
+        city: profileData.city ?? '',
+        state: profileData.state ?? '',
+        zipCode: profileData.zipCode ?? '',
+        country: profileData.country ?? '',
         facebook: profileData.facebook ?? profileData.facebookUrl ?? '',
         linkedin: profileData.linkedin ?? profileData.linkedinUrl ?? '',
         twitter: profileData.twitter ?? profileData.twitterUrl ?? '',
+        industry: profileData.industry ?? profileData.companyIndustry ?? '',
+        companySize: profileData.companySize ?? profileData.size ?? '',
+        founded: profileData.founded ?? profileData.foundedYear ?? '',
         logo: profileData.logo ?? ''
       };
 
@@ -63,6 +70,15 @@ export const companyService = {
   // Backward compatible alias used by CompanyDashboard
   updateLogo: async (file) => {
     return companyService.uploadLogo(file);
+  },
+
+  removeLogo: async () => {
+    try {
+      const response = await apiClient.delete('/api/companies/logo');
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Error removing logo');
+    }
   },
 
   changePassword: async (...args) => {
