@@ -203,21 +203,7 @@ export default function ProfileSetupForm({
       }
       
       alert("Profile updated successfully!");
-      
-      // Reset file states
-      setResumeFile(null);
-      setProfilePictureFile(null);
-      if (resumePreviewUrl) {
-        URL.revokeObjectURL(resumePreviewUrl)
-        setResumePreviewUrl("")
-      }
-      if (profilePicturePreviewUrl) {
-        URL.revokeObjectURL(profilePicturePreviewUrl)
-        setProfilePicturePreviewUrl("")
-      }
-      onResumeSelected(null)
-      onProfilePictureSelected(null)
-      
+
     } catch (error) {
       console.error("Error updating profile:", error);
       alert(`Error updating profile: ${error.message}`);
@@ -240,313 +226,332 @@ export default function ProfileSetupForm({
           </span>
         </div>
       </div>
-      <div className="form-section">
-        <h3 className="section-title">Basic Information</h3>
-        <p>These details are visible to employers when they review your profile.</p>
-        <div className="form-grid">
-          <div className="form-group form-group-full">
-            <label className="form-label">Full Name</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              className="form-input"
-              required
-              placeholder="Enter your full name"
-            />
+      <div className="profile-form-grid">
+        <div className="form-section form-section--full">
+          <div className="section-intro">
+            <h3 className="section-title">Basic Information</h3>
+            <p>These core details appear on your profile card when employers view your application.</p>
           </div>
-          <div className="form-group">
-            <label className="form-label">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              className="form-input"
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Phone</label>
-            <input 
-              type="tel" 
-              name="phoneNumber" 
-              value={formData.phoneNumber} 
-              onChange={handleInputChange} 
-              className="form-input" 
-              placeholder="Enter your phone number"
-            />
-          </div>
-          <div className="form-group form-group-full">
-            <label className="form-label">Location</label>
-            <input
-              type="text"
-              name="location"
-              value={formData.location}
-              onChange={handleInputChange}
-              className="form-input"
-              placeholder="City, State/Country"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="form-section">
-        <h3 className="section-title">Professional Information</h3>
-        <p>Craft a compelling professional summary to make a memorable first impression.</p>
-        <div className="form-group">
-          <label className="form-label">Professional Title</label>
-          <input
-            type="text"
-            name="title"
-            value={formData.title}
-            onChange={handleInputChange}
-            className="form-input"
-            placeholder="e.g., Software Engineer, Marketing Manager"
-          />
-        </div>
-        <div className="form-group">
-          <label className="form-label">Professional Bio</label>
-          <textarea
-            name="headline"
-            value={formData.headline}
-            onChange={handleInputChange}
-            className="form-textarea"
-            placeholder="Tell employers about yourself, your experience, and what you're looking for..."
-            rows="4"
-          />
-        </div>
-      </div>
-
-      <div className="form-section">
-        <h3 className="section-title">Skills</h3>
-        <p>Add the skills that best represent your expertise. We will sync them instantly.</p>
-        <div className="skills-input-group">
-          <input
-            type="text"
-            value={newSkill}
-            onChange={(e) => setNewSkill(e.target.value)}
-            className="form-input"
-            placeholder="Add a skill"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault()
-                addSkill()
-              }
-            }}
-          />
-          <button type="button" onClick={addSkill} className="btn btn-secondary">
-            Add
-          </button>
-        </div>
-        <div className="skills-list">
-          {formData.skills.map((skill, index) => (
-            <span key={index} className="skill-tag">
-              {skill}
-              <button type="button" onClick={() => removeSkill(skill)} className="skill-remove">
-                ×
-              </button>
-            </span>
-          ))}
-        </div>
-      </div>
-
-      <div className="form-section">
-        <h3 className="section-title">Experience</h3>
-        <p>Highlight your most recent experience to improve job match accuracy.</p>
-        <div className="form-grid">
-          <div className="form-group">
-            <label className="form-label checkbox-label">
+          <div className="form-grid">
+            <div className="form-group form-group-full">
+              <label className="form-label">Full Name</label>
               <input
-                type="checkbox"
-                name="isExperienced"
-                checked={formData.experience.isExperienced || false}
-                onChange={handleExperienceChange}
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                className="form-input"
+                required
+                placeholder="Enter your full name"
               />
-              I have work experience
-            </label>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Email</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                className="form-input"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Phone</label>
+              <input
+                type="tel"
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handleInputChange}
+                className="form-input"
+                placeholder="Enter your phone number"
+              />
+            </div>
+            <div className="form-group form-group-full">
+              <label className="form-label">Location</label>
+              <input
+                type="text"
+                name="location"
+                value={formData.location}
+                onChange={handleInputChange}
+                className="form-input"
+                placeholder="City, State/Country"
+              />
+            </div>
           </div>
-          {formData.experience.isExperienced && (
-            <>
-              <div className="form-group">
-                <label className="form-label">Role/Position</label>
-                <input
-                  type="text"
-                  name="role"
-                  value={formData.experience.role || ""}
-                  onChange={handleExperienceChange}
-                  className="form-input"
-                  placeholder="e.g., Software Developer"
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Company</label>
-                <input
-                  type="text"
-                  name="company"
-                  value={formData.experience.company || ""}
-                  onChange={handleExperienceChange}
-                  className="form-input"
-                  placeholder="Company name"
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Years of Experience</label>
-                <input
-                  type="number"
-                  name="yearsOfExperience"
-                  value={formData.experience.yearsOfExperience || 0}
-                  onChange={handleExperienceChange}
-                  className="form-input"
-                  min="0"
-                />
-              </div>
-            </>
-          )}
         </div>
-      </div>
 
-      <div className="form-section">
-        <h3 className="section-title">Education</h3>
-        <p>Share your education background to complete your profile insights.</p>
-        <div className="form-grid">
+        <div className="form-section">
+          <div className="section-intro">
+            <h3 className="section-title">Professional Story</h3>
+            <p>Set the tone with a title and short introduction recruiters can skim quickly.</p>
+          </div>
           <div className="form-group">
-            <label className="form-label">Degree</label>
+            <label className="form-label">Professional Title</label>
             <input
               type="text"
-              name="degree"
-              value={formData.education.degree || ""}
-              onChange={handleEducationChange}
+              name="title"
+              value={formData.title}
+              onChange={handleInputChange}
               className="form-input"
-              placeholder="e.g., Bachelor of Science"
+              placeholder="e.g., Software Engineer, Marketing Manager"
             />
           </div>
           <div className="form-group">
-            <label className="form-label">Institution</label>
+            <label className="form-label">Professional Bio</label>
+            <textarea
+              name="headline"
+              value={formData.headline}
+              onChange={handleInputChange}
+              className="form-textarea"
+              placeholder="Summarize your experience, specialties, and what you're exploring next..."
+              rows="4"
+            />
+          </div>
+        </div>
+
+        <div className="form-section">
+          <div className="section-intro">
+            <h3 className="section-title">Skills &amp; Tools</h3>
+            <p>Spotlight the capabilities you want to be matched on. Add as many as you need.</p>
+          </div>
+          <div className="skills-input-group">
             <input
               type="text"
-              name="institution"
-              value={formData.education.institution || ""}
-              onChange={handleEducationChange}
+              value={newSkill}
+              onChange={(e) => setNewSkill(e.target.value)}
               className="form-input"
-              placeholder="University or school name"
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Graduation Year</label>
-            <input
-              type="number"
-              name="graduationYear"
-              value={formData.education.graduationYear || ""}
-              onChange={handleEducationChange}
-              className="form-input"
-              placeholder="e.g., 2023"
-              min="1900"
-              max="2030"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="form-section">
-        <h3 className="section-title">File Uploads</h3>
-        <p>Upload an up-to-date resume and a friendly profile photo for employers.</p>
-        <div className="form-grid">
-          <div className="form-group">
-            <label className="form-label">Resume Upload</label>
-            <FileUpload
-              onFileSelect={(file) => {
-                console.log("Resume file selected:", file);
-                handleResumeSelection(file);
+              placeholder="Add a skill"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault()
+                  addSkill()
+                }
               }}
-              accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-              maxSize={5 * 1024 * 1024} // 5MB
-              label="Upload Resume"
-              description="PDF, DOC, or DOCX files only (max 5MB)"
             />
-            {resumeFile && (
-              <p className="file-selected">
-                Selected: {resumeFile.name} ({(resumeFile.size / 1024 / 1024).toFixed(2)} MB)
-              </p>
-            )}
-            {!resumeFile && candidate?.resumeFileName && (
-              <p className="file-selected">
-                Current on file: {candidate.resumeFileName}
-              </p>
-            )}
-            {resumePreviewUrl && (
-              <a href={resumePreviewUrl} target="_blank" rel="noreferrer" className="resume-preview-chip">
-                Preview newly selected resume
-              </a>
-            )}
+            <button type="button" onClick={addSkill} className="btn btn-secondary">
+              Add
+            </button>
           </div>
-          <div className="form-group">
-            <label className="form-label">Profile Picture</label>
-            <FileUpload
-              onFileSelect={(file) => {
-                console.log("Profile picture selected:", file);
-                handleProfilePictureSelection(file);
-              }}
-              accept="image/*,.jpg,.jpeg,.png,.gif"
-              maxSize={2 * 1024 * 1024} // 2MB
-              label="Upload Profile Picture"
-              description="JPG, PNG, or GIF files only (max 2MB)"
-            />
-            {profilePictureFile && (
-              <p className="file-selected">
-                Selected: {profilePictureFile.name} ({(profilePictureFile.size / 1024 / 1024).toFixed(2)} MB)
-              </p>
-            )}
-            {!profilePictureFile && existingProfilePicture && (
-              <p className="file-selected">Current photo is already uploaded.</p>
-            )}
-            {(profilePicturePreviewUrl || existingProfilePicture) && (
-              <div className="profile-picture-preview">
-                <img src={profilePicturePreviewUrl || existingProfilePicture} alt="Profile preview" />
-                <span>{profilePicturePreviewUrl ? "Preview" : "Current photo"}</span>
-              </div>
+          <div className="skills-list">
+            {formData.skills.map((skill, index) => (
+              <span key={index} className="skill-tag">
+                {skill}
+                <button type="button" onClick={() => removeSkill(skill)} className="skill-remove">
+                  ×
+                </button>
+              </span>
+            ))}
+            {formData.skills.length === 0 && (
+              <span className="empty-state">No skills added yet. Start with your strongest tools or soft skills.</span>
             )}
           </div>
         </div>
-      </div>
 
-      <div className="form-section">
-        <h3 className="section-title">Links & Portfolio</h3>
-        <p>Provide optional links so employers can explore your work.</p>
-        <div className="form-grid">
-          <div className="form-group">
-            <label className="form-label">LinkedIn URL</label>
-            <input
-              type="url"
-              name="linkedin"
-              value={formData.linkedin}
-              onChange={handleInputChange}
-              className="form-input"
-              placeholder="https://www.linkedin.com/in/username"
-            />
+        <div className="form-section">
+          <div className="section-intro">
+            <h3 className="section-title">Experience Snapshot</h3>
+            <p>Sharing your latest experience helps us surface more relevant opportunities.</p>
           </div>
-          <div className="form-group">
-            <label className="form-label">GitHub URL</label>
-            <input
-              type="url"
-              name="github"
-              value={formData.github}
-              onChange={handleInputChange}
-              className="form-input"
-              placeholder="https://github.com/username"
-            />
+          <div className="form-grid">
+            <div className="form-group">
+              <label className="form-label checkbox-label">
+                <input
+                  type="checkbox"
+                  name="isExperienced"
+                  checked={formData.experience.isExperienced || false}
+                  onChange={handleExperienceChange}
+                />
+                I have work experience
+              </label>
+            </div>
+            {formData.experience.isExperienced && (
+              <>
+                <div className="form-group">
+                  <label className="form-label">Role/Position</label>
+                  <input
+                    type="text"
+                    name="role"
+                    value={formData.experience.role || ""}
+                    onChange={handleExperienceChange}
+                    className="form-input"
+                    placeholder="e.g., Software Developer"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Company</label>
+                  <input
+                    type="text"
+                    name="company"
+                    value={formData.experience.company || ""}
+                    onChange={handleExperienceChange}
+                    className="form-input"
+                    placeholder="Company name"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Years of Experience</label>
+                  <input
+                    type="number"
+                    name="yearsOfExperience"
+                    value={formData.experience.yearsOfExperience || 0}
+                    onChange={handleExperienceChange}
+                    className="form-input"
+                    min="0"
+                  />
+                </div>
+              </>
+            )}
           </div>
-          <div className="form-group form-group-full">
-            <label className="form-label">Portfolio or Website</label>
-            <input
-              type="url"
-              name="portfolio"
-              value={formData.portfolio}
-              onChange={handleInputChange}
-              className="form-input"
-              placeholder="https://your-portfolio.com"
-            />
+        </div>
+
+        <div className="form-section">
+          <div className="section-intro">
+            <h3 className="section-title">Education</h3>
+            <p>Give context about your academic background or certifications.</p>
+          </div>
+          <div className="form-grid">
+            <div className="form-group">
+              <label className="form-label">Degree</label>
+              <input
+                type="text"
+                name="degree"
+                value={formData.education.degree || ""}
+                onChange={handleEducationChange}
+                className="form-input"
+                placeholder="e.g., Bachelor of Science"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Institution</label>
+              <input
+                type="text"
+                name="institution"
+                value={formData.education.institution || ""}
+                onChange={handleEducationChange}
+                className="form-input"
+                placeholder="University or school name"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Graduation Year</label>
+              <input
+                type="number"
+                name="graduationYear"
+                value={formData.education.graduationYear || ""}
+                onChange={handleEducationChange}
+                className="form-input"
+                placeholder="e.g., 2023"
+                min="1900"
+                max="2030"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="form-section form-section--full upload-section">
+          <div className="section-intro">
+            <h3 className="section-title">File Uploads</h3>
+            <p>Keep documents fresh so recruiters can download the latest version instantly.</p>
+          </div>
+          <div className="form-grid">
+            <div className="form-group">
+              <label className="form-label">Resume Upload</label>
+              <FileUpload
+                onFileSelect={(file) => {
+                  console.log("Resume file selected:", file);
+                  handleResumeSelection(file);
+                }}
+                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                maxSize={5 * 1024 * 1024} // 5MB
+                label="Upload Resume"
+                description="PDF, DOC, or DOCX files only (max 5MB)"
+              />
+              {resumeFile && (
+                <p className="file-selected">
+                  Selected: {resumeFile.name} ({(resumeFile.size / 1024 / 1024).toFixed(2)} MB)
+                </p>
+              )}
+              {!resumeFile && candidate?.resumeFileName && (
+                <p className="file-selected">
+                  Current on file: {candidate.resumeFileName}
+                </p>
+              )}
+              {resumePreviewUrl && (
+                <a href={resumePreviewUrl} target="_blank" rel="noreferrer" className="resume-preview-chip">
+                  Preview newly selected resume
+                </a>
+              )}
+            </div>
+            <div className="form-group">
+              <label className="form-label">Profile Picture</label>
+              <FileUpload
+                onFileSelect={(file) => {
+                  console.log("Profile picture selected:", file);
+                  handleProfilePictureSelection(file);
+                }}
+                accept="image/*,.jpg,.jpeg,.png,.gif"
+                maxSize={2 * 1024 * 1024} // 2MB
+                label="Upload Profile Picture"
+                description="JPG, PNG, or GIF files only (max 2MB)"
+              />
+              {profilePictureFile && (
+                <p className="file-selected">
+                  Selected: {profilePictureFile.name} ({(profilePictureFile.size / 1024 / 1024).toFixed(2)} MB)
+                </p>
+              )}
+              {!profilePictureFile && existingProfilePicture && (
+                <p className="file-selected">Current photo is already uploaded.</p>
+              )}
+              {(profilePicturePreviewUrl || existingProfilePicture) && (
+                <div className="profile-picture-preview">
+                  <img src={profilePicturePreviewUrl || existingProfilePicture} alt="Profile preview" />
+                  <span>{profilePicturePreviewUrl ? "Preview" : "Current photo"}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="form-section form-section--full">
+          <div className="section-intro">
+            <h3 className="section-title">Links &amp; Portfolio</h3>
+            <p>These optional links let hiring teams explore more of your work.</p>
+          </div>
+          <div className="form-grid">
+            <div className="form-group">
+              <label className="form-label">LinkedIn URL</label>
+              <input
+                type="url"
+                name="linkedin"
+                value={formData.linkedin}
+                onChange={handleInputChange}
+                className="form-input"
+                placeholder="https://www.linkedin.com/in/username"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">GitHub URL</label>
+              <input
+                type="url"
+                name="github"
+                value={formData.github}
+                onChange={handleInputChange}
+                className="form-input"
+                placeholder="https://github.com/username"
+              />
+            </div>
+            <div className="form-group form-group-full">
+              <label className="form-label">Portfolio or Website</label>
+              <input
+                type="url"
+                name="portfolio"
+                value={formData.portfolio}
+                onChange={handleInputChange}
+                className="form-input"
+                placeholder="https://your-portfolio.com"
+              />
+            </div>
           </div>
         </div>
       </div>

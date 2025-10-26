@@ -21,11 +21,8 @@ api.interceptors.response.use(
   (error) => {
     if (error.response) {
       const status = error.response.status;
-
       if (status === 401 || status === 403) {
-        console.error("🚫 Unauthorized / Forbidden - redirecting to login...");
-        localStorage.clear();
-        window.location.href = "/login";
+        console.warn("🚫 Job service request rejected:", status, error.response.data);
       }
     }
     return Promise.reject(error);
