@@ -1,12 +1,19 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import FileUpload from "./FileUpload"
 import "../base.css"
 import "../buttons.css"
 import "./ProfileSetupForm.css"
 
-export default function ProfileSetupForm({ candidate, onUpdate }) {
+const noop = () => {}
+
+export default function ProfileSetupForm({
+  candidate,
+  onUpdate,
+  onResumeSelected = noop,
+  onProfilePictureSelected = noop
+}) {
   const [formData, setFormData] = useState({
     name: candidate?.name || "",
     email: candidate?.email || "",
@@ -36,6 +43,13 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
   const [isLoading, setIsLoading] = useState(false)
   const [resumeFile, setResumeFile] = useState(null)
   const [profilePictureFile, setProfilePictureFile] = useState(null)
+  const [resumePreviewUrl, setResumePreviewUrl] = useState("")
+  const [profilePicturePreviewUrl, setProfilePicturePreviewUrl] = useState("")
+  const resumeSourceLabel = resumeFile?.name || candidate?.resumeFileName || ""
+  const truncatedResumeLabel = resumeSourceLabel.length > 32 ? `${resumeSourceLabel.slice(0, 29)}...` : resumeSourceLabel
+  const skillsCount = formData.skills.length
+  const hasResumeOnFile = Boolean(resumeSourceLabel)
+  const existingProfilePicture = candidate?.profilePictureUrl
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -98,6 +112,49 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
     }
   }
 
+  useEffect(() => () => {
+    if (resumePreviewUrl) {
+      URL.revokeObjectURL(resumePreviewUrl)
+    }
+    if (profilePicturePreviewUrl) {
+      URL.revokeObjectURL(profilePicturePreviewUrl)
+    }
+  }, [resumePreviewUrl, profilePicturePreviewUrl])
+
+  const handleResumeSelection = (file) => {
+    if (resumePreviewUrl) {
+      URL.revokeObjectURL(resumePreviewUrl)
+      setResumePreviewUrl("")
+    }
+
+    if (file) {
+      const previewUrl = URL.createObjectURL(file)
+      setResumePreviewUrl(previewUrl)
+      onResumeSelected({ file, previewUrl, fileName: file.name })
+    } else {
+      onResumeSelected(null)
+    }
+
+    setResumeFile(file)
+  }
+
+  const handleProfilePictureSelection = (file) => {
+    if (profilePicturePreviewUrl) {
+      URL.revokeObjectURL(profilePicturePreviewUrl)
+      setProfilePicturePreviewUrl("")
+    }
+
+    if (file) {
+      const previewUrl = URL.createObjectURL(file)
+      setProfilePicturePreviewUrl(previewUrl)
+      onProfilePictureSelected({ file, previewUrl, fileName: file.name })
+    } else {
+      onProfilePictureSelected(null)
+    }
+
+    setProfilePictureFile(file)
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -150,6 +207,16 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
       // Reset file states
       setResumeFile(null);
       setProfilePictureFile(null);
+      if (resumePreviewUrl) {
+        URL.revokeObjectURL(resumePreviewUrl)
+        setResumePreviewUrl("")
+      }
+      if (profilePicturePreviewUrl) {
+        URL.revokeObjectURL(profilePicturePreviewUrl)
+        setProfilePicturePreviewUrl("")
+      }
+      onResumeSelected(null)
+      onProfilePictureSelected(null)
       
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -161,8 +228,21 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
 
   return (
     <form className="profile-form" onSubmit={handleSubmit}>
+      <div className="profile-form-header">
+        <div>
+          <h2>Candidate Profile Setup</h2>
+          <p>Keep your information current so recruiters can get in touch faster.</p>
+        </div>
+        <div className="profile-form-header-meta">
+          <span className="profile-form-badge">{skillsCount} skill{skillsCount === 1 ? "" : "s"}</span>
+          <span className={`profile-form-badge ${hasResumeOnFile ? "is-success" : "is-warning"}`}>
+            {hasResumeOnFile ? `Resume: ${truncatedResumeLabel}` : "Resume not uploaded"}
+          </span>
+        </div>
+      </div>
       <div className="form-section">
         <h3 className="section-title">Basic Information</h3>
+        <p>These details are visible to employers when they review your profile.</p>
         <div className="form-grid">
           <div className="form-group form-group-full">
             <label className="form-label">Full Name</label>
@@ -214,6 +294,7 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
 
       <div className="form-section">
         <h3 className="section-title">Professional Information</h3>
+        <p>Craft a compelling professional summary to make a memorable first impression.</p>
         <div className="form-group">
           <label className="form-label">Professional Title</label>
           <input
@@ -240,6 +321,7 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
 
       <div className="form-section">
         <h3 className="section-title">Skills</h3>
+        <p>Add the skills that best represent your expertise. We will sync them instantly.</p>
         <div className="skills-input-group">
           <input
             type="text"
@@ -247,7 +329,12 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
             onChange={(e) => setNewSkill(e.target.value)}
             className="form-input"
             placeholder="Add a skill"
-            onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addSkill())}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault()
+                addSkill()
+              }
+            }}
           />
           <button type="button" onClick={addSkill} className="btn btn-secondary">
             Add
@@ -267,6 +354,7 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
 
       <div className="form-section">
         <h3 className="section-title">Experience</h3>
+        <p>Highlight your most recent experience to improve job match accuracy.</p>
         <div className="form-grid">
           <div className="form-group">
             <label className="form-label checkbox-label">
@@ -321,6 +409,7 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
 
       <div className="form-section">
         <h3 className="section-title">Education</h3>
+        <p>Share your education background to complete your profile insights.</p>
         <div className="form-grid">
           <div className="form-group">
             <label className="form-label">Degree</label>
@@ -362,13 +451,14 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
 
       <div className="form-section">
         <h3 className="section-title">File Uploads</h3>
+        <p>Upload an up-to-date resume and a friendly profile photo for employers.</p>
         <div className="form-grid">
           <div className="form-group">
             <label className="form-label">Resume Upload</label>
             <FileUpload
               onFileSelect={(file) => {
                 console.log("Resume file selected:", file);
-                setResumeFile(file);
+                handleResumeSelection(file);
               }}
               accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               maxSize={5 * 1024 * 1024} // 5MB
@@ -380,13 +470,23 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
                 Selected: {resumeFile.name} ({(resumeFile.size / 1024 / 1024).toFixed(2)} MB)
               </p>
             )}
+            {!resumeFile && candidate?.resumeFileName && (
+              <p className="file-selected">
+                Current on file: {candidate.resumeFileName}
+              </p>
+            )}
+            {resumePreviewUrl && (
+              <a href={resumePreviewUrl} target="_blank" rel="noreferrer" className="resume-preview-chip">
+                Preview newly selected resume
+              </a>
+            )}
           </div>
           <div className="form-group">
             <label className="form-label">Profile Picture</label>
             <FileUpload
               onFileSelect={(file) => {
                 console.log("Profile picture selected:", file);
-                setProfilePictureFile(file);
+                handleProfilePictureSelection(file);
               }}
               accept="image/*,.jpg,.jpeg,.png,.gif"
               maxSize={2 * 1024 * 1024} // 2MB
@@ -398,13 +498,57 @@ export default function ProfileSetupForm({ candidate, onUpdate }) {
                 Selected: {profilePictureFile.name} ({(profilePictureFile.size / 1024 / 1024).toFixed(2)} MB)
               </p>
             )}
+            {!profilePictureFile && existingProfilePicture && (
+              <p className="file-selected">Current photo is already uploaded.</p>
+            )}
+            {(profilePicturePreviewUrl || existingProfilePicture) && (
+              <div className="profile-picture-preview">
+                <img src={profilePicturePreviewUrl || existingProfilePicture} alt="Profile preview" />
+                <span>{profilePicturePreviewUrl ? "Preview" : "Current photo"}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       <div className="form-section">
         <h3 className="section-title">Links & Portfolio</h3>
-        
+        <p>Provide optional links so employers can explore your work.</p>
+        <div className="form-grid">
+          <div className="form-group">
+            <label className="form-label">LinkedIn URL</label>
+            <input
+              type="url"
+              name="linkedin"
+              value={formData.linkedin}
+              onChange={handleInputChange}
+              className="form-input"
+              placeholder="https://www.linkedin.com/in/username"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">GitHub URL</label>
+            <input
+              type="url"
+              name="github"
+              value={formData.github}
+              onChange={handleInputChange}
+              className="form-input"
+              placeholder="https://github.com/username"
+            />
+          </div>
+          <div className="form-group form-group-full">
+            <label className="form-label">Portfolio or Website</label>
+            <input
+              type="url"
+              name="portfolio"
+              value={formData.portfolio}
+              onChange={handleInputChange}
+              className="form-input"
+              placeholder="https://your-portfolio.com"
+            />
+          </div>
+        </div>
       </div>
 
       <div className="form-actions">
