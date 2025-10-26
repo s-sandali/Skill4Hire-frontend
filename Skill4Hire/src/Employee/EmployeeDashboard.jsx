@@ -13,8 +13,6 @@ import CandidateDetailsModal from "./CandidateDetailsModal";
 import { authService } from "../services/authService";
 import { employeeService } from "../services/employeeService";
 
-import "../Candidate/base.css";
-import "../Candidate/buttons.css";
 import "./EmployeeDashboard.css";
 
 const EmployeeDashboard = () => {

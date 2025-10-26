@@ -1,21 +1,84 @@
 .profile-form {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.75rem;
+  padding: 1.75rem;
+  background: transparent;
+}
+
+.profile-form-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: linear-gradient(120deg, rgba(59, 130, 246, 0.95), rgba(124, 58, 237, 0.95));
+  border-radius: 1.1rem;
+  padding: 1.4rem 1.6rem;
+  color: #ffffff;
+  box-shadow: var(--shadow-md);
+}
+
+.profile-form-header h2 {
+  font-size: 1.45rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+
+.profile-form-header p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.profile-form-header-meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.profile-form-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+.profile-form-badge.is-warning {
+  background: rgba(248, 113, 113, 0.22);
+}
+
+.profile-form-badge.is-success {
+  background: rgba(74, 222, 128, 0.22);
 }
 
 .form-section {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.5rem;
-  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 1rem;
+  padding: 1.45rem 1.6rem;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
 .section-title {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 600;
-  margin-bottom: 1rem;
+  margin: 0;
+}
+
+.section-title + p {
+  margin-top: -0.5rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
 }
 
 .form-grid {
@@ -93,4 +156,17 @@
 .form-actions {
   display: flex;
   justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+@media (max-width: 768px) {
+  .profile-form {
+    padding: 1.25rem;
+  }
+
+  .profile-form-header {
+    padding: 1.2rem;
+  }
 }
