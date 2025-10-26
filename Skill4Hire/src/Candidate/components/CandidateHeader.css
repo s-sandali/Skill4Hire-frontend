@@ -1,4 +1,4 @@
-/* CandidateHeader Component Styles */
+﻿/* CandidateHeader Component Styles */
 
 .header {
   background: linear-gradient(135deg, var(--card-bg) 0%, var(--light-bg) 100%);
@@ -95,3 +95,15 @@
   border-radius: 50%;
   object-fit: cover;
 }
+
+
+/* Notification badge on bell */
+.header-bell { position: relative; }
+.header-bell .notification-dot {
+  position: absolute; top: -4px; right: -4px;
+  background: var(--primary-accent); color: var(--text-inverse);
+  border-radius: 999px; height: 16px; min-width: 16px;
+  font-size: 10px; line-height: 16px; text-align: center; padding: 0 4px;
+  border: 1px solid var(--background-color);
+}
+

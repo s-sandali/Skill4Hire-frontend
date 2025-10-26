@@ -1,4 +1,4 @@
-import apiClient from '../utils/axiosConfig';
+﻿import apiClient from '../utils/axiosConfig';
 
 export const candidateService = {
   // Profile Management
@@ -121,7 +121,7 @@ export const candidateService = {
     }
   },
 
-  // Notifications (unchanged)
+  // Notifications
   getNotifications: async () => {
     try {
       const response = await apiClient.get('/api/candidates/notifications');
@@ -137,6 +137,24 @@ export const candidateService = {
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Failed to mark notification as read');
+    }
+  },
+
+  markAllNotificationsAsRead: async () => {
+    try {
+      const response = await apiClient.patch('/api/candidates/notifications/read-all');
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to mark all as read');
+    }
+  },
+
+  deleteNotification: async (notificationId) => {
+    try {
+      const response = await apiClient.delete(`/api/candidates/notifications/${notificationId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to delete notification');
     }
   }
 };

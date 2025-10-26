@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { FiMenu, FiSearch, FiBell, FiMessageCircle, FiLogOut } from "react-icons/fi"
 import { useNavigate } from "react-router-dom"
@@ -7,7 +7,7 @@ import { authService } from "../../services/authService"
 import "../base.css"
 import "./CandidateHeader.css"
 
-export default function CandidateHeader({ onMenuClick }) {
+export default function CandidateHeader({ onMenuClick, onNotificationsClick, unreadCount = 0 }) {
   const navigate = useNavigate()
   const [candidate, setCandidate] = useState(null)
 
@@ -56,8 +56,9 @@ export default function CandidateHeader({ onMenuClick }) {
           <input type="text" placeholder="Search jobs, companies..." className="search-input" />
         </div>
         <div className="header-actions">
-          <button className="header-btn">
+          <button className="header-btn header-bell" onClick={onNotificationsClick} title="Notifications">
             <FiBell size={18} />
+            {unreadCount > 0 && (<span className="notification-dot">{unreadCount > 99 ? '99+' : unreadCount}</span>)}
           </button>
           <button className="header-btn">
             <FiMessageCircle size={18} />
@@ -73,3 +74,4 @@ export default function CandidateHeader({ onMenuClick }) {
     </header>
   )
 }
+

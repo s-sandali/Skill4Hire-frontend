@@ -1,0 +1,94 @@
+﻿/* Candidate Notifications Panel */
+.modal {
+  background: linear-gradient(135deg, var(--card-bg), var(--light-bg));
+  border: 1px solid var(--divider-border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-xl);
+  max-width: 640px;
+  width: 92%;
+  max-height: 80vh;
+  overflow: hidden;
+}
+
+.modal-body { padding: 1rem; }
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--divider-border);
+}
+
+.modal-header h3 { margin: 0; }
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.close-btn {
+  background: none;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  font-size: 1.35rem;
+  cursor: pointer;
+  padding: .25rem;
+  border-radius: 8px;
+}
+.close-btn:hover { border-color: var(--divider-border); }
+
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  background: var(--card-bg);
+  border: 1px solid var(--divider-border);
+  border-radius: 12px;
+  padding: .85rem;
+}
+.notification-item.unread { border-color: var(--primary-accent); }
+
+.notification-content { max-width: 78%; }
+.notification-message { font-weight: 600; margin-bottom: .25rem; }
+.notification-meta { font-size: .82rem; color: var(--text-muted); display: flex; gap: .5rem; }
+
+.btn-icon {
+  background: transparent;
+  border: 1px solid var(--divider-border);
+  color: var(--text-secondary);
+  border-radius: 10px;
+  width: 36px; height: 36px;
+  display: grid; place-items: center;
+  cursor: pointer;
+}
+.btn-icon:hover { border-color: var(--primary-accent); color: var(--primary-accent); }
+
+/* Small badge for bell in header */
+.header-bell { position: relative; }
+.header-bell .notification-dot {
+  position: absolute;
+  top: -2px; right: -2px;
+  background: var(--primary-accent);
+  color: var(--text-inverse);
+  border-radius: 999px;
+  height: 16px; min-width: 16px;
+  font-size: 10px; line-height: 16px;
+  text-align: center;
+  padding: 0 4px;
+  border: 1px solid var(--background-color);
+}
+
+.notification-badge{display:inline-block;background:var(--primary-accent);color:var(--text-inverse);border-radius:999px;padding:0 8px;line-height:20px;height:20px;font-size:12px;border:1px solid var(--divider-border);}
+.btn-icon.danger{border-color:#ff6b6b;color:#ff6b6b;} .btn-icon.danger:hover{background:rgba(255,107,107,.1);}
