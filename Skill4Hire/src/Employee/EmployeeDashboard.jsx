@@ -10,6 +10,7 @@ import EmployeeHome from "./EmployeeHome";
 import EmployeeProfile from "./EmployeeProfile";
 import RecommendationModal from "./RecommendationModal";
 import CandidateDetailsModal from "./CandidateDetailsModal";
+import EmployeeNotificationPanel from "./EmployeeNotificationPanel";
 import { authService } from "../services/authService";
 import { employeeService } from "../services/employeeService";
 
@@ -48,6 +49,9 @@ const EmployeeDashboard = () => {
   const [jobRecs, setJobRecs] = useState([]);
   const [jobRecsLoading, setJobRecsLoading] = useState(false);
   const [jobRecsError, setJobRecsError] = useState("");
+  // Notification states
+  const [notificationPanelOpen, setNotificationPanelOpen] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
 
   const goToProfile = () => setActiveTab("profile");
   const goToDashboard = () => setActiveTab("dashboard");
@@ -86,6 +90,16 @@ const EmployeeDashboard = () => {
       setProfileCompleteness(0);
     } finally {
       setLoadingCompleteness(false);
+    }
+  }, []);
+
+  // Fetch notification count
+  const fetchNotificationCount = useCallback(async () => {
+    try {
+      const data = await employeeService.getUnreadNotificationCount();
+      setNotificationCount(data?.unreadCount || 0);
+    } catch (error) {
+      console.error('Error fetching notification count:', error);
     }
   }, []);
 
@@ -150,7 +164,14 @@ const EmployeeDashboard = () => {
   useEffect(() => {
     fetchEmployeeProfile();
     fetchProfileCompleteness();
-  }, [fetchEmployeeProfile, fetchProfileCompleteness]);
+    fetchNotificationCount();
+  }, [fetchEmployeeProfile, fetchProfileCompleteness, fetchNotificationCount]);
+
+  // Refresh notification count periodically
+  useEffect(() => {
+    const interval = setInterval(fetchNotificationCount, 30000);
+    return () => clearInterval(interval);
+  }, [fetchNotificationCount]);
 
   useEffect(() => {
     if (activeTab === 'candidates') {
@@ -284,6 +305,19 @@ const EmployeeDashboard = () => {
     margin: "0 auto .75rem",
   };
 
+  // Get current page title
+  const getPageTitle = () => {
+    switch (activeTab) {
+      case "home": return "Home";
+      case "dashboard": return "Dashboard";
+      case "profile": return "My Profile";
+      case "candidates": return "Candidates";
+      case "jobs": return "Job Postings";
+      case "recommendations": return "My Recommendations";
+      default: return "Employee Dashboard";
+    }
+  };
+
   return (
       <div className="employee-dashboard">
         {/* Sidebar */}
@@ -308,14 +342,34 @@ const EmployeeDashboard = () => {
             <button className={`nav-item ${activeTab==="recommendations" ? "active":""}`} onClick={() => setActiveTab("recommendations")}>
               <RiThumbUpLine /> My Recommendations
             </button>
+
+            {/* Notification Button in Sidebar */}
+            <button
+                className={`nav-item ${notificationPanelOpen ? "active" : ""}`}
+                onClick={() => setNotificationPanelOpen(true)}
+            >
+              <RiNotification3Line />
+              Notifications
+              {notificationCount > 0 && (
+                  <span className="notification-sidebar-badge">{notificationCount}</span>
+              )}
+            </button>
           </nav>
           <button className="logout-btn" onClick={handleLogout}>
             <RiLogoutBoxLine /> Logout
           </button>
         </aside>
 
-        {/* Main */}
+        {/* Main Content Area */}
         <main className="dashboard-main">
+          {/* Page Title Header - Simple and Clean */}
+          <div className="page-header">
+            <h1 className="page-title">{getPageTitle()}</h1>
+            {employeeData?.name && (
+                <div className="welcome-text">Welcome, {employeeData.name}</div>
+            )}
+          </div>
+
           {activeTab === "home" && (
               <EmployeeHome
                   employee={employeeData}
@@ -422,6 +476,12 @@ const EmployeeDashboard = () => {
                         className="btn btn-secondary"
                     >
                       <RiRefreshLine /> Refresh Metrics
+                    </button>
+                    <button
+                        onClick={fetchNotificationCount}
+                        className="btn btn-secondary"
+                    >
+                      <RiRefreshLine /> Refresh Notifications
                     </button>
                   </div>
                 </div>
@@ -573,8 +633,8 @@ const EmployeeDashboard = () => {
                                     <RiEyeLine /> View Details
                                   </button>
                                   <button
-                                    className="btn-refresh"
-                                    onClick={() => openJobRecommendations(job)}
+                                      className="btn-refresh"
+                                      onClick={() => openJobRecommendations(job)}
                                   >
                                     <RiThumbUpLine /> View Recommendations
                                   </button>
@@ -641,66 +701,72 @@ const EmployeeDashboard = () => {
 
         {/* Candidate Details Modal */}
         <CandidateDetailsModal
-          isOpen={candidateDetailsModalOpen}
-          onClose={() => { setCandidateDetailsModalOpen(false); setCandidateDetails(null); }}
-          candidate={candidateDetails}
-          onDownloadCv={() => candidateDetails && handleDownloadCv(candidateDetails.id || candidateDetails.userId)}
-          onRecommend={() => {
-            if (!candidateDetails) return;
-            // Ensure jobs list is available
-            if (!jobs || jobs.length === 0) {
-              fetchJobs().then(() => {
+            isOpen={candidateDetailsModalOpen}
+            onClose={() => { setCandidateDetailsModalOpen(false); setCandidateDetails(null); }}
+            candidate={candidateDetails}
+            onDownloadCv={() => candidateDetails && handleDownloadCv(candidateDetails.id || candidateDetails.userId)}
+            onRecommend={() => {
+              if (!candidateDetails) return;
+              // Ensure jobs list is available
+              if (!jobs || jobs.length === 0) {
+                fetchJobs().then(() => {
+                  setSelectedCandidate(candidateDetails);
+                  setShowRecommendModal(true);
+                  setCandidateDetailsModalOpen(false);
+                });
+              } else {
                 setSelectedCandidate(candidateDetails);
                 setShowRecommendModal(true);
                 setCandidateDetailsModalOpen(false);
-              });
-            } else {
-              setSelectedCandidate(candidateDetails);
-              setShowRecommendModal(true);
-              setCandidateDetailsModalOpen(false);
-            }
-          }}
+              }
+            }}
         />
 
         {/* Job Recommendations Modal */}
         {jobRecsModalOpen && (
-          <div className="modal-overlay" onClick={closeJobRecommendations}>
-            <div className="modal" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header">
-                <h3>Recommendations for: {selectedJobForRecs?.title}</h3>
-                <button className="close-btn" onClick={closeJobRecommendations}>×</button>
-              </div>
-              <div className="modal-body">
-                {jobRecsLoading && <div className="loading-state">Loading...</div>}
-                {!jobRecsLoading && jobRecsError && (
-                  <div className="error-message">{jobRecsError}</div>
-                )}
-                {!jobRecsLoading && !jobRecsError && jobRecs.length === 0 && (
-                  <div className="no-data">No recommendations yet for this job.</div>
-                )}
-                {!jobRecsLoading && !jobRecsError && jobRecs.length > 0 && (
-                  <div className="recommendations-list">
-                    {jobRecs.map((rec, idx) => (
-                      <div key={rec.id || idx} className="recommendation-card">
-                        <div className="rec-header">
-                          <h4>{rec.candidateName || rec.candidate?.name || 'Candidate'}</h4>
-                          {rec.status && (
-                            <span className={`rec-status ${String(rec.status).toLowerCase()}`}>{rec.status}</span>
-                          )}
-                        </div>
-                        <p><strong>Job:</strong> {rec.jobTitle || selectedJobForRecs?.title}</p>
-                        {rec.note && <p><strong>Note:</strong> {rec.note}</p>}
-                        {rec.createdAt && (
-                          <p><strong>Date:</strong> {new Date(rec.createdAt).toLocaleDateString()}</p>
-                        )}
+            <div className="modal-overlay" onClick={closeJobRecommendations}>
+              <div className="modal" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h3>Recommendations for: {selectedJobForRecs?.title}</h3>
+                  <button className="close-btn" onClick={closeJobRecommendations}>×</button>
+                </div>
+                <div className="modal-body">
+                  {jobRecsLoading && <div className="loading-state">Loading...</div>}
+                  {!jobRecsLoading && jobRecsError && (
+                      <div className="error-message">{jobRecsError}</div>
+                  )}
+                  {!jobRecsLoading && !jobRecsError && jobRecs.length === 0 && (
+                      <div className="no-data">No recommendations yet for this job.</div>
+                  )}
+                  {!jobRecsLoading && !jobRecsError && jobRecs.length > 0 && (
+                      <div className="recommendations-list">
+                        {jobRecs.map((rec, idx) => (
+                            <div key={rec.id || idx} className="recommendation-card">
+                              <div className="rec-header">
+                                <h4>{rec.candidateName || rec.candidate?.name || 'Candidate'}</h4>
+                                {rec.status && (
+                                    <span className={`rec-status ${String(rec.status).toLowerCase()}`}>{rec.status}</span>
+                                )}
+                              </div>
+                              <p><strong>Job:</strong> {rec.jobTitle || selectedJobForRecs?.title}</p>
+                              {rec.note && <p><strong>Note:</strong> {rec.note}</p>}
+                              {rec.createdAt && (
+                                  <p><strong>Date:</strong> {new Date(rec.createdAt).toLocaleDateString()}</p>
+                              )}
+                            </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
-          </div>
         )}
+
+        {/* Notification Panel */}
+        <EmployeeNotificationPanel
+            isOpen={notificationPanelOpen}
+            onClose={() => setNotificationPanelOpen(false)}
+        />
       </div>
   );
 };
