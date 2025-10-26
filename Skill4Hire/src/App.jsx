@@ -1,51 +1,44 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import LandingPage from './components/LandingPage.jsx'
-import RoleSelection from './components/RoleSelection.jsx'
-import CandidateRegister from './components/CandidateRegister.jsx'
-import CompanyRegister from './components/CompanyRegister.jsx'
-import EmployeeRegister from './components/EmployeeRegister.jsx'
-import AdminRegister from './components/AdminRegister.jsx'
-import UnifiedLogin from './components/UnifiedLogin.jsx'
-import EmployeeDashboard from './Employee/EmployeeDashboard.jsx'
-import CompanyDashboard from './Company/CompanyDashboard.jsx'
-import AdminDashboard from './Admin/AdminDashboard.jsx'
-import CandidatePage from './Candidate/CandidatePage.jsx';
-import JobPostings from "./Company/JobPostings.jsx";
-import JobForm from "./Company/JobForm.jsx";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import LandingPage from './components/LandingPage.jsx';
+import RoleSelection from './components/RoleSelection.jsx';
+import CandidateRegister from './components/CandidateRegister.jsx';
+import CompanyRegister from './components/CompanyRegister.jsx';
+import EmployeeRegister from './components/EmployeeRegister.jsx';
+import AdminRegister from './components/AdminRegister.jsx';
+import UnifiedLogin from './components/UnifiedLogin.jsx';
+import EmployeeDashboard from './Employee/EmployeeDashboard.jsx';
+import CompanyDashboard from './Company/CompanyDashboard.jsx';
+import AdminDashboard from './Admin/AdminDashboard.jsx';
+import JobPostings from './Company/JobPostings.jsx';
+import JobForm from './Company/JobForm.jsx';
 import CompanyProfilePage from './Company/CompanyProfilePage.jsx';
-import './App.css'
+import CandidateProfileApp from './Candidate/Profile.jsx';
+import './App.css';
 
-
-
+const withMainApp = (element) => <div className="main-app">{element}</div>;
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/role-selection" element={<RoleSelection />} />
-        <Route path="/register/candidate" element={<CandidateRegister />} />
-        <Route path="/register/company" element={<CompanyRegister />} />
-        <Route path="/register/employee" element={<EmployeeRegister />} />
-        <Route path="/register/admin" element={<AdminRegister />} />
-        <Route path="/login" element={<UnifiedLogin />} />
-        <Route path="/employee-dashboard" element={<EmployeeDashboard />} />
-        <Route path="/company-dashboard" element={<CompanyDashboard />} />
-        <Route path="/admin-dashboard" element={<AdminDashboard />} />
-        <Route path="/candidate-home" element={<CandidatePage />} />
-        <Route path="/candidate-dashboard" element={<CandidatePage />} />
-        <Route path="/candidate-profile" element={<CandidatePage />} />
-        <Route path="/candidate-setup" element={<CandidatePage />} />
-        <Route path="/candidate-applications" element={<CandidatePage />} />
-        <Route path="/candidate-jobs" element={<CandidatePage />} />
-        <Route path="/candidate-matches" element={<CandidatePage />} />
-  <Route path="/company-profile" element={<CompanyProfilePage />} />
-         <Route path="/jobs" element={<JobPostings />} />
-        <Route path="/jobs/create" element={<JobForm />} />
-        <Route path="/jobs/edit/:id" element={<JobForm />} />
+        <Route path="/role-selection" element={withMainApp(<RoleSelection />)} />
+        <Route path="/register/candidate" element={withMainApp(<CandidateRegister />)} />
+        <Route path="/register/company" element={withMainApp(<CompanyRegister />)} />
+        <Route path="/register/employee" element={withMainApp(<EmployeeRegister />)} />
+        <Route path="/register/admin" element={withMainApp(<AdminRegister />)} />
+        <Route path="/login" element={withMainApp(<UnifiedLogin />)} />
+        <Route path="/employee-dashboard" element={withMainApp(<EmployeeDashboard />)} />
+        <Route path="/company-dashboard" element={withMainApp(<CompanyDashboard />)} />
+        <Route path="/admin-dashboard" element={withMainApp(<AdminDashboard />)} />
+        <Route path="/company-profile" element={withMainApp(<CompanyProfilePage />)} />
+        <Route path="/jobs" element={withMainApp(<JobPostings />)} />
+        <Route path="/jobs/create" element={withMainApp(<JobForm />)} />
+        <Route path="/jobs/edit/:id" element={withMainApp(<JobForm />)} />
+        <Route path="/candidate" element={<CandidateProfileApp />} />
       </Routes>
     </Router>
-  )
+  );
 }
 
-export default App
+export default App;

@@ -1,12 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
+import "./LandingPage.css";
+
 import { Link } from 'react-router-dom'
 import brainLogo from '../assets/brain-logo.jpg'
-import AtlasLabs from '../assets/AtlasLabs.png';
-import IFS from '../assets/IFS.png';
-import wso2 from '../assets/wso2.png';
-import Codegen from '../assets/Codegen.png';
-import Rizing from '../assets/Rizing.png';
-import sysco from '../assets/sysco.png';
+
 
 
 import { 
@@ -27,14 +24,6 @@ const LandingPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const countersRef = useRef([])
   const hasCountedRef = useRef(false)
-  const companies = [
-    { name: 'AtlasLabs', logo: AtlasLabs },
-    { name: 'IFS', logo: IFS },
-    { name: 'wso2', logo: wso2 },
-    { name: 'Codegen', logo: Codegen },
-    { name: 'Rizing', logo: Rizing },
-    { name: 'sysco', logo: sysco },
-  ];
 
   useEffect(() => {
     const revealEls = document.querySelectorAll('.reveal')
@@ -84,7 +73,7 @@ const LandingPage = () => {
   }, [])
 
   return (
-    <div className="app">
+    <div className="landing-page">
       {/* Navigation */}
       <nav className="navbar">
         <div className="nav-container">
@@ -282,20 +271,7 @@ const LandingPage = () => {
 
       
 
-      {/* Trust Indicators */}
-      <section className="trust reveal" id="trust">
-  <div className="container">
-    <h2 className="section-title">Trusted By</h2>
-    <div className="trust-logos">
-      {companies.map((company, index) => (
-        <div className="trust-logo" key={index} title={company.name}>
-          <img src={company.logo} alt={company.name} loading="lazy" />
-        </div>
-      ))}
-    </div>
-  </div>
-</section>
-
+      
 
       {/* CTA Section */}
       <section className="cta">

@@ -1,61 +1,33 @@
-/* ProfileSetupForm Component Styles */
-
-.profile-form-container {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.profile-form-header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.form-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
-}
-
-.form-description {
-  color: var(--text-secondary);
-  font-size: 1.1rem;
-}
-
 .profile-form {
-  background: linear-gradient(135deg, var(--card-bg) 0%, var(--light-bg) 100%);
-  padding: 2rem;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--divider-border);
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
 .form-section {
-  margin-bottom: 2rem;
-}
-
-.form-section:last-child {
-  margin-bottom: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .section-title {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--primary-accent);
+  margin-bottom: 1rem;
 }
 
 .form-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 1rem;
-  margin-bottom: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .form-group {
-  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 .form-group-full {
@@ -63,46 +35,24 @@
 }
 
 .form-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: var(--text-primary);
-  font-weight: 500;
-}
-
-.form-input,
-.form-textarea {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--divider-border);
-  border-radius: var(--radius);
-  font-size: 1rem;
-  background: var(--background-color);
-  color: var(--text-primary);
-  transition: all 0.3s ease;
-  font-family: var(--font-primary);
-}
-
-.form-input:focus,
-.form-textarea:focus {
-  outline: none;
-  border-color: var(--primary-accent);
-  box-shadow: 0 0 0 3px rgba(0, 207, 234, 0.2);
-  background: var(--card-bg);
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
 }
 
 .form-textarea {
+  min-height: 120px;
   resize: vertical;
-  min-height: 100px;
 }
 
 .skills-input-group {
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
 
 .skills-input-group .form-input {
-  flex: 1;
+  flex: 1 1 200px;
 }
 
 .skills-list {
@@ -112,58 +62,35 @@
 }
 
 .skill-tag {
-  background: linear-gradient(135deg, var(--primary-accent) 0%, var(--highlight-cta) 100%);
-  color: var(--primary-bg);
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius);
-  font-size: 0.875rem;
-  font-weight: 500;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
 .skill-remove {
-  background: none;
+  background: transparent;
   border: none;
-  color: var(--primary-bg);
   cursor: pointer;
-  font-size: 1.2rem;
+  color: var(--text-muted);
+  font-size: 1rem;
   line-height: 1;
-  padding: 0;
-  margin-left: 0.25rem;
 }
 
 .skill-remove:hover {
-  color: var(--error-color);
+  color: var(--danger);
+}
+
+.file-selected {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
 }
 
 .form-actions {
   display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 2rem;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .skills-input-group {
-    flex-direction: column;
-  }
-
-  .form-actions {
-    flex-direction: column;
-  }
-}
-
-/* File Upload Styles */
-.file-selected {
-  color: var(--success-color);
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
-  font-weight: 500;
+  justify-content: flex-end;
 }

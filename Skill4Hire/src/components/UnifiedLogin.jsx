@@ -106,7 +106,7 @@ const UnifiedLogin = () => {
         // Redirect based on role
         switch (response.role) {
           case 'CANDIDATE':
-            navigate('/candidate-home');
+            navigate('/candidate');
             break;
           case 'COMPANY':
             navigate('/company-dashboard');

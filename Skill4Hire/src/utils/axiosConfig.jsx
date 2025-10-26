@@ -1,10 +1,9 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-  baseURL: import.meta.env.DEV
-    ? ''
-    : import.meta.env.VITE_API_BASE_URL || 'https://skill4hire-backend.onrender.com',
-  withCredentials: true,
+  // ✅ For dev mode — use direct backend URL
+  baseURL: import.meta.env.DEV ? 'http://localhost:8080' : 'https://skill4hire-backend.onrender.com',
+  withCredentials: true, // keep this for session cookies
   timeout: 10000,
 });
 
