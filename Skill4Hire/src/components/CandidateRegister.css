@@ -17,6 +17,13 @@
   width: 100%;
   max-width: 500px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  /* Ensure inner elements size predictably */
+  box-sizing: border-box;
+}
+
+/* Make all children use border-box to avoid overflow via padding */
+.register-container * {
+  box-sizing: border-box;
 }
 
 .register-header {
@@ -32,6 +39,8 @@
   margin-bottom: 1.5rem;
 }
 
+/* Actual class used by JSX */
+.register-logo,
 .logo {
   width: 50px;
   height: 50px;
@@ -83,6 +92,33 @@
   font-size: 0.9rem;
 }
 
+/* Inputs as used in JSX (without input-group wrapper) */
+.form-group input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  background: rgba(16, 16, 61, 0.8);
+  border: 1px solid #2D2D5A;
+  border-radius: 12px;
+  color: #FFFFFF;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #4DB8FF;
+  box-shadow: 0 0 0 3px rgba(77, 184, 255, 0.1);
+}
+
+.form-group input::placeholder {
+  color: #888;
+}
+
+.form-group input.error {
+  border-color: #FF6B00;
+  box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
+}
+
 .input-group {
   position: relative;
   display: flex;
@@ -123,9 +159,20 @@
   box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
 }
 
+.password-input-container {
+  position: relative; /* anchor password toggle inside */
+}
+
+/* Add space for the eye icon when not using input-group */
+.password-input-container input {
+  padding-right: 2.75rem;
+}
+
 .password-toggle {
   position: absolute;
   right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
   background: none;
   border: none;
   color: #4DB8FF;
@@ -152,6 +199,51 @@
   cursor: pointer;
   transition: all 0.3s ease;
   margin-top: 1rem;
+}
+
+/* Map actual class names from JSX to existing button styles */
+.submit-btn {
+  background: linear-gradient(135deg, #4DB8FF, #00CFEA);
+  color: #0A0A3D;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+}
+
+.submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(77, 184, 255, 0.3);
+}
+
+.submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: #4DB8FF;
+  border: 1px solid #2D2D5A;
+  padding: 0.875rem 1.25rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  border-color: #4DB8FF;
+  color: #00CFEA;
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -219,6 +311,55 @@
 
 .general-error {
   margin-bottom: 1rem;
+}
+
+/* Section title and icon used in JSX */
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #C9D8FF;
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+}
+
+.section-icon {
+  color: #4DB8FF;
+}
+
+/* Make specific rows span the full width when needed */
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.form-note {
+  color: #97A0C3;
+  font-size: 0.8rem;
+  margin: 0.5rem 0 0 0;
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(10,10,61,0.2);
+  border-top-color: #0A0A3D;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 /* Responsive Design */
