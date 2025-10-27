@@ -1,97 +1,82 @@
-/* FileUpload Component Styles */
-
 .file-upload-container {
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .file-upload-area {
-  border: 2px dashed var(--border-color);
+  border: 2px dashed rgba(37, 99, 235, 0.25);
   border-radius: var(--radius);
-  padding: 2rem;
-  text-align: center;
+  padding: 1.5rem;
+  background: rgba(37, 99, 235, 0.04);
   cursor: pointer;
-  transition: all 0.2s ease;
-  background-color: var(--surface-color);
-}
-
-.file-upload-area:hover {
-  border-color: var(--primary-color);
-  background-color: var(--card-color);
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
 
 .file-upload-area.drag-over {
-  border-color: var(--primary-color);
-  background-color: var(--primary-color);
-  opacity: 0.1;
+  border-color: var(--accent);
+  background: rgba(37, 99, 235, 0.08);
+  transform: translateY(-2px);
 }
 
 .file-upload-area.error {
-  border-color: var(--error-color);
+  border-color: rgba(220, 38, 38, 0.6);
+  background: rgba(220, 38, 38, 0.06);
 }
 
 .file-upload-content {
   display: flex;
-  flex-direction: column;
   align-items: center;
   gap: 1rem;
 }
 
 .file-upload-icon {
-  font-size: 3rem;
-  opacity: 0.6;
+  font-size: 2rem;
+}
+
+.file-upload-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .file-upload-label {
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 0.5rem;
 }
 
 .file-upload-description {
+  font-size: 0.85rem;
   color: var(--text-secondary);
-  font-size: 0.875rem;
 }
 
-.file-upload-error {
-  color: var(--error-color);
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
-  text-align: center;
-}
-
-/* Selected files display */
 .file-upload-selected {
-  margin-top: 0.75rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 0.75rem;
-}
-
-.file-upload-name {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+  flex-wrap: wrap;
 }
 
 .file-upload-list {
   list-style: none;
-  margin: 0;
   padding: 0;
+  margin: 0;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-.file-upload-item {
-  background: var(--card-bg);
-  border: 1px solid var(--divider-border);
+.file-upload-item,
+.file-upload-name {
+  font-size: 0.9rem;
   color: var(--text-secondary);
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.8rem;
 }
 
 .file-upload-clear {
   margin-left: auto;
 }
 
+.file-upload-error {
+  color: var(--danger);
+  font-size: 0.85rem;
+}

@@ -81,8 +81,8 @@ export default function JobMatches() {
           types: Array.isArray(opts?.types) ? opts.types : [],
           locations: Array.isArray(opts?.locations) ? opts.locations : [],
         });
-      } catch (e) {
-        // non-fatal
+      } catch {
+        // non-fatal: filter dropdowns fall back to empty lists
       }
     })();
     return () => { cancelled = true; };
@@ -150,7 +150,9 @@ export default function JobMatches() {
     try {
       await candidateService.applyToJob(jobId);
       setApplyState((prev) => ({ ...prev, [jobId]: { status: 'success' } }));
-      try { window.dispatchEvent(new CustomEvent('applications:changed')); } catch {}
+      try { window.dispatchEvent(new CustomEvent('applications:changed')); } catch {
+        // ignore when running in non-browser contexts (e.g., SSR/tests)
+      }
     } catch (err) {
       setApplyState((prev) => ({
         ...prev,

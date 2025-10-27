@@ -1,62 +1,75 @@
-/* Common Button Styles */
-
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem 1.5rem;
+  gap: 0.5rem;
+  padding: 0.55rem 1.2rem;
+  border-radius: 8px;
   border: none;
-  border-radius: var(--radius);
-  font-size: 0.875rem;
   font-weight: 600;
-  text-decoration: none;
+  font-size: 0.95rem;
   cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 120px;
-  font-family: var(--font-primary);
-  position: relative;
-  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  text-decoration: none;
 }
 
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary-accent) 0%, var(--highlight-cta) 100%);
-  color: var(--primary-bg);
-  box-shadow: var(--shadow-sm);
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.18);
 }
 
 .btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  background: linear-gradient(135deg, var(--highlight-cta) 0%, var(--primary-accent) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(29, 78, 216, 0.24);
 }
 
 .btn-secondary {
-  background: var(--card-bg);
-  color: var(--text-primary);
-  border: 1px solid var(--divider-border);
-  box-shadow: var(--shadow-sm);
+  background: #eef2ff;
+  color: #312e81;
+  border: 1px solid rgba(79, 70, 229, 0.25);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--light-bg);
-  border-color: var(--primary-accent);
+  background: #e0e7ff;
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
 }
 
-.btn-large {
-  padding: 1rem 2rem;
-  font-size: 1rem;
-  min-width: 200px;
+.btn-danger {
+  background: #ef4444;
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(239, 68, 68, 0.2);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #dc2626;
+  transform: translateY(-1px);
 }
 
 .btn-small {
-  padding: 0.5rem 1rem;
-  font-size: 0.75rem;
-  min-width: 80px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+.btn-large {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+}
+
+.btn-link {
+  background: transparent;
+  color: #2563eb;
+  border: none;
+  padding: 0;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
 }

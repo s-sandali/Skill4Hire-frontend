@@ -1,61 +1,126 @@
-/* ProfileSetupForm Component Styles */
 
-.profile-form-container {
-  max-width: 800px;
-  margin: 0 auto;
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem;
+  background: transparent;
 }
 
 .profile-form-header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.form-title {
-  font-size: 2rem;
-  font-weight: 700;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1.1rem;
+  padding: 1.5rem 1.75rem;
   color: var(--text-primary);
-  margin-bottom: 0.5rem;
-}
-
-.form-description {
-  color: var(--text-secondary);
-  font-size: 1.1rem;
-}
-
-.profile-form {
-  background: linear-gradient(135deg, var(--card-bg) 0%, var(--light-bg) 100%);
-  padding: 2rem;
-  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
-  border: 1px solid var(--divider-border);
+}
+
+.profile-form-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.4rem 0;
+}
+
+.profile-form-header p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.profile-form-header-meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.profile-form-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--surface-alt);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.profile-form-badge.is-warning {
+  background: rgba(248, 113, 113, 0.14);
+  color: #b91c1c;
+  border-color: rgba(248, 113, 113, 0.3);
+}
+
+.profile-form-badge.is-success {
+  background: rgba(74, 222, 128, 0.14);
+  color: #047857;
+  border-color: rgba(74, 222, 128, 0.25);
+}
+
+.profile-form-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
 .form-section {
-  margin-bottom: 2rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1.5rem 1.6rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.form-section:last-child {
-  margin-bottom: 0;
+.form-section:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.form-section--full {
+  grid-column: 1 / -1;
+}
+
+.section-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 .section-title {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 600;
+  margin: 0;
   color: var(--text-primary);
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--primary-accent);
+}
+
+.section-intro p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.92rem;
 }
 
 .form-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 1rem;
-  margin-bottom: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .form-group {
-  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 .form-group-full {
@@ -63,46 +128,25 @@
 }
 
 .form-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: var(--text-primary);
-  font-weight: 500;
-}
-
-.form-input,
-.form-textarea {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--divider-border);
-  border-radius: var(--radius);
-  font-size: 1rem;
-  background: var(--background-color);
-  color: var(--text-primary);
-  transition: all 0.3s ease;
-  font-family: var(--font-primary);
-}
-
-.form-input:focus,
-.form-textarea:focus {
-  outline: none;
-  border-color: var(--primary-accent);
-  box-shadow: 0 0 0 3px rgba(0, 207, 234, 0.2);
-  background: var(--card-bg);
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
 }
 
 .form-textarea {
+  min-height: 120px;
   resize: vertical;
-  min-height: 100px;
 }
+
 
 .skills-input-group {
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
 
 .skills-input-group .form-input {
-  flex: 1;
+  flex: 1 1 200px;
 }
 
 .skills-list {
@@ -111,59 +155,89 @@
   gap: 0.5rem;
 }
 
+.skills-list .empty-state {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  background: var(--surface-alt);
+  border-radius: 0.75rem;
+  padding: 0.4rem 0.75rem;
+}
+
 .skill-tag {
-  background: linear-gradient(135deg, var(--primary-accent) 0%, var(--highlight-cta) 100%);
-  color: var(--primary-bg);
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius);
-  font-size: 0.875rem;
-  font-weight: 500;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
 .skill-remove {
-  background: none;
+  background: transparent;
   border: none;
-  color: var(--primary-bg);
   cursor: pointer;
-  font-size: 1.2rem;
+  color: var(--text-muted);
+  font-size: 1rem;
   line-height: 1;
-  padding: 0;
-  margin-left: 0.25rem;
 }
 
 .skill-remove:hover {
-  color: var(--error-color);
+  color: var(--danger);
+}
+
+.file-selected {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
 }
 
 .form-actions {
   display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 2rem;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
 }
 
-/* Responsive Design */
+.profile-picture-preview {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: center;
+  margin-top: 0.6rem;
+  padding: 0.65rem;
+  border-radius: 0.75rem;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  max-width: 160px;
+}
+
+.profile-picture-preview img {
+  width: 100%;
+  height: auto;
+  border-radius: 0.6rem;
+}
+
+.profile-picture-preview span {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.upload-section .form-grid {
+  align-items: stretch;
+}
+
 @media (max-width: 768px) {
-  .form-grid {
-    grid-template-columns: 1fr;
+  .profile-form {
+    padding: 1.25rem;
   }
 
-  .skills-input-group {
-    flex-direction: column;
+  .profile-form-header {
+    padding: 1.2rem;
   }
 
-  .form-actions {
-    flex-direction: column;
+  .profile-form-grid {
+    gap: 1.2rem;
   }
-}
-
-/* File Upload Styles */
-.file-selected {
-  color: var(--success-color);
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
-  font-weight: 500;
 }

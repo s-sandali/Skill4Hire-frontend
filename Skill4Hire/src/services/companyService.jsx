@@ -31,9 +31,16 @@ export const companyService = {
         phone: profileData.phone ?? profileData.phoneNumber ?? '',
         website: profileData.website ?? '',
         address: toAddressLine(profileData),
+        city: profileData.city ?? '',
+        state: profileData.state ?? '',
+        zipCode: profileData.zipCode ?? '',
+        country: profileData.country ?? '',
         facebook: profileData.facebook ?? profileData.facebookUrl ?? '',
         linkedin: profileData.linkedin ?? profileData.linkedinUrl ?? '',
         twitter: profileData.twitter ?? profileData.twitterUrl ?? '',
+        industry: profileData.industry ?? profileData.companyIndustry ?? '',
+        companySize: profileData.companySize ?? profileData.size ?? '',
+        founded: profileData.founded ?? profileData.foundedYear ?? '',
         logo: profileData.logo ?? ''
       };
 
@@ -63,6 +70,15 @@ export const companyService = {
   // Backward compatible alias used by CompanyDashboard
   updateLogo: async (file) => {
     return companyService.uploadLogo(file);
+  },
+
+  removeLogo: async () => {
+    try {
+      const response = await apiClient.delete('/api/companies/logo');
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Error removing logo');
+    }
   },
 
   changePassword: async (...args) => {
@@ -123,6 +139,60 @@ export const companyService = {
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Failed to fetch job recommendations');
+    }
+  },
+
+  // ================= Notification Centre =================
+  getNotifications: async () => {
+    try {
+      const { data } = await apiClient.get('/api/companies/notifications');
+      return data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch notifications');
+    }
+  },
+
+  getUnreadNotifications: async () => {
+    try {
+      const { data } = await apiClient.get('/api/companies/notifications/unread');
+      return data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch unread notifications');
+    }
+  },
+
+  getNotificationCount: async () => {
+    try {
+      const { data } = await apiClient.get('/api/companies/notifications/count');
+      return data?.unreadCount ?? 0;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch notification count');
+    }
+  },
+
+  markNotificationRead: async (notificationId) => {
+    try {
+      if (!notificationId) throw new Error('Missing notification identifier');
+      await apiClient.put(`/api/companies/notifications/${notificationId}/read`);
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to mark notification as read');
+    }
+  },
+
+  markAllNotificationsRead: async () => {
+    try {
+      await apiClient.put('/api/companies/notifications/read-all');
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to mark notifications as read');
+    }
+  },
+
+  deleteNotification: async (notificationId) => {
+    try {
+      if (!notificationId) throw new Error('Missing notification identifier');
+      await apiClient.delete(`/api/companies/notifications/${notificationId}`);
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to delete notification');
     }
   },
 
