@@ -1,38 +1,36 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-    // In dev, use relative base URL so Vite proxy handles /api -> backend (avoids CORS with credentials)
-    baseURL: import.meta.env.DEV ? '' : 'https://skill4hire-backend.onrender.com',
-    withCredentials: true,           // <-- critical for session cookies
-    timeout: 15000,
+  baseURL: 'http://localhost:8080',
+  withCredentials: true, // Crucial for session cookies
+  timeout: 10000,
 });
 
-// No Authorization header on purpose (cookie-session auth)
+// Request interceptor
 apiClient.interceptors.request.use(
-    (config) => config,
-    (error) => Promise.reject(error)
+  (config) => {
+    // You can add auth headers here if needed
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
 );
 
-// Basic auth guard: if the session is invalid/forbidden, bounce to login.
+// Response interceptor
 apiClient.interceptors.response.use(
-    (response) => response,
-    (error) => {
-        const status = error.response?.status;
-        if (status === 401 || status === 403) {
-            try {
-                localStorage.removeItem('userRole');
-                localStorage.removeItem('userId');
-            } catch {}
-            if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
-                window.location.href = '/login';
-            }
-        }
-        // Keep a useful log for debugging
-        /* eslint-disable no-console */
-        console.error('API Error:', error.response || error.message);
-        /* eslint-enable no-console */
-        return Promise.reject(error);
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response?.status === 401) {
+      // Handle unauthorized access
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('userId');
+      window.location.href = '/login';
     }
+    return Promise.reject(error);
+  }
 );
 
 export default apiClient;

@@ -19,7 +19,7 @@ const normalizeJobs = (payload) => {
             : [];
 
   return rawList.map((job, index) => {
-    const j = job?.job || job; // handle JobWithMatchScore
+    const j = job?.job || job?.jobPost || job; // support older matching format and enriched DTO
     const skillsArray = Array.isArray(j?.requiredSkills)
       ? j.requiredSkills
       : Array.isArray(j?.skills)
@@ -35,8 +35,9 @@ const normalizeJobs = (payload) => {
       id: j?.id || j?.jobPostId || j?.jobId || `job-${index}`,
       title: j?.title || j?.jobTitle || j?.role || '',
       company: j?.companyName || j?.company || j?.employer?.name || '',
+      companyLogo: j?.companyLogo || j?.employer?.logo || '',
       location: j?.location || j?.jobLocation || j?.city || '',
-      matchScore: job?.matchScore ?? job?.matchingScore ?? job?.score ?? null,
+      matchScore: null, // removed from UI
       summary: j?.summary || j?.description || j?.shortDescription || '',
       salary: j?.salaryRange || j?.salary || j?.compensation || '',
       skills: skillsArray,
@@ -45,14 +46,7 @@ const normalizeJobs = (payload) => {
   });
 };
 
-const percent = (score) => {
-  if (score === null || score === undefined) return null;
-  const n = Number(score);
-  if (Number.isNaN(n)) return null;
-  if (n > 0 && n <= 1) return Math.round(n * 100);
-  if (n > 1 && n <= 100) return Math.round(n);
-  return Math.round(n);
-};
+const percent = (score) => null; // no longer used
 
 export default function JobMatches() {
   const [keyword, setKeyword] = useState("");
@@ -272,18 +266,25 @@ export default function JobMatches() {
 
       <div className="jobs-grid">
         {list.map((job) => {
-          const s = percent(job.matchScore);
           const apply = applyState[job.id]?.status;
           const isApplied = appliedJobs.has(String(job.id)) || apply === 'success' || Boolean(applyState[job.id]?.already);
           const meta = [job.company, job.location].filter(Boolean).join(' • ');
           return (
             <div key={job.id} className="job-card">
-              <div className="job-card-header">
-                <div>
-                  <h3>{job.title || ' '}</h3>
-                  {meta && <p className="muted">{meta}</p>}
+              <div className="job-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {job.companyLogo ? (
+                    <img src={job.companyLogo} alt={job.company || 'Company logo'} style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6, border: '1px solid #eee' }} />
+                  ) : (
+                    <div style={{ width: 40, height: 40, borderRadius: 6, background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', fontSize: 14 }}>
+                      {job.company?.charAt(0) ?? '•'}
+                    </div>
+                  )}
+                  <div>
+                    <h3 style={{ margin: 0 }}>{job.title || ' '}</h3>
+                    {meta && <p className="muted" style={{ margin: 0 }}>{meta}</p>}
+                  </div>
                 </div>
-                {s !== null && <span className="badge">{s}% match</span>}
               </div>
               {job.summary && <p className="job-summary">{job.summary}</p>}
               {job.skills?.length > 0 && (

@@ -105,19 +105,11 @@ export const jobService = {
   // Skill-matched search for authenticated candidates
   searchWithMatching: async (params = {}) => {
     try {
+      // Now returns a list of enriched JobPost DTOs directly
       const res = await apiClient.get("/api/jobposts/search/with-matching", { params });
       const data = res?.data;
       const payload = Array.isArray(data) ? data : [];
-      // Backend returns objects like { jobPost: {...}, matchScore: number, matchingSkills: [] }
-      return payload.map((item) => {
-        if (!item) return item;
-        const jobObj = item.job || item.jobPost || item.jobpost || item.post || null;
-        if (jobObj) {
-          return { ...item, job: normalizeJob(jobObj) };
-        }
-        // Fallback: item itself might be a JobPost
-        return normalizeJob(item);
-      });
+      return payload.map(normalizeJob);
     } catch (err) {
       if (err?.response?.status === 204) return [];
       console.error("❌ Job matching search failed:", err.response?.data || err.message);
