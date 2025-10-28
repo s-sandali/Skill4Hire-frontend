@@ -10,6 +10,7 @@ import {
   RiCheckLine,
   RiBriefcaseLine,
 } from "react-icons/ri";
+import "./JobForm.css";
 
 const JobForm = ({ jobId: propJobId, initialJob, onSave, onCancel }) => {
   const navigate = useNavigate();

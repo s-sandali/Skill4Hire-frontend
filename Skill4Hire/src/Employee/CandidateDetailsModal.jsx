@@ -19,18 +19,23 @@ const CandidateDetailsModal = ({ isOpen, onClose, candidate, onDownloadCv, onRec
   if (!isOpen || !candidate) return null;
 
   const skills = Array.isArray(candidate.skills) ? candidate.skills : [];
-  const exp = candidate.experience || {};
-  const edu = candidate.education || {};
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div className="header-left">
-            <div className="avatar-lg"><RiUserLine /></div>
+            <div className="avatar-lg">
+              {candidate.profilePictureUrl ? (
+                <img src={candidate.profilePictureUrl} alt={candidate.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+              ) : (
+                <RiUserLine />
+              )}
+            </div>
             <div>
               <h3>{candidate.name || 'Candidate'}</h3>
-              <div className="muted">{candidate.title || candidate.position || '—'}</div>
+              <div className="muted">{candidate.title || '—'}</div>
+              {candidate.location && <div className="muted">{candidate.location}</div>}
             </div>
           </div>
           <button className="close-btn" onClick={onClose}><RiCloseLine /></button>
@@ -39,10 +44,12 @@ const CandidateDetailsModal = ({ isOpen, onClose, candidate, onDownloadCv, onRec
         <div className="modal-body">
           <div className="details-grid">
             <div className="details-col">
-              <InfoRow icon={RiMailLine} label="Email" value={candidate.email} />
+              {/* Keep email/experience/education placeholders if present in broader DTOs */}
               <InfoRow icon={RiMapPinLine} label="Location" value={candidate.location} />
-              <InfoRow icon={RiBriefcaseLine} label="Experience" value={exp.isExperienced ? `${exp.yearsOfExperience || 0} years • ${exp.role || ''} ${exp.company ? 'at ' + exp.company : ''}` : 'No experience listed'} />
-              <InfoRow icon={RiBookLine} label="Education" value={edu.degree ? `${edu.degree} • ${edu.institution || ''} ${edu.graduationYear ? '(' + edu.graduationYear + ')' : ''}` : '—'} />
+              <InfoRow icon={RiBriefcaseLine} label="CV" value={candidate.hasCv ? 'Available' : 'Not uploaded'} />
+              {candidate.cvDownloadUrl && (
+                <InfoRow icon={RiDownloadLine} label="Download" value={candidate.cvDownloadUrl} />
+              )}
             </div>
             <div className="details-col">
               <div className="section">
@@ -61,7 +68,7 @@ const CandidateDetailsModal = ({ isOpen, onClose, candidate, onDownloadCv, onRec
 
         <div className="modal-actions">
           <button className="btn btn-secondary" onClick={onClose}>Close</button>
-          <button className="btn btn-secondary" onClick={onDownloadCv}>
+          <button className="btn btn-secondary" onClick={onDownloadCv} disabled={!candidate.hasCv} title={candidate.hasCv ? 'Download CV' : 'No CV available'}>
             <RiDownloadLine /> Download CV
           </button>
           <button className="btn btn-primary" onClick={onRecommend}>
@@ -74,4 +81,3 @@ const CandidateDetailsModal = ({ isOpen, onClose, candidate, onDownloadCv, onRec
 };
 
 export default CandidateDetailsModal;
-

@@ -26,7 +26,6 @@ import {
 import Applications from './components/Applications';
 import JobMatches from './components/JobMatches';
 import ProfileSetupForm from './components/ProfileSetupForm';
-import PortalLogoBadge from '../components/PortalLogoBadge.jsx';
 import { candidateService } from '../services/candidateService';
 import { jobService } from '../services/jobService';
 import { authService } from '../services/authService';
@@ -202,8 +201,6 @@ const getStatusColor = (status) => {
 		REJECTED: 'bg-red-100 text-red-800',
 		ACCEPTED: 'bg-purple-100 text-purple-800',
 		APPLIED: 'bg-gray-100 text-gray-800',
-		INTERVIEW: 'bg-blue-100 text-blue-800', // added
-		HIRED: 'bg-green-100 text-green-800',    // added (alias of accepted)
 	};
 	return colors[value] || 'bg-gray-100 text-gray-800';
 };
@@ -217,8 +214,6 @@ const getStatusIcon = (status) => {
 		REJECTED: <XCircle className="w-4 h-4" />,
 		ACCEPTED: <CheckCircle className="w-4 h-4" />,
 		APPLIED: <Clock className="w-4 h-4" />,
-		INTERVIEW: <Clock className="w-4 h-4" />, // added
-		HIRED: <CheckCircle className="w-4 h-4" />, // added
 	};
 	return icons[value] || <Clock className="w-4 h-4" />;
 };
@@ -641,9 +636,7 @@ NotificationsView.propTypes = {
 };
 
 const CandidateProfileApp = () => {
-	const navigate = useNavigate();
 	const [activeTab, setActiveTab] = useState('dashboard');
-	const [authError, setAuthError] = useState('');
 	const [profile, setProfile] = useState(null);
 	const [profileSummary, setProfileSummary] = useState(defaultProfileSummary);
 	const [applications, setApplications] = useState([]);
@@ -656,16 +649,9 @@ const CandidateProfileApp = () => {
 		resumeUrl: '',
 		profilePictureUrl: '',
 	});
+	const navigate = useNavigate();
 	const previousResumeUrlRef = useRef('');
 	const previousPictureUrlRef = useRef('');
-
-	useEffect(() => {
-		const role = localStorage.getItem('userRole');
-		if (role !== 'CANDIDATE') {
-			navigate('/login', { replace: true });
-			return;
-		}
-	}, [navigate]);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -728,13 +714,17 @@ const CandidateProfileApp = () => {
 			}
 		};
 
-		Promise.all([
-			fetchProfile(),
-			fetchProfileCompleteness(),
-			fetchApplications(),
-			fetchJobs(),
-			fetchNotifications(),
-		]);
+		const loadAll = async () => {
+			await Promise.all([
+				fetchProfile(),
+				fetchProfileCompleteness(),
+				fetchApplications(),
+				fetchJobs(),
+				fetchNotifications(),
+			]);
+		};
+
+		loadAll();
 
 		const handleApplicationsChanged = async () => {
 			try {
@@ -757,15 +747,6 @@ const CandidateProfileApp = () => {
 				globalWindow.removeEventListener('applications:changed', handleApplicationsChanged);
 			}
 		};
-	}, []);
-
-	useEffect(() => {
-		const onNavigate = (e) => {
-			const tab = e?.detail?.tab;
-			if (tab && typeof tab === 'string') setActiveTab(tab);
-		};
-		try { window.addEventListener('candidate:navigate', onNavigate); } catch {}
-		return () => { try { window.removeEventListener('candidate:navigate', onNavigate); } catch {} };
 	}, []);
 
 	const refreshProfile = async () => {
@@ -875,16 +856,13 @@ const CandidateProfileApp = () => {
 
 	return (
 		<div className="min-h-screen bg-gray-50">
-			{authError && (
-				<div className="error-banner" role="alert" style={{ margin: '12px' }}>
-					{authError}
-				</div>
-			)}
 			<header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
 				<div className="max-w-7xl mx-auto px-6 py-4">
 					<div className="flex items-center justify-between">
-						<div className="flex items-center gap-4">
-							<PortalLogoBadge size={76} imageScale={0.7} />
+						<div className="flex items-center gap-3">
+							<div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+								<Briefcase className="w-6 h-6 text-white" />
+							</div>
 							<div>
 								<h1 className="text-xl font-bold text-gray-900">Skill4Hire</h1>
 								<p className="text-xs text-gray-600">Candidate Portal</p>
@@ -1026,4 +1004,3 @@ const CandidateProfileApp = () => {
 };
 
 export default CandidateProfileApp;
-

@@ -17,6 +17,7 @@ import {
 } from 'react-icons/ri';
 import CompanyDashboard from './CompanyDashboard';
 import JobPostings from './JobPostings';
+import PortalLogoBadge from '../components/PortalLogoBadge.jsx';
 import './CompanyProfile.css';
 
 const CompanyProfile = () => {
@@ -111,12 +112,12 @@ const CompanyProfile = () => {
 
       {/* Company Header */}
       <div className="company-header">
-        <div className="company-logo-wrapper">
+          <div className="company-logo-wrapper">
           <div className="company-avatar">
             {sampleProfile?.logo ? (
               <img src={sampleProfile.logo} alt="Company Logo" />
             ) : (
-              <RiBuildingLine />
+              <PortalLogoBadge size={96} imageScale={0.72} />
             )}
           </div>
           <div className="verified-badge">

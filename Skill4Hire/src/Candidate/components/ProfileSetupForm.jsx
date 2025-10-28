@@ -158,54 +158,66 @@ export default function ProfileSetupForm({
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-  
+    const profileDataToSend = {
+      ...formData,
+      phoneNumber: formData.phoneNumber,
+      headline: formData.headline
+    };
+
+    const mergedSnapshot = {
+      ...candidate,
+      ...profileDataToSend,
+      resumeFileName: resumeFile?.name || candidate?.resumeFileName || candidate?.resume || "",
+      resumeUrl: resumePreviewUrl || candidate?.resumeUrl || candidate?.resumeDownloadUrl || candidate?.resumePath || "",
+      profilePictureUrl: profilePicturePreviewUrl || existingProfilePicture || candidate?.profilePictureUrl || candidate?.profilePicturePath || ""
+    };
+
     try {
       const { candidateService } = await import("../../services/candidateService");
-      
-      // First update profile data
-      const profileDataToSend = {
-        ...formData,
-        phoneNumber: formData.phoneNumber,
-        headline: formData.headline
-      };
-      
+
       console.log("Updating profile data...");
       await candidateService.updateProfile(profileDataToSend);
-      
-      // Upload files sequentially with proper error handling
+
       if (resumeFile) {
         console.log("Uploading resume file:", resumeFile.name);
         try {
           const resumeResponse = await candidateService.uploadResume(resumeFile);
           console.log("Resume upload successful:", resumeResponse);
+          if (resumeResponse) {
+            mergedSnapshot.resumeUrl = resumeResponse.downloadUrl || resumeResponse.url || mergedSnapshot.resumeUrl;
+            mergedSnapshot.resumeFileName = resumeResponse.fileName || resumeResponse.originalFileName || mergedSnapshot.resumeFileName;
+          }
         } catch (uploadError) {
           console.error("Resume upload failed:", uploadError);
           alert(`Resume upload failed: ${uploadError.message}. Profile was saved but resume was not uploaded.`);
         }
       }
-      
+
       if (profilePictureFile) {
         console.log("Uploading profile picture:", profilePictureFile.name);
         try {
           const profilePicResponse = await candidateService.uploadProfilePicture(profilePictureFile);
           console.log("Profile picture upload successful:", profilePicResponse);
+          if (profilePicResponse) {
+            mergedSnapshot.profilePictureUrl =
+              profilePicResponse.imageUrl || profilePicResponse.url || profilePicResponse.profilePictureUrl || mergedSnapshot.profilePictureUrl;
+          }
         } catch (uploadError) {
           console.error("Profile picture upload failed:", uploadError);
           alert(`Profile picture upload failed: ${uploadError.message}. Profile was saved but picture was not uploaded.`);
         }
       }
-      
-      // Refresh profile data after all uploads are complete
-      if (onUpdate) {
-        console.log("Refreshing profile data after file uploads...");
-        // Force a complete refresh by calling the update callback
-        await onUpdate();
-      }
-      
-      alert("Profile updated successfully!");
 
+      if (onUpdate) {
+        await onUpdate(mergedSnapshot, { refresh: true });
+      }
+
+      alert("Profile updated successfully!");
     } catch (error) {
       console.error("Error updating profile:", error);
+      if (onUpdate) {
+        await onUpdate(mergedSnapshot, { refresh: false });
+      }
       alert(`Error updating profile: ${error.message}`);
     } finally {
       setIsLoading(false);

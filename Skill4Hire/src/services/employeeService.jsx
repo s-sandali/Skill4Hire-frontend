@@ -57,27 +57,27 @@ export const employeeService = {
         }
     },
 
-    // Search candidate profiles by skill and min years
+    // Search candidate basics by skill and minExperience (paged)
     searchCandidates: async ({ skill, minExperience, page = 0, size = 10 } = {}) => {
         try {
             const params = {};
             if (skill) params.skill = skill;
-            if (minExperience != null) params.minYears = minExperience; // backend expects minYears
+            if (minExperience != null) params.minExperience = minExperience; // backend expects minExperience
             params.page = page;
             params.size = size;
-            const response = await apiClient.get('/api/employees/candidates', { params });
-            return response.data;
+            const response = await apiClient.get('/api/employees/candidates/basic', { params });
+            return response.data; // Page<CandidateBasicView>
         } catch (error) {
             throw new Error(error.response?.data?.message || 'Failed to search candidates');
         }
     },
 
-    // View a candidate profile
+    // View a candidate basic profile
     getCandidateProfile: async (candidateId) => {
         if (!candidateId) throw new Error('Missing candidateId');
         try {
-            const response = await apiClient.get(`/api/employees/candidates/${candidateId}`);
-            return response.data;
+            const response = await apiClient.get(`/api/employees/candidates/${candidateId}/basic`);
+            return response.data; // CandidateBasicView
         } catch (error) {
             throw new Error(error.response?.data?.message || 'Failed to fetch candidate profile');
         }
@@ -144,6 +144,54 @@ export const employeeService = {
         } catch {
             // fallback
             return { totalCandidates: 0, activeJobs: 0, upcomingInterviews: 0, newApplications: 0 };
+        }
+    },
+
+    // Notifications for employees (parity with company/candidate services)
+    getNotifications: async () => {
+        try {
+            const { data } = await apiClient.get('/api/employees/notifications');
+            return data;
+        } catch (error) {
+            throw new Error(error.response?.data?.message || 'Failed to fetch notifications');
+        }
+    },
+
+    getUnreadNotificationCount: async () => {
+        try {
+            const { data } = await apiClient.get('/api/employees/notifications/count');
+            return data; // expect { unreadCount }
+        } catch (error) {
+            throw new Error(error.response?.data?.message || 'Failed to fetch unread notification count');
+        }
+    },
+
+    markNotificationAsRead: async (notificationId) => {
+        if (!notificationId) throw new Error('Missing notificationId');
+        try {
+            await apiClient.put(`/api/employees/notifications/${notificationId}/read`);
+            return true;
+        } catch (error) {
+            throw new Error(error.response?.data?.message || 'Failed to mark notification as read');
+        }
+    },
+
+    markAllNotificationsAsRead: async () => {
+        try {
+            await apiClient.put('/api/employees/notifications/read-all');
+            return true;
+        } catch (error) {
+            throw new Error(error.response?.data?.message || 'Failed to mark all notifications as read');
+        }
+    },
+
+    deleteNotification: async (notificationId) => {
+        if (!notificationId) throw new Error('Missing notificationId');
+        try {
+            await apiClient.delete(`/api/employees/notifications/${notificationId}`);
+            return true;
+        } catch (error) {
+            throw new Error(error.response?.data?.message || 'Failed to delete notification');
         }
     }
 };

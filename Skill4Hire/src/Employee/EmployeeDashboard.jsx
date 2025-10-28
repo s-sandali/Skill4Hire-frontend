@@ -101,13 +101,14 @@ const EmployeeDashboard = () => {
     }
   }, []);
 
-  // Fetch candidates with filters
+  // Fetch candidates with filters (basic view)
   const fetchCandidates = useCallback(async () => {
     setLoading(true);
     try {
+      const minExperience = (filterStatus !== 'all' && filterStatus !== 'experience') ? parseInt(filterStatus, 10) : null;
       const data = await employeeService.searchCandidates({
         skill: searchTerm || null,
-        minExperience: filterStatus !== 'all' && filterStatus !== 'experience' ? parseInt(filterStatus, 10) : null,
+        minExperience,
         page: 0,
         size: 10
       });
@@ -205,7 +206,7 @@ const EmployeeDashboard = () => {
   const submitRecommendation = async (jobId, note) => {
     try {
       await employeeService.recommendCandidate({
-        candidateId: selectedCandidate.userId || selectedCandidate.id,
+        candidateId: candidateDetails?.candidateId || selectedCandidate?.candidateId || selectedCandidate?.userId || selectedCandidate?.id,
         jobId: jobId,
         note: note
       });
@@ -218,7 +219,7 @@ const EmployeeDashboard = () => {
     }
   };
 
-  // View candidate details
+  // View candidate details (basic)
   const handleViewCandidate = async (candidateId) => {
     try {
       const candidate = await employeeService.getCandidateProfile(candidateId);
@@ -527,18 +528,23 @@ const EmployeeDashboard = () => {
                           <div className="no-data">No candidates found</div>
                       ) : (
                           candidates.map((candidate) => (
-                              <div key={candidate.id || candidate.userId} className="candidate-card tall">
+                              <div key={candidate.candidateId || candidate.id || candidate.userId} className="candidate-card tall">
                                 <div className="cand-header">
                                   <div className="cand-left">
                                     <div className="avatar-lg">
-                                      <RiUserLine />
+                                      {/* Show profile picture if available */}
+                                      {candidate.profilePictureUrl ? (
+                                        <img src={candidate.profilePictureUrl} alt={candidate.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                                      ) : (
+                                        <RiUserLine />
+                                      )}
                                     </div>
                                     <div className="cand-id">
                                       <h3 className="cand-name">{candidate.name}</h3>
-                                      <div className="cand-role">{candidate.position || 'Candidate'}</div>
-                                      <span className="cand-match">
-                              {candidate.matchScore || 'N/A'}% Match
-                            </span>
+                                      <div className="cand-role">{candidate.title || 'Candidate'}</div>
+                                      {candidate.location && (
+                                        <div className="muted">{candidate.location}</div>
+                                      )}
                                     </div>
                                   </div>
                                   <span className="cand-status-badge available">
@@ -546,18 +552,12 @@ const EmployeeDashboard = () => {
                         </span>
                                 </div>
 
-                                <div className="cand-experience">
-                                  <strong>Experience:</strong>
-                                  <span className="years">
-                          {candidate.experience?.yearsOfExperience || 'Not specified'} years
-                        </span>
-                                </div>
-
+                                {/* Skills */}
                                 <div className="cand-skills">
-                                  {candidate.skills?.slice(0, 4).map((skill) => (
+                                  {Array.isArray(candidate.skills) && candidate.skills.slice(0, 4).map((skill) => (
                                       <span key={skill} className="cand-skill">{skill}</span>
                                   ))}
-                                  {candidate.skills?.length > 4 && (
+                                  {Array.isArray(candidate.skills) && candidate.skills.length > 4 && (
                                       <span className="cand-skill">+{candidate.skills.length - 4} more</span>
                                   )}
                                 </div>
@@ -565,9 +565,9 @@ const EmployeeDashboard = () => {
                                 <div className="cand-actions">
                                   <button
                                       className="btn-cand-view"
-                                      onClick={() => handleViewCandidate(candidate.id || candidate.userId)}
+                                      onClick={() => handleViewCandidate(candidate.candidateId || candidate.id || candidate.userId)}
                                   >
-                                    <RiEyeLine /> View Profile
+                                    <RiEyeLine /> View Basic Details
                                   </button>
                                   <button
                                       className="btn-cand-edit"
@@ -577,7 +577,9 @@ const EmployeeDashboard = () => {
                                   </button>
                                   <button
                                       className="btn-cand-edit"
-                                      onClick={() => handleDownloadCv(candidate.id || candidate.userId)}
+                                      onClick={() => handleDownloadCv(candidate.candidateId || candidate.id || candidate.userId)}
+                                      disabled={!candidate.hasCv}
+                                      title={candidate.hasCv ? 'Download CV' : 'No CV available'}
                                   >
                                     📄 Download CV
                                   </button>
@@ -702,7 +704,7 @@ const EmployeeDashboard = () => {
             isOpen={candidateDetailsModalOpen}
             onClose={() => { setCandidateDetailsModalOpen(false); setCandidateDetails(null); }}
             candidate={candidateDetails}
-            onDownloadCv={() => candidateDetails && handleDownloadCv(candidateDetails.id || candidateDetails.userId)}
+            onDownloadCv={() => candidateDetails && handleDownloadCv(candidateDetails.candidateId || candidateDetails.id || candidateDetails.userId)}
             onRecommend={() => {
               if (!candidateDetails) return;
               // Ensure jobs list is available
@@ -770,3 +772,4 @@ const EmployeeDashboard = () => {
 };
 
 export default EmployeeDashboard;
+

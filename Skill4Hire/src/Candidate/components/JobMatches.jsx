@@ -33,9 +33,9 @@ const normalizeJobs = (payload) => {
 
     return {
       id: j?.id || j?.jobPostId || j?.jobId || `job-${index}`,
-      title: j?.title || j?.jobTitle || j?.role || 'Role not specified',
-      company: j?.companyName || j?.company || j?.employer?.name || 'Company not specified',
-      location: j?.location || j?.jobLocation || j?.city || 'Location not provided',
+      title: j?.title || j?.jobTitle || j?.role || '',
+      company: j?.companyName || j?.company || j?.employer?.name || '',
+      location: j?.location || j?.jobLocation || j?.city || '',
       matchScore: job?.matchScore ?? job?.matchingScore ?? job?.score ?? null,
       summary: j?.summary || j?.description || j?.shortDescription || '',
       salary: j?.salaryRange || j?.salary || j?.compensation || '',
@@ -67,8 +67,37 @@ export default function JobMatches() {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [applyState, setApplyState] = useState({});
+  const [appliedJobs, setAppliedJobs] = useState(() => new Set());
+  const [toast, setToast] = useState({ show: false, type: 'info', message: '' });
 
   const [filterOptions, setFilterOptions] = useState({ types: [], locations: [] });
+
+  // Load already-applied jobs once and when applications change
+  useEffect(() => {
+    let cancelled = false;
+    const loadApplied = async () => {
+      try {
+        const res = await candidateService.getApplications();
+        const list = Array.isArray(res) ? res : (Array.isArray(res?.content) ? res.content : []);
+        const ids = new Set(
+          list
+            .map((a) => a.jobId || a.jobPostId || a.job?.id)
+            .filter(Boolean)
+            .map((id) => String(id))
+        );
+        if (!cancelled) setAppliedJobs(ids);
+      } catch {
+        // ignore; state will update after successful apply
+      }
+    };
+    loadApplied();
+    const onChanged = () => loadApplied();
+    try { window.addEventListener('applications:changed', onChanged); } catch {}
+    return () => {
+      cancelled = true;
+      try { window.removeEventListener('applications:changed', onChanged); } catch {}
+    };
+  }, []);
 
   // Load filter options once
   useEffect(() => {
@@ -106,7 +135,7 @@ export default function JobMatches() {
         const max = parseFloat(maxSalary);
         if (!Number.isNaN(min)) params.minSalary = min;
         if (!Number.isNaN(max)) params.maxSalary = max;
-        if (skill.trim()) params.skill = skill.trim(); // only supported by public/basic search
+        if (skill.trim()) params.skill = skill.trim(); // supported by basic search
 
         const usingFilters = Boolean(type || location || skill || minSalary || maxSalary);
 
@@ -122,7 +151,7 @@ export default function JobMatches() {
         }
         if (cancelled) return;
         setJobs(normalizeJobs(res));
-      } catch {
+      } catch (e) {
         if (cancelled) return;
         try {
           const fallback = await jobService.listPublic();
@@ -144,21 +173,33 @@ export default function JobMatches() {
     return () => { cancelled = true; };
   }, [keyword, skill, type, location, minSalary, maxSalary]);
 
+  const showToast = (type, message, duration = 3000) => {
+    setToast({ show: true, type, message });
+    window.clearTimeout(showToast._t);
+    showToast._t = window.setTimeout(() => setToast((t) => ({ ...t, show: false })), duration);
+  };
+
   const handleApply = async (jobId) => {
     if (!jobId) return;
     setApplyState((prev) => ({ ...prev, [jobId]: { status: 'loading' } }));
     try {
-      await candidateService.applyToJob(jobId);
-      setApplyState((prev) => ({ ...prev, [jobId]: { status: 'success' } }));
-      try { window.dispatchEvent(new CustomEvent('applications:changed')); } catch {
-        // ignore when running in non-browser contexts (e.g., SSR/tests)
-      }
+      const result = await candidateService.applyToJob(jobId);
+      const already = result && result.alreadyApplied;
+      setApplyState((prev) => ({ ...prev, [jobId]: { status: 'success', already } }));
+      setAppliedJobs((prev) => new Set(prev).add(String(jobId)));
+      showToast('info', already ? 'You already applied to this job.' : 'Application submitted.');
+      try { window.dispatchEvent(new CustomEvent('applications:changed')); } catch {}
     } catch (err) {
       setApplyState((prev) => ({
         ...prev,
         [jobId]: { status: 'error', message: err?.message || 'Failed to apply' }
       }));
+      showToast('error', err?.message || 'Failed to apply');
     }
+  };
+
+  const handleViewApplication = () => {
+    try { window.dispatchEvent(new CustomEvent('candidate:navigate', { detail: { tab: 'applications' } })); } catch {}
   };
 
   const list = useMemo(() => jobs, [jobs]);
@@ -169,6 +210,12 @@ export default function JobMatches() {
         <h1>Find Jobs</h1>
         <p className="muted">Search public listings or see personalized matches when signed in.</p>
       </div>
+
+      {toast.show && (
+        <div className={toast.type === 'error' ? 'error-banner' : 'info-banner'} style={{ marginBottom: 8 }}>
+          {toast.message}
+        </div>
+      )}
 
       <div className="jobs-controls" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr 1fr', gap: 8 }}>
         <input
@@ -227,16 +274,18 @@ export default function JobMatches() {
         {list.map((job) => {
           const s = percent(job.matchScore);
           const apply = applyState[job.id]?.status;
+          const isApplied = appliedJobs.has(String(job.id)) || apply === 'success' || Boolean(applyState[job.id]?.already);
+          const meta = [job.company, job.location].filter(Boolean).join(' • ');
           return (
             <div key={job.id} className="job-card">
               <div className="job-card-header">
                 <div>
-                  <h3>{job.title}</h3>
-                  <p className="muted">{job.company} • {job.location}</p>
+                  <h3>{job.title || ' '}</h3>
+                  {meta && <p className="muted">{meta}</p>}
                 </div>
                 {s !== null && <span className="badge">{s}% match</span>}
               </div>
-              <p className="job-summary">{job.summary}</p>
+              {job.summary && <p className="job-summary">{job.summary}</p>}
               {job.skills?.length > 0 && (
                 <div className="skills-list">
                   {job.skills.slice(0, 8).map((sk) => (
@@ -244,14 +293,19 @@ export default function JobMatches() {
                   ))}
                 </div>
               )}
-              <div className="job-actions">
+              <div className="job-actions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <button
                   className="btn btn-primary"
                   onClick={() => handleApply(job.id)}
-                  disabled={apply === 'loading'}
+                  disabled={apply === 'loading' || isApplied}
                 >
-                  {apply === 'loading' ? 'Applying...' : apply === 'success' ? 'Applied' : 'Apply'}
+                  {apply === 'loading' ? 'Applying...' : isApplied ? 'Applied' : 'Apply'}
                 </button>
+                {isApplied && (
+                  <button className="btn btn-secondary" onClick={handleViewApplication}>
+                    View Application
+                  </button>
+                )}
               </div>
             </div>
           );
