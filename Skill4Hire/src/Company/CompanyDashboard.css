@@ -193,6 +193,80 @@
   cursor: not-allowed;
 }
 
+.company-dashboard .btn-secondary,
+.company-dashboard .btn-danger,
+.company-dashboard .btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.95rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.company-dashboard .btn-secondary.small,
+.company-dashboard .btn-danger.small,
+.company-dashboard .btn-outline.small {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+}
+
+.company-dashboard .btn-secondary svg,
+.company-dashboard .btn-danger svg,
+.company-dashboard .btn-outline svg {
+  font-size: 0.95rem;
+}
+
+.company-dashboard .btn-secondary {
+  background: rgba(79, 70, 229, 0.1);
+  color: #312e81;
+  border: 1px solid rgba(79, 70, 229, 0.25);
+}
+
+.company-dashboard .btn-secondary:hover:not(:disabled) {
+  background: rgba(79, 70, 229, 0.18);
+  border-color: rgba(79, 70, 229, 0.35);
+  transform: translateY(-1px);
+}
+
+.company-dashboard .btn-secondary:disabled,
+.company-dashboard .btn-danger:disabled,
+.company-dashboard .btn-outline:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.company-dashboard .btn-outline {
+  background: rgba(37, 99, 235, 0.08);
+  color: #1d4ed8;
+  border: 1px solid rgba(37, 99, 235, 0.35);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.1);
+}
+
+.company-dashboard .btn-outline:hover:not(:disabled) {
+  background: rgba(37, 99, 235, 0.12);
+  border-color: rgba(37, 99, 235, 0.45);
+  color: #1e40af;
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.16);
+  transform: translateY(-1px);
+}
+
+.company-dashboard .btn-danger {
+  box-shadow: 0 8px 18px rgba(239, 68, 68, 0.18);
+}
+
+.company-dashboard .btn-danger:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
 /* Form Elements */
 .company-dashboard .form-input,
 .company-dashboard .form-textarea,
@@ -361,6 +435,14 @@
   gap: 0.6rem;
 }
 
+.company-dashboard .job-actions .btn-secondary,
+.company-dashboard .job-actions .btn-outline,
+.company-dashboard .job-actions .btn-danger {
+  flex: 1;
+  min-width: 120px;
+  justify-content: center;
+}
+
 /* Modal Styles */
 .company-dashboard .modal-overlay {
   position: fixed;
@@ -445,7 +527,10 @@
 .company-dashboard .apps-table-wrapper {
   border: 1px solid var(--border);
   border-radius: 1rem;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  width: 100%;
   box-shadow: var(--shadow-sm);
 }
 
@@ -474,6 +559,56 @@
 
 .company-dashboard .apps-table .muted {
   color: var(--text-muted);
+}
+
+.company-dashboard .apps-table .btn-outline,
+.company-dashboard .apps-table .btn-danger {
+  min-width: 96px;
+  justify-content: center;
+}
+
+.company-dashboard .apps-table .status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: rgba(148, 163, 184, 0.12);
+  color: #334155;
+}
+
+.company-dashboard .apps-table .status-badge.applied {
+  border-color: rgba(59, 130, 246, 0.4);
+  background: rgba(59, 130, 246, 0.12);
+  color: #1d4ed8;
+}
+
+.company-dashboard .apps-table .status-badge.shortlisted {
+  border-color: rgba(14, 165, 233, 0.4);
+  background: rgba(14, 165, 233, 0.12);
+  color: #0e7490;
+}
+
+.company-dashboard .apps-table .status-badge.interview {
+  border-color: rgba(109, 40, 217, 0.4);
+  background: rgba(109, 40, 217, 0.12);
+  color: #6d28d9;
+}
+
+.company-dashboard .apps-table .status-badge.hired {
+  border-color: rgba(22, 163, 74, 0.4);
+  background: rgba(22, 163, 74, 0.12);
+  color: #15803d;
+}
+
+.company-dashboard .apps-table .status-badge.rejected {
+  border-color: rgba(239, 68, 68, 0.45);
+  background: rgba(239, 68, 68, 0.1);
+  color: #b91c1c;
 }
 
 /* Recommendation Styles */
@@ -642,6 +777,10 @@
   color: #fff;
 }
 
+.company-dashboard .notification-wrapper {
+  position: relative;
+}
+
 .company-dashboard .notifications-badge {
   position: absolute;
   top: -6px;
@@ -674,6 +813,111 @@
   flex-direction: column;
   gap: 1rem;
   z-index: 24;
+}
+
+.company-dashboard .notifications-loading,
+.company-dashboard .notifications-error,
+.company-dashboard .notifications-empty {
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  color: var(--text-secondary);
+}
+
+.company-dashboard .notifications-loading {
+  flex-direction: column;
+  text-align: center;
+}
+
+.company-dashboard .notifications-error {
+  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.company-dashboard .notifications-empty {
+  flex-direction: column;
+  text-align: center;
+  color: #475569;
+}
+
+.company-dashboard .notifications-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.company-dashboard .notification-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.company-dashboard .notification-item.unread {
+  border-color: rgba(37, 99, 235, 0.4);
+  background: rgba(37, 99, 235, 0.08);
+  box-shadow: 0 16px 32px -26px rgba(37, 99, 235, 0.6);
+}
+
+.company-dashboard .notification-item:hover {
+  border-color: rgba(37, 99, 235, 0.45);
+}
+
+.company-dashboard .notification-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.company-dashboard .notification-message {
+  margin: 0;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.45;
+}
+
+.company-dashboard .notification-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+.company-dashboard .notification-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.16);
+}
+
+.company-dashboard .notification-meta .notification-time {
+  background: rgba(37, 99, 235, 0.12);
+  color: #1d4ed8;
+}
+
+.company-dashboard .notification-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 /* Responsive Design */

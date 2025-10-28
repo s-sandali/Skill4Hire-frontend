@@ -1,36 +1,34 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
-  RiBuildingLine,
-  RiBriefcaseLine,
-  RiBarChartBoxLine,
-  RiSettingsLine,
-  RiLogoutBoxLine,
-  RiAddLine,
-  RiEditLine,
-  RiDeleteBinLine,
-  RiEyeLine,
-  RiDownloadLine,
-  RiUploadCloudLine,
-  RiImageLine,
-  RiStarLine,
-  RiGlobalLine,
-  RiPhoneLine,
-  RiMailLine,
-  RiMapPinLine,
-  RiSaveLine,
-  RiLockLine,
-  RiNotificationLine,
-  RiInboxLine,
-  RiTimeLine,
-  RiCheckLine,
-  RiErrorWarningLine,
-  RiLoader4Line,
-  RiCloseLine,
-  RiRefreshLine,
-  RiTeamLine,
-  RiUserLine,
-  RiShieldCheckLine
-} from 'react-icons/ri';
+  FiBriefcase,
+  FiBarChart2,
+  FiSettings,
+  FiLogOut,
+  FiPlus,
+  FiEdit,
+  FiTrash2,
+  FiEye,
+  FiDownload,
+  FiUploadCloud,
+  FiImage,
+  FiStar,
+  FiGlobe,
+  FiPhone,
+  FiMail,
+  FiSave,
+  FiLock,
+  FiBell,
+  FiInbox,
+  FiClock,
+  FiCheck,
+  FiAlertTriangle,
+  FiLoader,
+  FiX,
+  FiRefreshCw,
+  FiUsers,
+  FiShield,
+  FiInfo
+} from 'react-icons/fi';
 import { authService } from '../services/authService';
 import { companyService } from '../services/companyService';
 import { jobService } from '../services/jobService';
@@ -135,7 +133,6 @@ const CompanyDashboard = () => {
   const [notifications, setNotifications] = useState([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsError, setNotificationsError] = useState('');
-  const [showNotifications, setShowNotifications] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   useEffect(() => {
@@ -357,10 +354,6 @@ const CompanyDashboard = () => {
     }
   }, []);
 
-  const handleToggleNotifications = () => {
-    setShowNotifications((prev) => !prev);
-  };
-
   const loadRecommendations = useCallback(async (jobId = 'all') => {
     setRecommendationsLoading(true);
     setRecommendationsError('');
@@ -501,6 +494,12 @@ const CompanyDashboard = () => {
   useEffect(() => {
     loadNotifications();
   }, [loadNotifications]);
+
+  useEffect(() => {
+    if (activeTab === 'notifications') {
+      loadNotifications();
+    }
+  }, [activeTab, loadNotifications]);
 
   useEffect(() => {
     const unread = notifications.filter((notification) => !notification?.read).length;
@@ -677,21 +676,6 @@ const CompanyDashboard = () => {
       }, 5000);
     } finally {
       setIsSaving(false);
-    }
-  };
-
-  const handleSettingsChange = (section, field, value) => {
-    setCompanySettings(prev => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value
-      }
-    }));
-
-    if (saveMessage) {
-      setSaveMessage('');
-      setSaveStatus('');
     }
   };
 
@@ -926,7 +910,7 @@ const CompanyDashboard = () => {
   const avatarUrl = logoPreview || '';
 
   return (
-      <div className="min-h-screen bg-gray-50">
+    <div className="company-dashboard min-h-screen bg-gray-50">
         {isLoading ? (
             <div className="loading-overlay">
               <div className="loading-spinner"></div>
@@ -948,127 +932,29 @@ const CompanyDashboard = () => {
                     <div className="flex items-center gap-4">
                       <button
                           type="button"
-                          className="btn-primary topbar-action"
+                          className="btn btn-primary topbar-action"
                           onClick={() => {
                             setEditingJob(null);
                             setShowJobForm(true);
                           }}
                       >
-                        <RiAddLine /> Post Job
+                        <FiPlus /> Post Job
                       </button>
 
                       <div className="notification-wrapper">
                         <button
                             type="button"
-                            className={`notifications-btn${showNotifications ? ' active' : ''}`}
-                            onClick={handleToggleNotifications}
+                            className="notifications-btn"
+                            onClick={() => setActiveTab('notifications')}
                             aria-label="Notifications"
                         >
-                          <RiNotificationLine />
+                          <FiBell />
                           {unreadNotifications > 0 && (
                               <span className="notifications-badge">
                           {unreadNotifications > 9 ? '9+' : unreadNotifications}
                         </span>
                           )}
                         </button>
-                        {showNotifications && (
-                            <div className="notifications-panel">
-                              <div className="notifications-header">
-                                <h4>Notifications</h4>
-                                <div className="notifications-actions">
-                                  <button
-                                      type="button"
-                                      className="btn-outline small"
-                                      onClick={handleMarkAllNotificationsRead}
-                                      disabled={!unreadNotifications}
-                                  >
-                                    <RiCheckLine /> Mark all read
-                                  </button>
-                                  <button
-                                      type="button"
-                                      className="icon-button"
-                                      onClick={handleRefreshNotifications}
-                                      title="Refresh notifications"
-                                  >
-                                    <RiRefreshLine />
-                                  </button>
-                                  <button
-                                      type="button"
-                                      className="icon-button"
-                                      onClick={() => setShowNotifications(false)}
-                                      title="Close"
-                                  >
-                                    <RiCloseLine />
-                                  </button>
-                                </div>
-                              </div>
-                              {notificationsLoading ? (
-                                  <div className="notifications-loading">
-                                    <RiLoader4Line className="spin" />
-                                    <span>Loading notifications...</span>
-                                  </div>
-                              ) : notificationsError ? (
-                                  <div className="notifications-error">
-                                    <RiErrorWarningLine />
-                                    <span>{notificationsError}</span>
-                                  </div>
-                              ) : notifications.length === 0 ? (
-                                  <div className="notifications-empty">
-                                    <RiInboxLine />
-                                    <p>No notifications yet</p>
-                                  </div>
-                              ) : (
-                                  <ul className="notifications-list">
-                                    {notifications.map((notification, index) => {
-                                      const notificationId = notification.id || notification._id || `notification-${index}`;
-                                      return (
-                                          <li
-                                              key={notificationId}
-                                              className={`notification-item ${notification.read ? 'read' : 'unread'}`}
-                                          >
-                                            <div className="notification-main">
-                                              <p className="notification-message">{notification.message}</p>
-                                              <div className="notification-meta">
-                                      <span className="notification-time">
-                                        <RiTimeLine /> {formatNotificationTime(notification.createdAt)}
-                                      </span>
-                                                {notification.jobPostId && (
-                                                    <span className="notification-job">
-                                          Job: {getJobTitle(notification.jobPostId) || notification.jobPostId}
-                                        </span>
-                                                )}
-                                                {notification.type && (
-                                                    <span className="notification-type">
-                                          {notification.type.replace(/_/g, ' ')}
-                                        </span>
-                                                )}
-                                              </div>
-                                            </div>
-                                            <div className="notification-item-actions">
-                                              {!notification.read && (
-                                                  <button
-                                                      type="button"
-                                                      className="btn-outline small"
-                                                      onClick={() => handleMarkNotificationRead(notificationId)}
-                                                  >
-                                                    <RiCheckLine /> Mark read
-                                                  </button>
-                                              )}
-                                              <button
-                                                  type="button"
-                                                  className="btn-danger small"
-                                                  onClick={() => handleDeleteNotification(notificationId)}
-                                              >
-                                                <RiDeleteBinLine /> Dismiss
-                                              </button>
-                                            </div>
-                                          </li>
-                                      );
-                                    })}
-                                  </ul>
-                              )}
-                            </div>
-                        )}
                       </div>
 
                       <div className="candidate-header-card">
@@ -1093,7 +979,7 @@ const CompanyDashboard = () => {
                               activeTab === 'overview' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700 hover:bg-gray-50'
                           }`}
                       >
-                        <RiBarChartBoxLine className="w-5 h-5" />
+                        <FiBarChart2 className="w-5 h-5" />
                         Overview
                       </button>
                       <button
@@ -1102,7 +988,7 @@ const CompanyDashboard = () => {
                               activeTab === 'jobs' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700 hover:bg-gray-50'
                           }`}
                       >
-                        <RiBriefcaseLine className="w-5 h-5" />
+                        <FiBriefcase className="w-5 h-5" />
                         Job Postings
                       </button>
                       <button
@@ -1111,7 +997,7 @@ const CompanyDashboard = () => {
                               activeTab === 'applicants' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700 hover:bg-gray-50'
                           }`}
                       >
-                        <RiTeamLine className="w-5 h-5" />
+                        <FiUsers className="w-5 h-5" />
                         Applicants
                       </button>
                       <button
@@ -1120,8 +1006,24 @@ const CompanyDashboard = () => {
                               activeTab === 'recommendations' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700 hover:bg-gray-50'
                           }`}
                       >
-                        <RiStarLine className="w-5 h-5" />
+                        <FiStar className="w-5 h-5" />
                         Recommendations
+                      </button>
+                      <button
+                          onClick={() => setActiveTab('notifications')}
+                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-1 transition ${
+                              activeTab === 'notifications' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                      >
+                        <FiBell className="w-5 h-5" />
+                        <span className="flex items-center gap-2">
+                          Notifications
+                          {unreadNotifications > 0 && (
+                              <span className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold text-white bg-blue-600 rounded-full">
+                                {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                              </span>
+                          )}
+                        </span>
                       </button>
                       <button
                           onClick={() => setActiveTab('settings')}
@@ -1129,7 +1031,7 @@ const CompanyDashboard = () => {
                               activeTab === 'settings' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700 hover:bg-gray-50'
                           }`}
                       >
-                        <RiSettingsLine className="w-5 h-5" />
+                        <FiSettings className="w-5 h-5" />
                         Settings
                       </button>
 
@@ -1139,7 +1041,7 @@ const CompanyDashboard = () => {
                           className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 transition btn-logout"
                           onClick={handleLogout}
                       >
-                        <RiLogoutBoxLine className="w-5 h-5" />
+                        <FiLogOut className="w-5 h-5" />
                         Logout
                       </button>
                     </nav>
@@ -1159,7 +1061,7 @@ const CompanyDashboard = () => {
                                     <p className="text-2xl font-bold text-gray-900 mt-1">{jobPostings.length}</p>
                                   </div>
                                   <div className="p-3 bg-blue-100 rounded-lg">
-                                    <RiBriefcaseLine className="w-6 h-6 text-blue-600" />
+                                    <FiBriefcase className="w-6 h-6 text-blue-600" />
                                   </div>
                                 </div>
                               </div>
@@ -1171,7 +1073,7 @@ const CompanyDashboard = () => {
                                     <p className="text-2xl font-bold text-gray-900 mt-1">{applicants.length}</p>
                                   </div>
                                   <div className="p-3 bg-green-100 rounded-lg">
-                                    <RiTeamLine className="w-6 h-6 text-green-600" />
+                                    <FiUsers className="w-6 h-6 text-green-600" />
                                   </div>
                                 </div>
                               </div>
@@ -1183,7 +1085,7 @@ const CompanyDashboard = () => {
                                     <p className="text-2xl font-bold text-gray-900 mt-1">{recommendations.length}</p>
                                   </div>
                                   <div className="p-3 bg-purple-100 rounded-lg">
-                                    <RiStarLine className="w-6 h-6 text-purple-600" />
+                                    <FiStar className="w-6 h-6 text-purple-600" />
                                   </div>
                                 </div>
                               </div>
@@ -1203,7 +1105,7 @@ const CompanyDashboard = () => {
                                     </p>
                                   </div>
                                   <div className="p-3 bg-orange-100 rounded-lg">
-                                    <RiBarChartBoxLine className="w-6 h-6 text-orange-600" />
+                                    <FiBarChart2 className="w-6 h-6 text-orange-600" />
                                   </div>
                                 </div>
                               </div>
@@ -1277,21 +1179,21 @@ const CompanyDashboard = () => {
                                         disabled={jobsLoading}
                                         title="Refresh job postings"
                                     >
-                                      <RiRefreshLine />
+                                      <FiRefreshCw />
                                     </button>
                                     <button
-                                        className="btn-primary"
+                                        className="btn btn-primary"
                                         onClick={handleCreateNewJob}
                                         disabled={jobsLoading}
                                     >
-                                      <RiAddLine /> Post New Job
+                                      <FiPlus /> Post New Job
                                     </button>
                                   </div>
                                 </div>
 
                                 {jobError && (
                                     <div className="error-message mb-4">
-                                      <RiErrorWarningLine />
+                                      <FiAlertTriangle />
                                       {jobError}
                                       <button
                                           className="retry-btn"
@@ -1306,20 +1208,20 @@ const CompanyDashboard = () => {
                                 {jobsLoading ? (
                                     <div className="loading-container">
                                       <div className="loading-spinner">
-                                        <RiLoader4Line className="spin" />
+                                        <FiLoader className="spin" />
                                       </div>
                                       <p>Loading job postings...</p>
                                     </div>
                                 ) : jobPostings.length === 0 ? (
                                     <div className="empty-state">
-                                      <RiBriefcaseLine />
+                                      <FiBriefcase />
                                       <h3>No job postings yet</h3>
                                       <p>Create your first job posting to start attracting candidates.</p>
                                       <button
-                                          className="btn-primary"
+                                          className="btn btn-primary"
                                           onClick={handleCreateNewJob}
                                       >
-                                        <RiAddLine /> Post Your First Job
+                                        <FiPlus /> Post Your First Job
                                       </button>
                                     </div>
                                 ) : (
@@ -1356,20 +1258,20 @@ const CompanyDashboard = () => {
                                                   className="btn-primary"
                                                   onClick={() => handleViewJobDetails(job)}
                                               >
-                                                <RiEyeLine /> View Details
+                                                <FiEye /> View Details
                                               </button>
                                               <button
                                                   className="btn-secondary"
                                                   onClick={() => handleEditJob(job)}
                                               >
-                                                <RiEditLine /> Edit
+                                                <FiEdit /> Edit
                                               </button>
                                               <button
                                                   className="btn-danger"
                                                   onClick={() => handleDeleteJob(job.id)}
                                                   disabled={jobsLoading}
                                               >
-                                                <RiDeleteBinLine /> Delete
+                                                <FiTrash2 /> Delete
                                               </button>
                                             </div>
                                           </div>
@@ -1384,7 +1286,7 @@ const CompanyDashboard = () => {
                                         <div className="modal-header">
                                           <h2>{selectedJob.title}</h2>
                                           <button className="close-btn" onClick={handleCloseJobDetails}>
-                                            <RiCloseLine />
+                                            <FiX />
                                           </button>
                                         </div>
                                         <div className="modal-content">
@@ -1479,7 +1381,7 @@ const CompanyDashboard = () => {
                                                 handleEditJob(selectedJob);
                                               }}
                                           >
-                                            <RiEditLine /> Edit Job
+                                            <FiEdit /> Edit Job
                                           </button>
                                           <button
                                               className="btn-danger"
@@ -1488,7 +1390,7 @@ const CompanyDashboard = () => {
                                                 handleDeleteJob(selectedJob.id);
                                               }}
                                           >
-                                            <RiDeleteBinLine /> Delete Job
+                                            <FiTrash2 /> Delete Job
                                           </button>
                                           <button className="btn-secondary" onClick={handleCloseJobDetails}>
                                             Close
@@ -1532,19 +1434,19 @@ const CompanyDashboard = () => {
                                 <option value="REJECTED">Rejected</option>
                               </select>
                               <button className="btn-secondary" onClick={loadApplicants} disabled={applicantsLoading}>
-                                <RiRefreshLine /> Refresh
+                                <FiRefreshCw /> Refresh
                               </button>
                             </div>
                           </div>
 
                           {applicantsError && (
                               <div className="error-message mb-4">
-                                <RiErrorWarningLine /> {applicantsError}
+                                <FiAlertTriangle /> {applicantsError}
                               </div>
                           )}
                           {applicantsLoading && (
                               <div className="loading-container">
-                                <div className="loading-spinner"><RiLoader4Line className="spin" /></div>
+                                <div className="loading-spinner"><FiLoader className="spin" /></div>
                                 <p>Loading applicants...</p>
                               </div>
                           )}
@@ -1640,21 +1542,21 @@ const CompanyDashboard = () => {
                                   className="btn-secondary"
                                   onClick={() => loadRecommendations(selectedRecommendationJob)}
                               >
-                                <RiRefreshLine /> Refresh
+                                <FiRefreshCw /> Refresh
                               </button>
                             </div>
                           </div>
 
                           {recommendationsLoading && (
                               <div className="loading-container">
-                                <RiLoader4Line className="spin" />
+                                <FiLoader className="spin" />
                                 <p>Fetching recommended candidates...</p>
                               </div>
                           )}
 
                           {!recommendationsLoading && recommendationsError && (
                               <div className="error-message mb-4">
-                                <RiErrorWarningLine />
+                                <FiAlertTriangle />
                                 <span>{recommendationsError}</span>
                               </div>
                           )}
@@ -1700,12 +1602,12 @@ const CompanyDashboard = () => {
                                                   rel="noopener noreferrer"
                                                   className="btn-outline small"
                                               >
-                                                <RiDownloadLine /> Resume
+                                                <FiDownload /> Resume
                                               </a>
                                           )}
                                           {rec.email && (
                                               <a href={`mailto:${rec.email}`} className="btn-primary small">
-                                                <RiMailLine /> Contact
+                                                <FiMail /> Contact
                                               </a>
                                           )}
                                         </div>
@@ -1717,6 +1619,105 @@ const CompanyDashboard = () => {
                         </div>
                     )}
 
+                    {activeTab === 'notifications' && (
+                        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                          <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-2xl font-bold text-gray-900">Notifications</h2>
+                            <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className="btn-outline small"
+                                  onClick={handleMarkAllNotificationsRead}
+                                  disabled={!unreadNotifications || notificationsLoading}
+                              >
+                                <FiCheck /> Mark all read
+                              </button>
+                              <button
+                                  type="button"
+                  className="btn-secondary"
+                                  onClick={handleRefreshNotifications}
+                                  disabled={notificationsLoading}
+                              >
+                                <FiRefreshCw /> Refresh
+                              </button>
+                            </div>
+                          </div>
+
+                          {notificationsLoading && (
+                              <div className="notifications-loading">
+                                <FiLoader className="spin" />
+                                <span>Loading notifications...</span>
+                              </div>
+                          )}
+
+                          {!notificationsLoading && notificationsError && (
+                              <div className="notifications-error mb-4">
+                                <FiAlertTriangle />
+                                <span>{notificationsError}</span>
+                              </div>
+                          )}
+
+                          {!notificationsLoading && !notificationsError && notifications.length === 0 && (
+                              <div className="notifications-empty">
+                                <FiInbox />
+                                <p>No notifications yet</p>
+                              </div>
+                          )}
+
+                          {!notificationsLoading && !notificationsError && notifications.length > 0 && (
+                              <ul className="notifications-list">
+                                {notifications.map((notification, index) => {
+                                  const notificationId = notification.id || notification._id || `notification-${index}`;
+                                  const isRead = Boolean(notification.read);
+                                  return (
+                                      <li
+                                          key={notificationId}
+                                          className={`notification-item ${isRead ? 'read' : 'unread'}`}
+                                      >
+                                        <div className="notification-main">
+                                          <p className="notification-message">{notification.message}</p>
+                                          <div className="notification-meta">
+                                            <span className="notification-time">
+                                              <FiClock /> {formatNotificationTime(notification.createdAt)}
+                                            </span>
+                                            {notification.jobPostId && (
+                                                <span className="notification-job">
+                                                  Job: {getJobTitle(notification.jobPostId) || notification.jobPostId}
+                                                </span>
+                                            )}
+                                            {notification.type && (
+                                                <span className="notification-type">
+                                                  {notification.type.replace(/_/g, ' ')}
+                                                </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                        <div className="notification-item-actions">
+                                          {!isRead && (
+                                              <button
+                                                  type="button"
+                                                  className="btn-outline small"
+                                                  onClick={() => handleMarkNotificationRead(notificationId)}
+                                              >
+                                                <FiCheck /> Mark read
+                                              </button>
+                                          )}
+                                          <button
+                                              type="button"
+                                              className="btn-danger small"
+                                              onClick={() => handleDeleteNotification(notificationId)}
+                                          >
+                                            <FiTrash2 /> Dismiss
+                                          </button>
+                                        </div>
+                                      </li>
+                                  );
+                                })}
+                              </ul>
+                          )}
+                        </div>
+                    )}
+
                     {activeTab === 'settings' && (
                         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
                           <div className="flex items-center justify-between mb-6">
@@ -1724,8 +1725,8 @@ const CompanyDashboard = () => {
                             <div className="flex items-center gap-4">
                               {saveMessage && (
                                   <div className={`save-message ${saveStatus}`}>
-                                    {saveStatus === 'success' && <RiCheckLine />}
-                                    {saveStatus === 'error' && <RiErrorWarningLine />}
+                                    {saveStatus === 'success' && <FiCheck />}
+                                    {saveStatus === 'error' && <FiAlertTriangle />}
                                     {saveMessage}
                                   </div>
                               )}
@@ -1736,11 +1737,11 @@ const CompanyDashboard = () => {
                               >
                                 {isSaving ? (
                                     <>
-                                      <RiLoader4Line className="spinning" /> Saving...
+                                      <FiLoader className="spinning" /> Saving...
                                     </>
                                 ) : (
                                     <>
-                                      <RiSaveLine /> Save All Changes
+                                      <FiSave /> Save All Changes
                                     </>
                                 )}
                               </button>
@@ -1751,7 +1752,7 @@ const CompanyDashboard = () => {
                             {/* Company Logo Section */}
                             <div className="bg-gray-50 p-6 rounded-lg">
                               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                <RiImageLine /> Company Logo
+                                <FiImage /> Company Logo
                               </h3>
                               <div className="flex flex-col md:flex-row gap-6 items-start">
                                 <div className="flex flex-col items-center gap-4">
@@ -1764,12 +1765,12 @@ const CompanyDashboard = () => {
                                             onClick={handleRemoveLogo}
                                             title="Remove logo"
                                         >
-                                          <RiCloseLine />
+                                          <FiX />
                                         </button>
                                       </div>
                                   ) : (
                                       <div className="logo-placeholder">
-                                        <RiImageLine />
+                                        <FiImage />
                                         <span>No logo uploaded</span>
                                       </div>
                                   )}
@@ -1790,11 +1791,11 @@ const CompanyDashboard = () => {
                                     >
                                       {isSaving ? (
                                           <>
-                                            <RiLoader4Line className="spinning" /> Uploading...
+                                            <FiLoader className="spinning" /> Uploading...
                                           </>
                                       ) : (
                                           <>
-                                            <RiUploadCloudLine /> {logoPreview ? 'Change Logo' : 'Upload Logo'}
+                                            <FiUploadCloud /> {logoPreview ? 'Change Logo' : 'Upload Logo'}
                                           </>
                                       )}
                                     </label>
@@ -1809,7 +1810,7 @@ const CompanyDashboard = () => {
                             {/* Basic Company Information */}
                             <div className="bg-gray-50 p-6 rounded-lg">
                               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                <RiBuildingLine /> Basic Information
+                                <FiInfo /> Basic Information
                               </h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
@@ -1882,13 +1883,13 @@ const CompanyDashboard = () => {
                             {/* Contact Information */}
                             <div className="bg-gray-50 p-6 rounded-lg">
                               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                <RiMailLine /> Contact Information
+                                <FiMail /> Contact Information
                               </h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                   <label className="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
                                   <div className="input-with-icon">
-                                    <RiMailLine />
+                                    <FiMail />
                                     <input
                                         type="email"
                                         value={companySettings.email}
@@ -1900,7 +1901,7 @@ const CompanyDashboard = () => {
                                 <div>
                                   <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
                                   <div className="input-with-icon">
-                                    <RiPhoneLine />
+                                    <FiPhone />
                                     <input
                                         type="tel"
                                         value={companySettings.phone}
@@ -1912,7 +1913,7 @@ const CompanyDashboard = () => {
                                 <div>
                                   <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
                                   <div className="input-with-icon">
-                                    <RiGlobalLine />
+                                    <FiGlobe />
                                     <input
                                         type="url"
                                         value={companySettings.website}
@@ -1927,26 +1928,26 @@ const CompanyDashboard = () => {
                             {/* Account Security */}
                             <div className="bg-gray-50 p-6 rounded-lg">
                               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                <RiShieldCheckLine /> Account Security
+                                <FiShield /> Account Security
                               </h3>
                               <div className="flex flex-wrap gap-2">
                                 <button
                                     className="btn-secondary"
                                     onClick={handlePasswordChange}
                                 >
-                                  <RiLockLine /> Change Password
+                                  <FiLock /> Change Password
                                 </button>
                                 <button
                                     className="btn-secondary"
                                     onClick={handleEmailUpdate}
                                 >
-                                  <RiMailLine /> Update Email
+                                  <FiMail /> Update Email
                                 </button>
                                 <button
                                     className="btn-danger"
                                     onClick={handleAccountDeletion}
                                 >
-                                  <RiDeleteBinLine /> Delete Account
+                                  <FiTrash2 /> Delete Account
                                 </button>
                               </div>
                             </div>

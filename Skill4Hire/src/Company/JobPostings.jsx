@@ -2,18 +2,18 @@ import { useEffect, useMemo, useState } from "react";
 import { jobService } from "../services/jobService";
 import { useNavigate } from "react-router-dom";
 import {
-  RiAddLine,
-  RiBriefcaseLine,
-  RiCalendarLine,
-  RiDeleteBinLine,
-  RiEditLine,
-  RiErrorWarningLine,
-  RiLoader4Line,
-  RiMapPinLine,
-  RiMoneyDollarCircleLine,
-  RiTimeLine,
-  RiUserStarLine,
-} from "react-icons/ri";
+  FiPlus,
+  FiBriefcase,
+  FiCalendar,
+  FiTrash2,
+  FiEdit,
+  FiAlertTriangle,
+  FiLoader,
+  FiMapPin,
+  FiDollarSign,
+  FiClock,
+  FiAward,
+} from "react-icons/fi";
 import "./JobPostings.css";
 
 const JOB_TYPE_LABELS = {
@@ -140,7 +140,7 @@ const JobPostings = () => {
       <div className="job-postings__header">
         <div className="job-postings__title">
           <span className="job-postings__badge">
-            <RiBriefcaseLine />
+            <FiBriefcase />
           </span>
           <div>
             <h2>Job Postings</h2>
@@ -152,26 +152,26 @@ const JobPostings = () => {
           onClick={() => navigate("/jobs/create")}
           className="btn-primary job-postings__create"
         >
-          <RiAddLine /> New Job
+          <FiPlus /> New Job
         </button>
       </div>
 
       {error && (
         <div className="job-postings__alert job-postings__alert--error">
-          <RiErrorWarningLine />
+          <FiAlertTriangle />
           <span>{error}</span>
         </div>
       )}
 
       {loading ? (
         <div className="job-postings__loader">
-          <RiLoader4Line className="spinning" />
+          <FiLoader className="spinning" />
           <p>Loading job postings...</p>
         </div>
       ) : sortedJobs.length === 0 ? (
         <div className="job-postings__empty">
           <div className="job-postings__empty-icon">
-            <RiBriefcaseLine />
+            <FiBriefcase />
           </div>
           <h3>No job postings yet</h3>
           <p>
@@ -183,7 +183,7 @@ const JobPostings = () => {
             onClick={() => navigate("/jobs/create")}
             className="btn-primary"
           >
-            <RiAddLine /> Create a job
+            <FiPlus /> Create a job
           </button>
         </div>
       ) : (
@@ -215,28 +215,28 @@ const JobPostings = () => {
 
                 <ul className="job-card__meta">
                   <li>
-                    <RiMapPinLine />
+                    <FiMapPin />
                     <span>{job.location || "Location flexible"}</span>
                   </li>
                   <li>
-                    <RiBriefcaseLine />
+                    <FiBriefcase />
                     <span>{jobType}</span>
                   </li>
                   <li>
-                    <RiMoneyDollarCircleLine />
+                    <FiDollarSign />
                     <span>{formatCurrency(job.salary)}</span>
                   </li>
                   <li>
-                    <RiUserStarLine />
+                    <FiAward />
                     <span>{experienceLabel}</span>
                   </li>
                   <li>
-                    <RiTimeLine />
+                    <FiClock />
                     <span>{deadlineLabel}</span>
                   </li>
                   {job.createdAt && (
                     <li>
-                      <RiCalendarLine />
+                      <FiCalendar />
                       <span>
                         Posted {new Date(job.createdAt).toLocaleDateString()}
                       </span>
@@ -260,7 +260,7 @@ const JobPostings = () => {
                     className="btn-outline job-card__action"
                     onClick={() => navigate(`/jobs/edit/${job.id}`)}
                   >
-                    <RiEditLine /> Edit
+                    <FiEdit /> Edit
                   </button>
                   <button
                     type="button"
@@ -268,7 +268,7 @@ const JobPostings = () => {
                     onClick={() => handleDelete(job.id)}
                     disabled={deletingId === job.id}
                   >
-                    {deletingId === job.id ? <RiLoader4Line className="spinning" /> : <RiDeleteBinLine />} Delete
+                    {deletingId === job.id ? <FiLoader className="spinning" /> : <FiTrash2 />} Delete
                   </button>
                 </div>
               </article>
