@@ -3,13 +3,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { jobService } from "../services/jobService";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  RiSaveLine,
-  RiCloseLine,
-  RiLoader4Line,
-  RiErrorWarningLine,
-  RiCheckLine,
-  RiBriefcaseLine,
-} from "react-icons/ri";
+  FiSave,
+  FiX,
+  FiLoader,
+  FiAlertTriangle,
+  FiCheck,
+  FiBriefcase,
+} from "react-icons/fi";
+import "./JobForm.css";
 
 const JobForm = ({ jobId: propJobId, initialJob, onSave, onCancel }) => {
   const navigate = useNavigate();
@@ -168,12 +169,12 @@ const JobForm = ({ jobId: propJobId, initialJob, onSave, onCancel }) => {
       <div className="job-form-container">
         <div className="job-form-header">
           <div className="form-title">
-            <RiBriefcaseLine />
+            <FiBriefcase />
             <h2>Loading job details...</h2>
           </div>
         </div>
         <div className="loading-state">
-          <RiLoader4Line className="spinning" />
+          <FiLoader className="spinning" />
         </div>
       </div>
     );
@@ -183,7 +184,7 @@ const JobForm = ({ jobId: propJobId, initialJob, onSave, onCancel }) => {
     <div className="job-form-container">
       <div className="job-form-header">
         <div className="form-title">
-          <RiBriefcaseLine />
+          <FiBriefcase />
           <h2>{isEditMode ? "Edit Job Posting" : "Create New Job Posting"}</h2>
         </div>
         <button
@@ -197,18 +198,18 @@ const JobForm = ({ jobId: propJobId, initialJob, onSave, onCancel }) => {
           }}
           disabled={loading}
         >
-          <RiCloseLine />
+          <FiX />
         </button>
       </div>
 
       {error && (
         <div className="form-message error">
-          <RiErrorWarningLine /> {error}
+          <FiAlertTriangle /> {error}
         </div>
       )}
       {success && (
         <div className="form-message success">
-          <RiCheckLine /> {success}
+          <FiCheck /> {success}
         </div>
       )}
 
@@ -323,7 +324,7 @@ const JobForm = ({ jobId: propJobId, initialJob, onSave, onCancel }) => {
 
         <div className="form-actions">
           <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? <RiLoader4Line className="spinning" /> : <RiSaveLine />}
+            {loading ? <FiLoader className="spinning" /> : <FiSave />}
             {isEditMode ? "Update Job" : "Create Job"}
           </button>
           <button

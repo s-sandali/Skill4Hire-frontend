@@ -8,6 +8,7 @@ import {
     RiEditLine,
     RiSaveLine,
 } from "react-icons/ri";
+import PortalLogoBadge from "../components/PortalLogoBadge.jsx";
 
 import "../Candidate/base.css";
 import "../Candidate/buttons.css";
@@ -229,7 +230,9 @@ export default function EmployeeProfile() {
                         />
                     ) : (
                         <div className="progress-wrap">
-                            <div className="progress-outer">Profile</div>
+                            <div className="progress-outer">
+                                <PortalLogoBadge size={88} imageScale={0.72} />
+                            </div>
                             <div className="progress-inner">
                                 <div className="pct">
                                     {Math.round(profile.profileCompleteness || 0)}%

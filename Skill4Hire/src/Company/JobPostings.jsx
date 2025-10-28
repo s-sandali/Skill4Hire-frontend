@@ -1,30 +1,105 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { jobService } from "../services/jobService";
 import { useNavigate } from "react-router-dom";
+import {
+  FiPlus,
+  FiBriefcase,
+  FiCalendar,
+  FiTrash2,
+  FiEdit,
+  FiAlertTriangle,
+  FiLoader,
+  FiMapPin,
+  FiDollarSign,
+  FiClock,
+  FiAward,
+} from "react-icons/fi";
+import "./JobPostings.css";
+
+const JOB_TYPE_LABELS = {
+  FULL_TIME: "Full time",
+  PART_TIME: "Part time",
+  CONTRACT: "Contract",
+  INTERNSHIP: "Internship",
+  FREELANCE: "Freelance",
+  TEMPORARY: "Temporary",
+  REMOTE: "Remote",
+};
+
+const toSkillList = (skills) => {
+  if (!skills) return [];
+  if (Array.isArray(skills)) {
+    return skills.filter(Boolean);
+  }
+  if (typeof skills === "string") {
+    return skills
+      .split(",")
+      .map((skill) => skill.trim())
+      .filter(Boolean);
+  }
+  return [];
+};
+
+const getJobStatus = (deadline) => {
+  if (!deadline) {
+    return { label: "Open", tone: "active", description: "No deadline set" };
+  }
+  const cutoff = new Date(deadline);
+  if (Number.isNaN(cutoff.getTime())) {
+    return { label: "Open", tone: "active", description: "Deadline unavailable" };
+  }
+  const now = new Date();
+  const diffMs = cutoff.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays < 0) {
+    return {
+      label: "Closed",
+      tone: "inactive",
+      description: `Closed ${Math.abs(diffDays)} day${Math.abs(diffDays) === 1 ? "" : "s"} ago`,
+    };
+  }
+  if (diffDays <= 3) {
+    return {
+      label: "Closing soon",
+      tone: "warning",
+      description: diffDays === 0 ? "Closes today" : `Closes in ${diffDays} day${diffDays === 1 ? "" : "s"}`,
+    };
+  }
+  return {
+    label: "Active",
+    tone: "active",
+    description: `Closes in ${diffDays} day${diffDays === 1 ? "" : "s"}`,
+  };
+};
+
+const formatCurrency = (value) => {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric <= 0) {
+    return "Salary negotiable";
+  }
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(numeric);
+};
 
 const JobPostings = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [deletingId, setDeletingId] = useState(null);
   const navigate = useNavigate();
-
-  const toSkillList = (skills) => {
-    if (!skills) return [];
-    if (Array.isArray(skills)) return skills.filter(Boolean);
-    if (typeof skills === "string") {
-      return skills
-        .split(",")
-        .map((skill) => skill.trim())
-        .filter(Boolean);
-    }
-    return [];
-  };
 
   const loadJobs = async () => {
     try {
       const data = await jobService.getAll();
       setJobs(data);
+      setError("");
     } catch (err) {
       console.error("Failed to fetch jobs:", err);
+      const message = err?.response?.data?.message || err?.message || "Failed to load job postings";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -33,10 +108,16 @@ const JobPostings = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this job?")) return;
     try {
+      setDeletingId(id);
       await jobService.remove(id);
-      setJobs(jobs.filter((job) => job.id !== id));
+      setJobs((prev) => prev.filter((job) => job.id !== id));
+      setError("");
     } catch (err) {
       console.error("Failed to delete job:", err);
+      const message = err?.response?.data?.message || err?.message || "Failed to delete job";
+      setError(message);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -44,87 +125,155 @@ const JobPostings = () => {
     loadJobs();
   }, []);
 
-  if (loading) {
-    return <p className="text-center text-gray-300">Loading jobs...</p>;
-  }
+  const sortedJobs = useMemo(
+    () =>
+      [...jobs].sort((a, b) => {
+        const first = new Date(a?.createdAt || a?.updatedAt || a?.deadline || 0).getTime();
+        const second = new Date(b?.createdAt || b?.updatedAt || b?.deadline || 0).getTime();
+        return second - first;
+      }),
+    [jobs]
+  );
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-white">Job Postings</h2>
+    <div className="job-postings">
+      <div className="job-postings__header">
+        <div className="job-postings__title">
+          <span className="job-postings__badge">
+            <FiBriefcase />
+          </span>
+          <div>
+            <h2>Job Postings</h2>
+            <p>Manage active openings and keep candidates informed.</p>
+          </div>
+        </div>
         <button
+          type="button"
           onClick={() => navigate("/jobs/create")}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md"
+          className="btn-primary job-postings__create"
         >
-          + New Job
+          <FiPlus /> New Job
         </button>
       </div>
 
-      {jobs.length === 0 ? (
-        <p className="text-gray-400">No jobs available.</p>
+      {error && (
+        <div className="job-postings__alert job-postings__alert--error">
+          <FiAlertTriangle />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="job-postings__loader">
+          <FiLoader className="spinning" />
+          <p>Loading job postings...</p>
+        </div>
+      ) : sortedJobs.length === 0 ? (
+        <div className="job-postings__empty">
+          <div className="job-postings__empty-icon">
+            <FiBriefcase />
+          </div>
+          <h3>No job postings yet</h3>
+          <p>
+            Create your first opening to start attracting candidates. You can manage the status, salary, and skill
+            tags at any time.
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate("/jobs/create")}
+            className="btn-primary"
+          >
+            <FiPlus /> Create a job
+          </button>
+        </div>
       ) : (
-        <div className="grid md:grid-cols-2 gap-6">
-          {jobs.map((job) => (
-            <div
-              key={job.id}
-              className="bg-gray-900 border border-gray-700 rounded-lg p-5 shadow hover:shadow-lg"
-            >
-              <div className="flex justify-between items-start">
-                <h3 className="text-lg font-semibold text-white">
-                  {job.title}
-                </h3>
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    new Date(job.deadline) > new Date()
-                      ? "bg-green-100 text-green-700"
-                      : "bg-gray-200 text-gray-600"
-                  }`}
-                >
-                  {new Date(job.deadline) > new Date()
-                    ? "Active"
-                    : "Closed"}
-                </span>
-              </div>
+        <div className="job-postings__grid">
+          {sortedJobs.map((job) => {
+            const skills = toSkillList(job.skills);
+            const status = getJobStatus(job.deadline);
+            const jobType = JOB_TYPE_LABELS[job.type] || job.type || "Job type";
+            const deadlineDate = job.deadline ? new Date(job.deadline) : null;
+            const deadlineLabel = deadlineDate && !Number.isNaN(deadlineDate.getTime())
+              ? deadlineDate.toLocaleDateString()
+              : "Not set";
+            const experienceLabel = job.experience
+              ? `${job.experience} year${Number(job.experience) === 1 ? "" : "s"} experience`
+              : "Experience flexible";
 
-              <p className="text-gray-400 mt-2 text-sm">{job.description}</p>
-
-              <div className="mt-3 text-sm text-gray-300">
-                <p>📍 {job.location}</p>
-                <p>💼 {job.type}</p>
-                <p>💰 ${job.salary}</p>
-                <p>⚡ {job.experience} years exp</p>
-                <p>⏳ Deadline: {new Date(job.deadline).toLocaleDateString()}</p>
-              </div>
-
-              {toSkillList(job.skills).length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {toSkillList(job.skills).map((skill) => (
-                    <span
-                      key={skill}
-                      className="bg-blue-900 text-blue-200 px-2 py-1 rounded-full text-xs tracking-wide"
-                    >
-                      {skill}
-                    </span>
-                  ))}
+            return (
+              <article key={job.id} className="job-card">
+                <div className="job-card__header">
+                  <div className="job-card__heading">
+                    <h3>{job.title || "Untitled position"}</h3>
+                    <p>{job.description || "No description provided."}</p>
+                  </div>
+                  <span className={`job-card__status job-card__status--${status.tone}`}>
+                    {status.label}
+                  </span>
                 </div>
-              )}
+                <p className="job-card__status-detail">{status.description}</p>
 
-              <div className="flex gap-3 mt-4">
-                <button
-                  onClick={() => navigate(`/jobs/edit/${job.id}`)}
-                  className="bg-yellow-500 text-white px-3 py-1 rounded-md text-sm"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(job.id)}
-                  className="bg-red-600 text-white px-3 py-1 rounded-md text-sm"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
+                <ul className="job-card__meta">
+                  <li>
+                    <FiMapPin />
+                    <span>{job.location || "Location flexible"}</span>
+                  </li>
+                  <li>
+                    <FiBriefcase />
+                    <span>{jobType}</span>
+                  </li>
+                  <li>
+                    <FiDollarSign />
+                    <span>{formatCurrency(job.salary)}</span>
+                  </li>
+                  <li>
+                    <FiAward />
+                    <span>{experienceLabel}</span>
+                  </li>
+                  <li>
+                    <FiClock />
+                    <span>{deadlineLabel}</span>
+                  </li>
+                  {job.createdAt && (
+                    <li>
+                      <FiCalendar />
+                      <span>
+                        Posted {new Date(job.createdAt).toLocaleDateString()}
+                      </span>
+                    </li>
+                  )}
+                </ul>
+
+                {skills.length > 0 && (
+                  <div className="job-card__skills">
+                    {skills.map((skill) => (
+                      <span key={skill} className="job-card__skill">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <div className="job-card__actions">
+                  <button
+                    type="button"
+                    className="btn-outline job-card__action"
+                    onClick={() => navigate(`/jobs/edit/${job.id}`)}
+                  >
+                    <FiEdit /> Edit
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-danger job-card__action"
+                    onClick={() => handleDelete(job.id)}
+                    disabled={deletingId === job.id}
+                  >
+                    {deletingId === job.id ? <FiLoader className="spinning" /> : <FiTrash2 />} Delete
+                  </button>
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
     </div>

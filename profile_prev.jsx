@@ -7,6 +7,7 @@ import {
 	FiBriefcase as Briefcase,
 	FiUser as User,
 	FiFileText as FileText,
+	FiSettings as Settings,
 	FiTrendingUp as TrendingUp,
 	FiClock as Clock,
 	FiCheckCircle as CheckCircle,
@@ -25,7 +26,6 @@ import {
 import Applications from './components/Applications';
 import JobMatches from './components/JobMatches';
 import ProfileSetupForm from './components/ProfileSetupForm';
-import PortalLogoBadge from '../components/PortalLogoBadge.jsx';
 import { candidateService } from '../services/candidateService';
 import { jobService } from '../services/jobService';
 import { authService } from '../services/authService';
@@ -201,8 +201,6 @@ const getStatusColor = (status) => {
 		REJECTED: 'bg-red-100 text-red-800',
 		ACCEPTED: 'bg-purple-100 text-purple-800',
 		APPLIED: 'bg-gray-100 text-gray-800',
-		INTERVIEW: 'bg-blue-100 text-blue-800', // added
-		HIRED: 'bg-green-100 text-green-800',    // added (alias of accepted)
 	};
 	return colors[value] || 'bg-gray-100 text-gray-800';
 };
@@ -216,8 +214,6 @@ const getStatusIcon = (status) => {
 		REJECTED: <XCircle className="w-4 h-4" />,
 		ACCEPTED: <CheckCircle className="w-4 h-4" />,
 		APPLIED: <Clock className="w-4 h-4" />,
-		INTERVIEW: <Clock className="w-4 h-4" />, // added
-		HIRED: <CheckCircle className="w-4 h-4" />, // added
 	};
 	return icons[value] || <Clock className="w-4 h-4" />;
 };
@@ -616,17 +612,9 @@ const NotificationsView = ({ notifications }) => (
 							<Bell className={`w-5 h-5 ${notification.read ? 'text-gray-600' : 'text-blue-600'}`} />
 						</div>
 						<div className="flex-1">
-							<h3 className="font-semibold text-gray-900 mb-1">{notification.title || 'Notification'}</h3>
+							<h3 className="font-semibold text-gray-900 mb-1">{notification.title}</h3>
 							<p className="text-gray-600 mb-2">{notification.message}</p>
-							<div className="flex items-center gap-3 text-sm text-gray-500">
-								<span>{notification.time}</span>
-								{notification.applicationId && (
-									<button className="text-blue-600 hover:underline" onClick={() => window.dispatchEvent(new CustomEvent('candidate:navigate', { detail: { tab: 'applications' } }))}>View application</button>
-								)}
-								{!notification.applicationId && notification.jobPostId && (
-									<button className="text-blue-600 hover:underline" onClick={() => window.dispatchEvent(new CustomEvent('candidate:navigate', { detail: { tab: 'jobs' } }))}>View job</button>
-								)}
-							</div>
+							<p className="text-sm text-gray-500">{notification.time}</p>
 						</div>
 					</div>
 				</div>
@@ -648,9 +636,7 @@ NotificationsView.propTypes = {
 };
 
 const CandidateProfileApp = () => {
-	const navigate = useNavigate();
 	const [activeTab, setActiveTab] = useState('dashboard');
-	const [authError, setAuthError] = useState('');
 	const [profile, setProfile] = useState(null);
 	const [profileSummary, setProfileSummary] = useState(defaultProfileSummary);
 	const [applications, setApplications] = useState([]);
@@ -663,18 +649,9 @@ const CandidateProfileApp = () => {
 		resumeUrl: '',
 		profilePictureUrl: '',
 	});
-	const [unreadCount, setUnreadCount] = useState(0);
-	const [bellOpen, setBellOpen] = useState(false);
+	const navigate = useNavigate();
 	const previousResumeUrlRef = useRef('');
 	const previousPictureUrlRef = useRef('');
-
-	useEffect(() => {
-		const role = localStorage.getItem('userRole');
-		if (role !== 'CANDIDATE') {
-			navigate('/login', { replace: true });
-			return;
-		}
-	}, [navigate]);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -737,13 +714,17 @@ const CandidateProfileApp = () => {
 			}
 		};
 
-		Promise.all([
-			fetchProfile(),
-			fetchProfileCompleteness(),
-			fetchApplications(),
-			fetchJobs(),
-			fetchNotifications(),
-		]);
+		const loadAll = async () => {
+			await Promise.all([
+				fetchProfile(),
+				fetchProfileCompleteness(),
+				fetchApplications(),
+				fetchJobs(),
+				fetchNotifications(),
+			]);
+		};
+
+		loadAll();
 
 		const handleApplicationsChanged = async () => {
 			try {
@@ -766,15 +747,6 @@ const CandidateProfileApp = () => {
 				globalWindow.removeEventListener('applications:changed', handleApplicationsChanged);
 			}
 		};
-	}, []);
-
-	useEffect(() => {
-		const onNavigate = (e) => {
-			const tab = e?.detail?.tab;
-			if (tab && typeof tab === 'string') setActiveTab(tab);
-		};
-		try { window.addEventListener('candidate:navigate', onNavigate); } catch {}
-		return () => { try { window.removeEventListener('candidate:navigate', onNavigate); } catch {} };
 	}, []);
 
 	const refreshProfile = async () => {
@@ -882,63 +854,15 @@ const CandidateProfileApp = () => {
 		profile?.avatarUrl ||
 		'';
 
-	const loadNotifications = async () => {
-		try {
-			const response = await candidateService.getNotifications();
-			setNotifications(normalizeNotifications(response));
-			const resp = await candidateService.getUnreadNotificationCount();
-			setUnreadCount(Number(resp?.unreadCount || 0));
-		} catch (err) {
-			console.error('Failed to fetch notifications', err);
-		}
-	};
-
-	const markAllRead = async () => {
-		try {
-			await candidateService.markAllNotificationsAsRead();
-			setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-			setUnreadCount(0);
-		} catch (err) {
-			console.error('Failed to mark notifications as read', err);
-		}
-	};
-
-	useEffect(() => {
-		let cancelled = false;
-		const load = async () => {
-			try {
-				const resp = await candidateService.getUnreadNotificationCount();
-				if (cancelled) return;
-				setUnreadCount(Number(resp?.unreadCount || 0));
-			} catch {}
-		};
-		load();
-		const t = setInterval(load, 30000);
-		return () => {
-			cancelled = true;
-			clearInterval(t);
-		};
-	}, []);
-
-	// Mark all read when entering Notifications tab
-	useEffect(() => {
-		if (activeTab === 'notifications' && unreadCount > 0) {
-			markAllRead();
-		}
-	}, [activeTab]);
-
 	return (
 		<div className="min-h-screen bg-gray-50">
-			{authError && (
-				<div className="error-banner" role="alert" style={{ margin: '12px' }}>
-					{authError}
-				</div>
-			)}
 			<header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
 				<div className="max-w-7xl mx-auto px-6 py-4">
 					<div className="flex items-center justify-between">
-						<div className="flex items-center gap-4">
-							<PortalLogoBadge size={76} imageScale={0.7} />
+						<div className="flex items-center gap-3">
+							<div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+								<Briefcase className="w-6 h-6 text-white" />
+							</div>
 							<div>
 								<h1 className="text-xl font-bold text-gray-900">Skill4Hire</h1>
 								<p className="text-xs text-gray-600">Candidate Portal</p>
@@ -946,75 +870,21 @@ const CandidateProfileApp = () => {
 						</div>
 
 						<div className="flex items-center gap-4">
-							<div className="relative">
-								<button
-									type="button"
-									className="p-2 hover:bg-gray-100 rounded-lg transition"
-									aria-label="Notifications"
-									onClick={async () => {
-										setBellOpen((prev) => !prev);
-										try { await loadNotifications(); } catch {}
-									}}
-								>
-									<Bell className="w-5 h-5 text-gray-600" />
-									{unreadCount > 0 && (
-										<span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-									)}
-								</button>
-
-								{bellOpen && (
-									<div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg overflow-hidden z-50">
-										<div className="p-4 border-b">
-											<h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
-										</div>
-										<div className="max-h-60 overflow-y-auto">
-											{notifications.length === 0 ? (
-												<p className="text-sm text-gray-500 p-4">No new notifications.</p>
-											) : (
-												notifications.slice(0, 5).map((notification) => (
-													<div
-														key={notification.id}
-														className={`flex items-start gap-3 p-4 cursor-pointer transition-all hover:bg-gray-100 ${
-															!notification.read ? 'font-medium' : 'text-gray-700'
-														}`}
-														onClick={async () => {
-															try {
-																if (!notification.read) {
-																	await candidateService.markNotificationAsRead(notification.id);
-																	setNotifications((prev) => prev.map((n) => n.id === notification.id ? { ...n, read: true } : n));
-																	setUnreadCount((c) => Math.max(0, c - 1));
-																}
-															} catch {}
-															if (notification.applicationId) {
-																try { window.dispatchEvent(new CustomEvent('candidate:navigate', { detail: { tab: 'applications' } })); } catch {}
-															} else if (notification.jobPostId) {
-																try { window.dispatchEvent(new CustomEvent('candidate:navigate', { detail: { tab: 'jobs' } })); } catch {}
-															}
-															setBellOpen(false);
-														}}
-													>
-														<div className={`p-2 rounded-full ${notification.read ? 'bg-gray-100' : 'bg-blue-100'}`}>
-															<Bell className={`w-5 h-5 ${notification.read ? 'text-gray-600' : 'text-blue-600'}`} />
-														</div>
-														<div className="flex-1">
-															<p className="text-sm text-gray-900">{notification.title || 'Notification'}</p>
-															<p className="text-xs text-gray-500">{notification.message}</p>
-														</div>
-													</div>
-												))
-											)}
-										</div>
-										<div className="p-4 border-t">
-											<button
-												onClick={async () => { await markAllRead(); setBellOpen(false); }}
-												className="w-full text-center text-sm font-semibold text-blue-600 hover:underline"
-											>
-												Mark all as read
-											</button>
-										</div>
-									</div>
+							<button type="button" className="relative p-2 hover:bg-gray-100 rounded-lg transition" aria-label="Notifications">
+								<Bell className="w-5 h-5 text-gray-600" />
+								{notifications.some((notification) => !notification.read) && (
+									<span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
 								)}
-							</div>
+							</button>
+							<button
+								type="button"
+								className="btn btn-secondary btn-logout"
+								onClick={handleLogout}
+								disabled={isLoggingOut}
+							>
+								<LogOut className="w-4 h-4" />
+								<span>{isLoggingOut ? 'Signing out…' : 'Logout'}</span>
+							</button>
 							<div className="candidate-header-card">
 								<Avatar url={avatarUrl} initials={initials} size="sm" />
 								<div>
@@ -1083,13 +953,9 @@ const CandidateProfileApp = () => {
 								)}
 							</button>
 							<div className="border-t border-gray-200 my-2"></div>
-							<button
-								className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 transition"
-								onClick={handleLogout}
-								type="button"
-							>
-								<LogOut className="w-5 h-5" />
-								Logout
+							<button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+								<Settings className="w-5 h-5" />
+								Settings
 							</button>
 						</nav>
 					</aside>
@@ -1138,4 +1004,3 @@ const CandidateProfileApp = () => {
 };
 
 export default CandidateProfileApp;
-

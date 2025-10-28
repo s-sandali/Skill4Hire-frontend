@@ -19,7 +19,7 @@ const normalizeJobs = (payload) => {
             : [];
 
   return rawList.map((job, index) => {
-    const j = job?.job || job; // handle JobWithMatchScore
+    const j = job?.job || job?.jobPost || job; // support older matching format and enriched DTO
     const skillsArray = Array.isArray(j?.requiredSkills)
       ? j.requiredSkills
       : Array.isArray(j?.skills)
@@ -33,10 +33,11 @@ const normalizeJobs = (payload) => {
 
     return {
       id: j?.id || j?.jobPostId || j?.jobId || `job-${index}`,
-      title: j?.title || j?.jobTitle || j?.role || 'Role not specified',
-      company: j?.companyName || j?.company || j?.employer?.name || 'Company not specified',
-      location: j?.location || j?.jobLocation || j?.city || 'Location not provided',
-      matchScore: job?.matchScore ?? job?.matchingScore ?? job?.score ?? null,
+      title: j?.title || j?.jobTitle || j?.role || '',
+      company: j?.companyName || j?.company || j?.employer?.name || '',
+      companyLogo: j?.companyLogo || j?.employer?.logo || '',
+      location: j?.location || j?.jobLocation || j?.city || '',
+      matchScore: null, // removed from UI
       summary: j?.summary || j?.description || j?.shortDescription || '',
       salary: j?.salaryRange || j?.salary || j?.compensation || '',
       skills: skillsArray,
@@ -45,30 +46,52 @@ const normalizeJobs = (payload) => {
   });
 };
 
-const percent = (score) => {
-  if (score === null || score === undefined) return null;
-  const n = Number(score);
-  if (Number.isNaN(n)) return null;
-  if (n > 0 && n <= 1) return Math.round(n * 100);
-  if (n > 1 && n <= 100) return Math.round(n);
-  return Math.round(n);
-};
+const percent = (score) => null; // no longer used
 
 export default function JobMatches() {
   const [keyword, setKeyword] = useState("");
-  const [skill, setSkill] = useState("");
   const [type, setType] = useState("");
   const [location, setLocation] = useState("");
-  const [minSalary, setMinSalary] = useState("");
-  const [maxSalary, setMaxSalary] = useState("");
+  const [salaryRange, setSalaryRange] = useState(""); // e.g., "50000-70000" or "100000+"
+  const [expRange, setExpRange] = useState(""); // e.g., "0-2", "2-5", "5-10", "10+"
+  const [sortBy, setSortBy] = useState("newest");
 
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [applyState, setApplyState] = useState({});
+  const [appliedJobs, setAppliedJobs] = useState(() => new Set());
+  const [toast, setToast] = useState({ show: false, type: 'info', message: '' });
 
-  const [filterOptions, setFilterOptions] = useState({ types: [], locations: [] });
+  const [filterOptions, setFilterOptions] = useState({ types: [], locations: [], salaryRanges: [], experienceRanges: [] });
+
+  // Load already-applied jobs once and when applications change
+  useEffect(() => {
+    let cancelled = false;
+    const loadApplied = async () => {
+      try {
+        const res = await candidateService.getApplications();
+        const list = Array.isArray(res) ? res : (Array.isArray(res?.content) ? res.content : []);
+        const ids = new Set(
+          list
+            .map((a) => a.jobId || a.jobPostId || a.job?.id)
+            .filter(Boolean)
+            .map((id) => String(id))
+        );
+        if (!cancelled) setAppliedJobs(ids);
+      } catch {
+        // ignore; state will update after successful apply
+      }
+    };
+    loadApplied();
+    const onChanged = () => loadApplied();
+    try { window.addEventListener('applications:changed', onChanged); } catch {}
+    return () => {
+      cancelled = true;
+      try { window.removeEventListener('applications:changed', onChanged); } catch {}
+    };
+  }, []);
 
   // Load filter options once
   useEffect(() => {
@@ -80,13 +103,36 @@ export default function JobMatches() {
         setFilterOptions({
           types: Array.isArray(opts?.types) ? opts.types : [],
           locations: Array.isArray(opts?.locations) ? opts.locations : [],
+          salaryRanges: Array.isArray(opts?.salaryRanges) ? opts.salaryRanges : [],
+          experienceRanges: Array.isArray(opts?.experienceRanges) ? opts.experienceRanges : [],
         });
       } catch {
-        // non-fatal: filter dropdowns fall back to empty lists
+        // non-fatal
       }
     })();
     return () => { cancelled = true; };
   }, []);
+
+  // Helper: parse salary and experience ranges
+  const parseSalaryRange = (s) => {
+    if (!s) return { min: undefined, max: undefined };
+    if (s.endsWith("+")) {
+      const n = parseFloat(s);
+      return { min: Number.isFinite(n) ? n : undefined, max: undefined };
+    }
+    const [a, b] = s.split("-").map((x) => parseFloat(x));
+    return { min: Number.isFinite(a) ? a : undefined, max: Number.isFinite(b) ? b : undefined };
+  };
+  const parseExpRangeToMax = (s) => {
+    if (!s) return undefined;
+    if (s.endsWith("+")) {
+      const n = parseInt(s, 10);
+      return Number.isFinite(n) ? n : undefined; // treat "10+" as <= 10 due to backend maxExperience support
+    }
+    const parts = s.split("-");
+    const upper = parseInt(parts[1], 10);
+    return Number.isFinite(upper) ? upper : undefined;
+  };
 
   // Fetch jobs when filters change
   useEffect(() => {
@@ -102,32 +148,33 @@ export default function JobMatches() {
         if (q) params.keyword = q;
         if (type) params.type = type;
         if (location) params.location = location;
-        const min = parseFloat(minSalary);
-        const max = parseFloat(maxSalary);
-        if (!Number.isNaN(min)) params.minSalary = min;
-        if (!Number.isNaN(max)) params.maxSalary = max;
-        if (skill.trim()) params.skill = skill.trim(); // only supported by public/basic search
+        const { min: sMin, max: sMax } = parseSalaryRange(salaryRange);
+        if (Number.isFinite(sMin)) params.minSalary = sMin;
+        if (Number.isFinite(sMax)) params.maxSalary = sMax;
+        const expMax = parseExpRangeToMax(expRange);
+        if (Number.isFinite(expMax)) params.maxExperience = expMax;
 
-        const usingFilters = Boolean(type || location || skill || minSalary || maxSalary);
+        const usingFilters = Boolean(type || location || salaryRange || expRange);
 
         let res;
         if (usingFilters || q) {
-          // Use basic search when explicit filters or keyword present
           res = await jobService.search(params);
-          setInfo(buildInfo({ q, type, location, min, max, skill: skill.trim() }));
+          setInfo(buildInfo({ q, type, location, salaryRange, expRange }));
         } else {
-          // No filters/keyword => try personalized matches for signed-in candidates
           res = await jobService.searchWithMatching({});
           setInfo('Personalized matches');
         }
         if (cancelled) return;
-        setJobs(normalizeJobs(res));
-      } catch {
+        let list = normalizeJobs(res);
+        list = sortJobs(list, sortBy);
+        setJobs(list);
+      } catch (e) {
         if (cancelled) return;
         try {
-          const fallback = await jobService.listPublic();
+          let fallback = await jobService.listPublic();
           if (cancelled) return;
-          setJobs(normalizeJobs(fallback));
+          fallback = sortJobs(normalizeJobs(fallback), sortBy);
+          setJobs(fallback);
           setInfo('Showing public listings; personalized or filtered results unavailable.');
           setError("");
         } catch (e2) {
@@ -142,23 +189,59 @@ export default function JobMatches() {
 
     fetchJobs();
     return () => { cancelled = true; };
-  }, [keyword, skill, type, location, minSalary, maxSalary]);
+  }, [keyword, type, location, salaryRange, expRange, sortBy]);
+
+  const sortJobs = (arr, mode) => {
+    const list = Array.isArray(arr) ? [...arr] : [];
+    switch (mode) {
+      case 'salary-desc':
+        return list.sort((a, b) => (b.salary ?? 0) - (a.salary ?? 0));
+      case 'salary-asc':
+        return list.sort((a, b) => (a.salary ?? 0) - (b.salary ?? 0));
+      case 'title':
+        return list.sort((a, b) => String(a.title || '').localeCompare(String(b.title || '')));
+      case 'newest':
+      default:
+        return list.sort((a, b) => new Date(b.postedAt || b.createdAt || 0) - new Date(a.postedAt || a.createdAt || 0));
+    }
+  };
+
+  const showToast = (type, message, duration = 3000) => {
+    setToast({ show: true, type, message });
+    window.clearTimeout(showToast._t);
+    showToast._t = window.setTimeout(() => setToast((t) => ({ ...t, show: false })), duration);
+  };
 
   const handleApply = async (jobId) => {
     if (!jobId) return;
     setApplyState((prev) => ({ ...prev, [jobId]: { status: 'loading' } }));
     try {
-      await candidateService.applyToJob(jobId);
-      setApplyState((prev) => ({ ...prev, [jobId]: { status: 'success' } }));
-      try { window.dispatchEvent(new CustomEvent('applications:changed')); } catch {
-        // ignore when running in non-browser contexts (e.g., SSR/tests)
-      }
+      const result = await candidateService.applyToJob(jobId);
+      const already = result && result.alreadyApplied;
+      setApplyState((prev) => ({ ...prev, [jobId]: { status: 'success', already } }));
+      setAppliedJobs((prev) => new Set(prev).add(String(jobId)));
+      showToast('info', already ? 'You already applied to this role earlier.' : 'Application sent! We’ll notify you about updates.');
+      try { window.dispatchEvent(new CustomEvent('applications:changed')); } catch {}
     } catch (err) {
       setApplyState((prev) => ({
         ...prev,
         [jobId]: { status: 'error', message: err?.message || 'Failed to apply' }
       }));
+      showToast('error', err?.message || 'Sorry, we couldn’t submit your application. Please try again.');
     }
+  };
+
+  const handleViewApplication = () => {
+    try { window.dispatchEvent(new CustomEvent('candidate:navigate', { detail: { tab: 'applications' } })); } catch {}
+  };
+
+  const clearFilters = () => {
+    setKeyword("");
+    setType("");
+    setLocation("");
+    setSalaryRange("");
+    setExpRange("");
+    setSortBy("newest");
   };
 
   const list = useMemo(() => jobs, [jobs]);
@@ -170,20 +253,19 @@ export default function JobMatches() {
         <p className="muted">Search public listings or see personalized matches when signed in.</p>
       </div>
 
-      <div className="jobs-controls" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr 1fr', gap: 8 }}>
+      {toast.show && (
+        <div className={toast.type === 'error' ? 'error-banner' : 'info-banner'} style={{ marginBottom: 8 }}>
+          {toast.message}
+        </div>
+      )}
+
+      <div className="jobs-controls" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr 1fr 1fr 1fr', gap: 8, alignItems: 'center' }}>
         <input
           className="apps-input"
           type="text"
-          placeholder="Title or keyword"
+          placeholder="Title or keywords"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
-        />
-        <input
-          className="apps-input"
-          type="text"
-          placeholder="Skill (e.g., React)"
-          value={skill}
-          onChange={(e) => setSkill(e.target.value)}
         />
         <select className="apps-select" value={type} onChange={(e) => setType(e.target.value)}>
           <option value="">Type</option>
@@ -197,25 +279,31 @@ export default function JobMatches() {
             <option key={loc} value={loc}>{loc}</option>
           ))}
         </select>
-        <input
-          className="apps-input"
-          type="number"
-          min="0"
-          placeholder="Min Salary"
-          value={minSalary}
-          onChange={(e) => setMinSalary(e.target.value)}
-        />
-        <input
-          className="apps-input"
-          type="number"
-          min="0"
-          placeholder="Max Salary"
-          value={maxSalary}
-          onChange={(e) => setMaxSalary(e.target.value)}
-        />
+        <select className="apps-select" value={salaryRange} onChange={(e) => setSalaryRange(e.target.value)}>
+          <option value="">Salary Range</option>
+          {filterOptions.salaryRanges.map((r) => (
+            <option key={r} value={r}>{r.replace('+', '+')}</option>
+          ))}
+        </select>
+        <select className="apps-select" value={expRange} onChange={(e) => setExpRange(e.target.value)}>
+          <option value="">Max Experience</option>
+          {filterOptions.experienceRanges.map((r) => (
+            <option key={r} value={r}>{r.replace('+', '+')} yrs</option>
+          ))}
+        </select>
+        <select className="apps-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+          <option value="newest">Newest</option>
+          <option value="salary-desc">Salary: High to Low</option>
+          <option value="salary-asc">Salary: Low to High</option>
+          <option value="title">Title A-Z</option>
+        </select>
       </div>
 
-      {info && <div className="info-banner">{info}</div>}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+        {info && <div className="info-banner" style={{ flex: 1, marginRight: 8 }}>{info}</div>}
+        <button className="btn btn-secondary" onClick={clearFilters} title="Clear all filters">Clear</button>
+      </div>
+
       {error && <div className="error-banner">{error}</div>}
       {loading && <div className="loading">Loading jobs...</div>}
 
@@ -225,18 +313,27 @@ export default function JobMatches() {
 
       <div className="jobs-grid">
         {list.map((job) => {
-          const s = percent(job.matchScore);
           const apply = applyState[job.id]?.status;
+          const isApplied = appliedJobs.has(String(job.id)) || apply === 'success' || Boolean(applyState[job.id]?.already);
+          const meta = [job.company, job.location].filter(Boolean).join(' • ');
           return (
             <div key={job.id} className="job-card">
-              <div className="job-card-header">
-                <div>
-                  <h3>{job.title}</h3>
-                  <p className="muted">{job.company} • {job.location}</p>
+              <div className="job-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {job.companyLogo ? (
+                    <img src={job.companyLogo} alt={job.company || 'Company logo'} style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6, border: '1px solid #eee' }} />
+                  ) : (
+                    <div style={{ width: 40, height: 40, borderRadius: 6, background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', fontSize: 14 }}>
+                      {job.company?.charAt(0) ?? '•'}
+                    </div>
+                  )}
+                  <div>
+                    <h3 style={{ margin: 0 }}>{job.title || ' '}</h3>
+                    {meta && <p className="muted" style={{ margin: 0 }}>{meta}</p>}
+                  </div>
                 </div>
-                {s !== null && <span className="badge">{s}% match</span>}
               </div>
-              <p className="job-summary">{job.summary}</p>
+              {job.summary && <p className="job-summary">{job.summary}</p>}
               {job.skills?.length > 0 && (
                 <div className="skills-list">
                   {job.skills.slice(0, 8).map((sk) => (
@@ -244,14 +341,19 @@ export default function JobMatches() {
                   ))}
                 </div>
               )}
-              <div className="job-actions">
+              <div className="job-actions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <button
                   className="btn btn-primary"
                   onClick={() => handleApply(job.id)}
-                  disabled={apply === 'loading'}
+                  disabled={apply === 'loading' || isApplied}
                 >
-                  {apply === 'loading' ? 'Applying...' : apply === 'success' ? 'Applied' : 'Apply'}
+                  {apply === 'loading' ? 'Applying...' : isApplied ? 'Applied' : 'Apply'}
                 </button>
+                {isApplied && (
+                  <button className="btn btn-secondary" onClick={handleViewApplication}>
+                    View Application
+                  </button>
+                )}
               </div>
             </div>
           );
@@ -261,17 +363,13 @@ export default function JobMatches() {
   );
 }
 
-function buildInfo({ q, type, location, min, max, skill }) {
+function buildInfo({ q, type, location, salaryRange, expRange }) {
   const parts = [];
   if (q) parts.push(`keyword "${q}"`);
-  if (skill) parts.push(`skill "${skill}"`);
   if (type) parts.push(`type ${type}`);
   if (location) parts.push(`location ${location}`);
-  if (Number.isFinite(min) || Number.isFinite(max)) {
-    const m1 = Number.isFinite(min) ? min : 0;
-    const m2 = Number.isFinite(max) ? max : '∞';
-    parts.push(`salary ${m1}-${m2}`);
-  }
+  if (salaryRange) parts.push(`salary ${salaryRange}`);
+  if (expRange) parts.push(`max experience ${expRange}`);
   if (parts.length === 0) return '';
   return `Filters: ${parts.join(', ')}`;
 }

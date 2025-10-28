@@ -1,22 +1,23 @@
 import { useState } from 'react';
-import { 
-  RiBuildingLine, 
-  RiMailLine, 
-  RiGlobalLine, 
-  RiMapPinLine, 
-  RiTeamLine, 
-  RiCalendarLine, 
-  RiUserLine, 
-  RiPhoneLine, 
-  RiEditLine, 
-  RiBriefcaseLine,
-  RiShieldCheckLine,
-  RiBarChartBoxLine,
-  RiStarLine,
-  RiTimeLine
-} from 'react-icons/ri';
+import {
+	FiBriefcase,
+	FiMail,
+	FiGlobe,
+	FiMapPin,
+	FiUsers,
+	FiCalendar,
+	FiUser,
+	FiPhone,
+	FiEdit,
+	FiShield,
+	FiBarChart2,
+	FiStar,
+	FiClock,
+	FiTrendingUp
+} from 'react-icons/fi';
 import CompanyDashboard from './CompanyDashboard';
 import JobPostings from './JobPostings';
+import PortalLogoBadge from '../components/PortalLogoBadge.jsx';
 import './CompanyProfile.css';
 
 const CompanyProfile = () => {
@@ -111,16 +112,16 @@ const CompanyProfile = () => {
 
       {/* Company Header */}
       <div className="company-header">
-        <div className="company-logo-wrapper">
+          <div className="company-logo-wrapper">
           <div className="company-avatar">
             {sampleProfile?.logo ? (
               <img src={sampleProfile.logo} alt="Company Logo" />
             ) : (
-              <RiBuildingLine />
+              <PortalLogoBadge size={96} imageScale={0.72} />
             )}
           </div>
           <div className="verified-badge">
-            <RiShieldCheckLine />
+            <FiShield />
             <span>Verified</span>
           </div>
         </div>
@@ -129,17 +130,17 @@ const CompanyProfile = () => {
           <h1>{sampleProfile?.companyName || 'Your Company'}</h1>
           <div className="company-meta">
             <span className="meta-item">
-              <RiBuildingLine /> {sampleProfile?.industry}
+              <FiBriefcase /> {sampleProfile?.industry}
             </span>
             <span className="meta-item">
-              <RiMapPinLine /> {sampleProfile?.location}
+              <FiMapPin /> {sampleProfile?.location}
             </span>
           </div>
           
           <div className="company-stats">
             <div className="stat-item">
               <div className="stat-icon">
-                <RiTeamLine />
+                <FiUsers />
               </div>
               <div className="stat-info">
                 <span className="stat-number">{sampleProfile?.companySize || 'N/A'}</span>
@@ -148,7 +149,7 @@ const CompanyProfile = () => {
             </div>
             <div className="stat-item">
               <div className="stat-icon">
-                <RiCalendarLine />
+                <FiCalendar />
               </div>
               <div className="stat-info">
                 <span className="stat-number">{sampleProfile?.foundedYear || 'N/A'}</span>
@@ -157,7 +158,7 @@ const CompanyProfile = () => {
             </div>
             <div className="stat-item">
               <div className="stat-icon">
-                <RiStarLine />
+                <FiStar />
               </div>
               <div className="stat-info">
                 <span className="stat-number">95%</span>
@@ -166,7 +167,7 @@ const CompanyProfile = () => {
             </div>
             <div className="stat-item">
               <div className="stat-icon">
-                <RiBriefcaseLine />
+                <FiBriefcase />
               </div>
               <div className="stat-info">
                 <span className="stat-number">12</span>
@@ -181,7 +182,7 @@ const CompanyProfile = () => {
             className="btn-primary" 
             onClick={() => setActiveTab('edit')}
           >
-            <RiEditLine /> Edit Profile
+            <FiEdit /> Edit Profile
           </button>
         </div>
       </div>
@@ -192,28 +193,28 @@ const CompanyProfile = () => {
           className={`tab ${activeTab === 'profile' ? 'active' : ''}`}
           onClick={() => setActiveTab('profile')}
         >
-          <RiBarChartBoxLine />
+          <FiBarChart2 />
           <span>Overview</span>
         </button>
         <button 
           className={`tab ${activeTab === 'edit' ? 'active' : ''}`}
           onClick={() => setActiveTab('edit')}
         >
-          <RiEditLine />
+          <FiEdit />
           <span>Edit Profile</span>
         </button>
         <button 
           className={`tab ${activeTab === 'jobs' ? 'active' : ''}`}
           onClick={() => setActiveTab('jobs')}
         >
-          <RiBriefcaseLine />
+          <FiBriefcase />
           <span>Job Postings</span>
         </button>
         <button 
           className={`tab ${activeTab === 'candidates' ? 'active' : ''}`}
           onClick={() => setActiveTab('candidates')}
         >
-          <RiTeamLine />
+          <FiUsers />
           <span>Candidates</span>
         </button>
       </div>
@@ -226,7 +227,7 @@ const CompanyProfile = () => {
             <div className="quick-stats-banner">
               <div className="quick-stat">
                 <div className="quick-stat-icon">
-                  <RiBriefcaseLine />
+                  <FiBriefcase />
                 </div>
                 <div className="quick-stat-content">
                   <h4>12</h4>
@@ -235,7 +236,7 @@ const CompanyProfile = () => {
               </div>
               <div className="quick-stat">
                 <div className="quick-stat-icon">
-                  <RiUserLine />
+                  <FiUser />
                 </div>
                 <div className="quick-stat-content">
                   <h4>48</h4>
@@ -244,7 +245,7 @@ const CompanyProfile = () => {
               </div>
               <div className="quick-stat">
                 <div className="quick-stat-icon">
-                  <RiTimeLine />
+                  <FiClock />
                 </div>
                 <div className="quick-stat-content">
                   <h4>5</h4>
@@ -253,7 +254,7 @@ const CompanyProfile = () => {
               </div>
               <div className="quick-stat">
                 <div className="quick-stat-icon">
-                  <RiBarChartBoxLine />
+                  <FiTrendingUp />
                 </div>
                 <div className="quick-stat-content">
                   <h4>85%</h4>
@@ -267,14 +268,14 @@ const CompanyProfile = () => {
               <div className="overview-card">
                 <div className="card-header">
                   <div className="card-header-icon">
-                    <RiBuildingLine />
+                    <FiBriefcase />
                   </div>
                   <h3>Company Information</h3>
                 </div>
                 <div className="card-content">
                   <div className="info-row">
                     <div className="info-icon">
-                      <RiBuildingLine />
+                      <FiBriefcase />
                     </div>
                     <div className="info-details">
                       <span className="info-label">Company Name</span>
@@ -283,7 +284,7 @@ const CompanyProfile = () => {
                   </div>
                   <div className="info-row">
                     <div className="info-icon">
-                      <RiBarChartBoxLine />
+                      <FiBarChart2 />
                     </div>
                     <div className="info-details">
                       <span className="info-label">Industry</span>
@@ -292,7 +293,7 @@ const CompanyProfile = () => {
                   </div>
                   <div className="info-row">
                     <div className="info-icon">
-                      <RiTeamLine />
+                      <FiUsers />
                     </div>
                     <div className="info-details">
                       <span className="info-label">Company Size</span>
@@ -301,7 +302,7 @@ const CompanyProfile = () => {
                   </div>
                   <div className="info-row">
                     <div className="info-icon">
-                      <RiCalendarLine />
+                      <FiCalendar />
                     </div>
                     <div className="info-details">
                       <span className="info-label">Founded</span>
@@ -315,14 +316,14 @@ const CompanyProfile = () => {
               <div className="overview-card">
                 <div className="card-header">
                   <div className="card-header-icon">
-                    <RiMailLine />
+                    <FiMail />
                   </div>
                   <h3>Contact Information</h3>
                 </div>
                 <div className="card-content">
                   <div className="info-row">
                     <div className="info-icon">
-                      <RiMailLine />
+                      <FiMail />
                     </div>
                     <div className="info-details">
                       <span className="info-label">Email</span>
@@ -331,7 +332,7 @@ const CompanyProfile = () => {
                   </div>
                   <div className="info-row">
                     <div className="info-icon">
-                      <RiPhoneLine />
+                      <FiPhone />
                     </div>
                     <div className="info-details">
                       <span className="info-label">Phone</span>
@@ -340,7 +341,7 @@ const CompanyProfile = () => {
                   </div>
                   <div className="info-row">
                     <div className="info-icon">
-                      <RiGlobalLine />
+                      <FiGlobe />
                     </div>
                     <div className="info-details">
                       <span className="info-label">Website</span>
@@ -353,7 +354,7 @@ const CompanyProfile = () => {
                   </div>
                   <div className="info-row">
                     <div className="info-icon">
-                      <RiMapPinLine />
+                      <FiMapPin />
                     </div>
                     <div className="info-details">
                       <span className="info-label">Location</span>
@@ -367,14 +368,14 @@ const CompanyProfile = () => {
               <div className="overview-card">
                 <div className="card-header">
                   <div className="card-header-icon">
-                    <RiUserLine />
+                    <FiUser />
                   </div>
                   <h3>Contact Person</h3>
                 </div>
                 <div className="card-content">
                   <div className="contact-person-card">
                     <div className="contact-avatar">
-                      <RiUserLine />
+                      <FiUser />
                     </div>
                     <div className="contact-details">
                       <h4>{sampleProfile?.contactPerson || 'Not specified'}</h4>
@@ -389,7 +390,7 @@ const CompanyProfile = () => {
               <div className="overview-card full-width">
                 <div className="card-header">
                   <div className="card-header-icon">
-                    <RiBuildingLine />
+                    <FiBriefcase />
                   </div>
                   <h3>About the Company</h3>
                 </div>

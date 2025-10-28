@@ -1,37 +1,39 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
-  RiBuildingLine,
-  RiBriefcaseLine,
-  RiBarChartBoxLine,
-  RiSettingsLine,
-  RiLogoutBoxLine,
-  RiAddLine,
-  RiEditLine,
-  RiDeleteBinLine,
-  RiEyeLine,
-  RiDownloadLine,
-  RiUploadCloudLine,
-  RiImageLine,
-  RiStarLine,
-  RiGlobalLine,
-  RiPhoneLine,
-  RiMailLine,
-  RiMapPinLine,
-  RiSaveLine,
-  RiLockLine,
-  RiNotificationLine,
-  RiInboxLine,
-  RiTimeLine,
-  RiCheckLine,
-  RiErrorWarningLine,
-  RiLoader4Line,
-  RiCloseLine,
-  RiRefreshLine
-} from 'react-icons/ri';
+  FiBriefcase,
+  FiBarChart2,
+  FiSettings,
+  FiLogOut,
+  FiPlus,
+  FiEdit,
+  FiTrash2,
+  FiEye,
+  FiDownload,
+  FiUploadCloud,
+  FiImage,
+  FiStar,
+  FiGlobe,
+  FiPhone,
+  FiMail,
+  FiSave,
+  FiLock,
+  FiBell,
+  FiInbox,
+  FiClock,
+  FiCheck,
+  FiAlertTriangle,
+  FiLoader,
+  FiX,
+  FiRefreshCw,
+  FiUsers,
+  FiShield,
+  FiInfo
+} from 'react-icons/fi';
 import { authService } from '../services/authService';
 import { companyService } from '../services/companyService';
 import { jobService } from '../services/jobService';
 import JobForm from './JobForm';
+import PortalLogoBadge from '../components/PortalLogoBadge.jsx';
 import './CompanyDashboard.css';
 
 const defaultNotificationPreferences = {
@@ -40,6 +42,14 @@ const defaultNotificationPreferences = {
   applicationUpdates: true,
   weeklyReports: true,
   jobAlerts: true
+};
+
+const TAB_LABELS = {
+  overview: 'Overview',
+  jobs: 'Job Postings',
+  applicants: 'Applicants',
+  recommendations: 'Recommendations',
+  settings: 'Settings'
 };
 
 const buildDefaultCompanySettings = () => ({
@@ -123,7 +133,6 @@ const CompanyDashboard = () => {
   const [notifications, setNotifications] = useState([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsError, setNotificationsError] = useState('');
-  const [showNotifications, setShowNotifications] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   useEffect(() => {
@@ -258,7 +267,6 @@ const CompanyDashboard = () => {
     return match?.title || match?.jobTitle || '';
   }, [jobPostings]);
 
-
   const normalizeRecommendations = useCallback((payload) => {
     const rawList = Array.isArray(payload)
         ? payload
@@ -329,7 +337,7 @@ const CompanyDashboard = () => {
     try {
       await companyService.markNotificationRead(notificationId);
       setNotifications((prev) => prev.map((notification) =>
-        notification.id === notificationId ? { ...notification, read: true } : notification
+          notification.id === notificationId ? { ...notification, read: true } : notification
       ));
       setNotificationsError('');
     } catch (err) {
@@ -345,10 +353,6 @@ const CompanyDashboard = () => {
       setNotificationsError(err?.message || 'Failed to remove notification');
     }
   }, []);
-
-  const handleToggleNotifications = () => {
-    setShowNotifications((prev) => !prev);
-  };
 
   const loadRecommendations = useCallback(async (jobId = 'all') => {
     setRecommendationsLoading(true);
@@ -492,6 +496,12 @@ const CompanyDashboard = () => {
   }, [loadNotifications]);
 
   useEffect(() => {
+    if (activeTab === 'notifications') {
+      loadNotifications();
+    }
+  }, [activeTab, loadNotifications]);
+
+  useEffect(() => {
     const unread = notifications.filter((notification) => !notification?.read).length;
     setUnreadNotifications(unread);
   }, [notifications]);
@@ -514,25 +524,25 @@ const CompanyDashboard = () => {
 
       setCompanySettings((prev) => {
         const nextSettings = {
-        ...prev,
-        companyName: profileData.name ?? profileData.companyName ?? prev.companyName ?? "",
-        email: profileData.email ?? profileData.contactEmail ?? prev.email ?? "",
-        phone: profileData.phone ?? profileData.phoneNumber ?? prev.phone ?? "",
-        website: profileData.website ?? profileData.site ?? prev.website ?? "",
-        address: profileData.address ?? prev.address ?? "",
-        city: profileData.city ?? prev.city ?? "",
-        state: profileData.state ?? prev.state ?? "",
-        zipCode: profileData.zipCode ?? profileData.postalCode ?? prev.zipCode ?? "",
-        country: profileData.country ?? prev.country ?? "",
-        industry: profileData.industry ?? profileData.companyIndustry ?? prev.industry ?? "",
-        companySize: profileData.companySize ?? profileData.size ?? prev.companySize ?? "",
-        founded: profileData.founded ?? profileData.foundedYear ?? prev.founded ?? "",
-        description: profileData.description ?? prev.description ?? "",
-        linkedinUrl: profileData.linkedin ?? profileData.linkedinUrl ?? prev.linkedinUrl ?? "",
-        twitterUrl: profileData.twitter ?? profileData.twitterUrl ?? prev.twitterUrl ?? "",
-        facebookUrl: profileData.facebook ?? profileData.facebookUrl ?? prev.facebookUrl ?? "",
-        notifications: prev.notifications,
-        logo: normalizedLogo || prev.logo || ''
+          ...prev,
+          companyName: profileData.name ?? profileData.companyName ?? prev.companyName ?? "",
+          email: profileData.email ?? profileData.contactEmail ?? prev.email ?? "",
+          phone: profileData.phone ?? profileData.phoneNumber ?? prev.phone ?? "",
+          website: profileData.website ?? profileData.site ?? prev.website ?? "",
+          address: profileData.address ?? prev.address ?? "",
+          city: profileData.city ?? prev.city ?? "",
+          state: profileData.state ?? prev.state ?? "",
+          zipCode: profileData.zipCode ?? profileData.postalCode ?? prev.zipCode ?? "",
+          country: profileData.country ?? prev.country ?? "",
+          industry: profileData.industry ?? profileData.companyIndustry ?? prev.industry ?? "",
+          companySize: profileData.companySize ?? profileData.size ?? prev.companySize ?? "",
+          founded: profileData.founded ?? profileData.foundedYear ?? prev.founded ?? "",
+          description: profileData.description ?? prev.description ?? "",
+          linkedinUrl: profileData.linkedin ?? profileData.linkedinUrl ?? prev.linkedinUrl ?? "",
+          twitterUrl: profileData.twitter ?? profileData.twitterUrl ?? prev.twitterUrl ?? "",
+          facebookUrl: profileData.facebook ?? profileData.facebookUrl ?? prev.facebookUrl ?? "",
+          notifications: prev.notifications,
+          logo: normalizedLogo || prev.logo || ''
         };
 
         return nextSettings;
@@ -647,7 +657,7 @@ const CompanyDashboard = () => {
 
       await companyService.removeLogo();
       setLogoPreview(null);
-  setCompanySettings((prev) => ({ ...prev, logo: '' }));
+      setCompanySettings((prev) => ({ ...prev, logo: '' }));
       setSaveStatus('success');
       setSaveMessage('Logo removed successfully!');
 
@@ -666,21 +676,6 @@ const CompanyDashboard = () => {
       }, 5000);
     } finally {
       setIsSaving(false);
-    }
-  };
-
-  const handleSettingsChange = (section, field, value) => {
-    setCompanySettings(prev => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value
-      }
-    }));
-
-    if (saveMessage) {
-      setSaveMessage('');
-      setSaveStatus('');
     }
   };
 
@@ -902,1098 +897,1066 @@ const CompanyDashboard = () => {
     }
   }, [activeTab, loadApplicants]);
 
+  const Avatar = ({ url, initials, size = 'md' }) => {
+    const sizeClass = size === 'lg' ? 'w-24 h-24' : size === 'sm' ? 'w-12 h-12' : 'w-16 h-16';
+    return (
+        <div className={`candidate-avatar ${sizeClass}`}>
+          {url ? <img src={url} alt="Company avatar" /> : <span>{initials}</span>}
+        </div>
+    );
+  };
+
+  const firstInitial = (companySettings.companyName || 'C').charAt(0).toUpperCase();
+  const avatarUrl = logoPreview || '';
+
   return (
-      <div className="company-dashboard">
+    <div className="company-dashboard min-h-screen bg-gray-50">
         {isLoading ? (
-            <div className="loading-container">
-              <div className="loading-spinner">
-                <RiLoader4Line className="spin" />
-              </div>
+            <div className="loading-overlay">
+              <div className="loading-spinner"></div>
               <p>Loading company profile...</p>
             </div>
         ) : (
             <>
-              {/* Header */}
-              <header className="dashboard-header">
-                <div className="header-content">
-                  <div className="header-left">
-                    <div className="logo-section">
-                      <div className="logo-icon">
-                        <RiBuildingLine />
-                      </div>
-                      <h1>Company Dashboard</h1>
-                    </div>
-                  </div>
-                  <div className="header-right">
-                    <div className="user-info">
-                      <div className={`user-avatar${logoPreview ? ' has-logo' : ''}`}>
-                        {logoPreview ? (
-                            <img src={logoPreview} alt={`${companySettings.companyName || 'Company'} logo`} />
-                        ) : (
-                            <RiBuildingLine />
-                        )}
-                      </div>
-                      <div className="user-details">
-                        <span className="user-name">{companySettings.companyName || 'Your Company'}</span>
-                        <span className="user-role">{companySettings.industry || 'Industry not set'}</span>
+              <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+                <div className="max-w-7xl mx-auto px-6 py-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <PortalLogoBadge size={76} imageScale={0.7} />
+                      <div>
+                        <h1 className="text-xl font-bold text-gray-900">Skill4Hire</h1>
+                        <p className="text-xs text-gray-600">Company Portal</p>
                       </div>
                     </div>
-                    <div className="header-actions">
+
+                    <div className="flex items-center gap-4">
+                      <button
+                          type="button"
+                          className="btn btn-primary topbar-action"
+                          onClick={() => {
+                            setEditingJob(null);
+                            setShowJobForm(true);
+                          }}
+                      >
+                        <FiPlus /> Post Job
+                      </button>
+
                       <div className="notification-wrapper">
                         <button
                             type="button"
-                            className={`notifications-btn${showNotifications ? ' active' : ''}`}
-                            onClick={handleToggleNotifications}
+                            className="notifications-btn"
+                            onClick={() => setActiveTab('notifications')}
                             aria-label="Notifications"
                         >
-                          <RiNotificationLine />
+                          <FiBell />
                           {unreadNotifications > 0 && (
                               <span className="notifications-badge">
-                                {unreadNotifications > 9 ? '9+' : unreadNotifications}
-                              </span>
+                          {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                        </span>
                           )}
                         </button>
-                        {showNotifications && (
-                            <div className="notifications-panel">
-                              <div className="notifications-header">
-                                <h4>Notifications</h4>
-                                <div className="notifications-actions">
-                                  <button
-                                      type="button"
-                                      className="btn-outline small"
-                                      onClick={handleMarkAllNotificationsRead}
-                                      disabled={!unreadNotifications}
-                                  >
-                                    <RiCheckLine /> Mark all read
-                                  </button>
-                                  <button
-                                      type="button"
-                                      className="icon-button"
-                                      onClick={handleRefreshNotifications}
-                                      title="Refresh notifications"
-                                  >
-                                    <RiRefreshLine />
-                                  </button>
-                                  <button
-                                      type="button"
-                                      className="icon-button"
-                                      onClick={() => setShowNotifications(false)}
-                                      title="Close"
-                                  >
-                                    <RiCloseLine />
-                                  </button>
-                                </div>
-                              </div>
-                              {notificationsLoading ? (
-                                  <div className="notifications-loading">
-                                    <RiLoader4Line className="spin" />
-                                    <span>Loading notifications...</span>
-                                  </div>
-                              ) : notificationsError ? (
-                                  <div className="notifications-error">
-                                    <RiErrorWarningLine />
-                                    <span>{notificationsError}</span>
-                                  </div>
-                              ) : notifications.length === 0 ? (
-                                  <div className="notifications-empty">
-                                    <RiInboxLine />
-                                    <p>No notifications yet</p>
-                                  </div>
-                              ) : (
-                                  <ul className="notifications-list">
-                                    {notifications.map((notification, index) => {
-                                      const notificationId = notification.id || notification._id || `notification-${index}`;
-                                      return (
-                                          <li
-                                              key={notificationId}
-                                              className={`notification-item ${notification.read ? 'read' : 'unread'}`}
-                                          >
-                                            <div className="notification-main">
-                                              <p className="notification-message">{notification.message}</p>
-                                              <div className="notification-meta">
-                                                <span className="notification-time">
-                                                  <RiTimeLine /> {formatNotificationTime(notification.createdAt)}
-                                                </span>
-                                                {notification.jobPostId && (
-                                                    <span className="notification-job">
-                                                      Job: {getJobTitle(notification.jobPostId) || notification.jobPostId}
-                                                    </span>
-                                                )}
-                                                {notification.type && (
-                                                    <span className="notification-type">
-                                                      {notification.type.replace(/_/g, ' ')}
-                                                    </span>
-                                                )}
-                                              </div>
-                                            </div>
-                                            <div className="notification-item-actions">
-                                              {!notification.read && (
-                                                  <button
-                                                      type="button"
-                                                      className="btn-outline small"
-                                                      onClick={() => handleMarkNotificationRead(notificationId)}
-                                                  >
-                                                    <RiCheckLine /> Mark read
-                                                  </button>
-                                              )}
-                                              <button
-                                                  type="button"
-                                                  className="btn-danger small"
-                                                  onClick={() => handleDeleteNotification(notificationId)}
-                                              >
-                                                <RiDeleteBinLine /> Dismiss
-                                              </button>
-                                            </div>
-                                          </li>
-                                      );
-                                    })}
-                                  </ul>
-                              )}
-                            </div>
-                        )}
                       </div>
-                      <button className="logout-btn" onClick={handleLogout}>
-                        <RiLogoutBoxLine />
-                      </button>
+
+                      <div className="candidate-header-card">
+                        <Avatar url={avatarUrl} initials={firstInitial} size="sm" />
+                        <div>
+                          <p className="candidate-header-name">{companySettings.companyName || 'Your Company'}</p>
+                          <p className="candidate-header-role">{companySettings.industry || 'Industry not set'}</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </header>
 
-              {/* Navigation Tabs */}
-              <nav className="dashboard-nav">
-                <button
-                    className={`nav-tab ${activeTab === 'overview' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('overview')}
-                >
-                  <RiBarChartBoxLine /> Overview
-                </button>
-                <button
-                    className={`nav-tab ${activeTab === 'jobs' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('jobs')}
-                >
-                  <RiBriefcaseLine /> Job Postings
-                </button>
-                <button
-                    className={`nav-tab ${activeTab === 'applicants' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('applicants')}
-                >
-                  <RiCheckLine /> Applicants
-                </button>
-                <button
-                    className={`nav-tab ${activeTab === 'recommendations' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('recommendations')}
-                >
-                  <RiStarLine /> Recommendations
-                </button>
-                <button
-                    className={`nav-tab ${activeTab === 'settings' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('settings')}
-                >
-                  <RiSettingsLine /> Settings
-                </button>
-              </nav>
-
-              {/* Main Content */}
-              <main className="dashboard-main">
-                {activeTab === 'overview' && (
-                    <div className="overview-tab">
-                      <h2>Welcome back, {companySettings.companyName || 'Your Company'}!</h2>
-
-                      <div className="company-overview-card">
-                        <h3>Company Profile</h3>
-                        <div className="company-details">
-                          <div className="detail-row">
-                            <strong>Company Name:</strong> {companySettings.companyName || 'Not set'}
-                          </div>
-                          <div className="detail-row">
-                            <strong>Industry:</strong> {companySettings.industry || 'Not specified'}
-                          </div>
-                          <div className="detail-row">
-                            <strong>Company Size:</strong> {companySettings.companySize || 'Not specified'}
-                          </div>
-                          <div className="detail-row">
-                            <strong>Founded:</strong> {companySettings.founded || 'Not specified'}
-                          </div>
-                          <div className="detail-row">
-                            <strong>Website:</strong> {companySettings.website ? (
-                              <a href={companySettings.website} target="_blank" rel="noopener noreferrer">
-                                {companySettings.website}
-                              </a>
-                          ) : 'Not set'}
-                          </div>
-                          <div className="detail-row">
-                            <strong>Location:</strong> {
-                              [companySettings.city, companySettings.state, companySettings.country]
-                                  .filter(Boolean).join(', ') || 'Not specified'
-                          }
-                          </div>
-                          {companySettings.description && (
-                              <div className="detail-row description">
-                                <strong>Description:</strong>
-                                <p>{companySettings.description}</p>
-                              </div>
+              <div className="max-w-7xl mx-auto px-6 py-8">
+                <div className="flex gap-6">
+                  <aside className="w-64 flex-shrink-0">
+                    <nav className="bg-white rounded-lg shadow-sm border border-gray-200 p-2 sticky top-24">
+                      <button
+                          onClick={() => setActiveTab('overview')}
+                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-1 transition ${
+                              activeTab === 'overview' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                      >
+                        <FiBarChart2 className="w-5 h-5" />
+                        Overview
+                      </button>
+                      <button
+                          onClick={() => setActiveTab('jobs')}
+                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-1 transition ${
+                              activeTab === 'jobs' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                      >
+                        <FiBriefcase className="w-5 h-5" />
+                        Job Postings
+                      </button>
+                      <button
+                          onClick={() => setActiveTab('applicants')}
+                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-1 transition ${
+                              activeTab === 'applicants' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                      >
+                        <FiUsers className="w-5 h-5" />
+                        Applicants
+                      </button>
+                      <button
+                          onClick={() => setActiveTab('recommendations')}
+                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-1 transition ${
+                              activeTab === 'recommendations' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                      >
+                        <FiStar className="w-5 h-5" />
+                        Recommendations
+                      </button>
+                      <button
+                          onClick={() => setActiveTab('notifications')}
+                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-1 transition ${
+                              activeTab === 'notifications' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                      >
+                        <FiBell className="w-5 h-5" />
+                        <span className="flex items-center gap-2">
+                          Notifications
+                          {unreadNotifications > 0 && (
+                              <span className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold text-white bg-blue-600 rounded-full">
+                                {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                              </span>
                           )}
-                        </div>
-                      </div>
+                        </span>
+                      </button>
+                      <button
+                          onClick={() => setActiveTab('settings')}
+                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-1 transition ${
+                              activeTab === 'settings' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                      >
+                        <FiSettings className="w-5 h-5" />
+                        Settings
+                      </button>
 
-                      <div className="stats-grid">
-                        <div className="stat-card">
-                          <div className="stat-icon">
-                            <RiBriefcaseLine />
-                          </div>
-                          <div className="stat-content">
-                            <h3>{jobPostings.length}</h3>
-                            <p>Active Job Postings</p>
-                          </div>
-                        </div>
-                        <div className="stat-card">
-                          <div className="stat-icon">
-                            <RiStarLine />
-                          </div>
-                          <div className="stat-content">
-                            <h3>{recommendations.length}</h3>
-                            <p>Saved Recommendations</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                )}
+                      <div className="border-t border-gray-200 my-2"></div>
 
-                {activeTab === 'jobs' && (
-                    <div className="jobs-tab">
-                      {showJobForm ? (
-                          <JobForm
-                              jobId={editingJob?.id}
-                              initialJob={editingJob}
-                              onSave={handleJobSave}
-                              onCancel={handleJobFormCancel}
-                          />
-                      ) : (
-                          <>
-                            <div className="tab-header">
-                              <h2>Job Postings</h2>
-                              <div className="header-actions">
-                                <button
-                                    className="btn-secondary"
-                                    onClick={loadJobPostings}
-                                    disabled={jobsLoading}
-                                    title="Refresh job postings"
-                                >
-                                  <RiRefreshLine />
-                                </button>
-                                <button
-                                    className="btn-primary"
-                                    onClick={handleCreateNewJob}
-                                    disabled={jobsLoading}
-                                >
-                                  <RiAddLine /> Post New Job
-                                </button>
+                      <button
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 transition btn-logout"
+                          onClick={handleLogout}
+                      >
+                        <FiLogOut className="w-5 h-5" />
+                        Logout
+                      </button>
+                    </nav>
+                  </aside>
+
+                  <main className="flex-1 space-y-6">
+                    {activeTab === 'overview' && (
+                        <div className="space-y-6">
+                          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                            <h2 className="text-2xl font-bold text-gray-900 mb-6">Company Overview</h2>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-sm text-gray-600">Active Jobs</p>
+                                    <p className="text-2xl font-bold text-gray-900 mt-1">{jobPostings.length}</p>
+                                  </div>
+                                  <div className="p-3 bg-blue-100 rounded-lg">
+                                    <FiBriefcase className="w-6 h-6 text-blue-600" />
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-sm text-gray-600">Applicants</p>
+                                    <p className="text-2xl font-bold text-gray-900 mt-1">{applicants.length}</p>
+                                  </div>
+                                  <div className="p-3 bg-green-100 rounded-lg">
+                                    <FiUsers className="w-6 h-6 text-green-600" />
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-sm text-gray-600">Recommendations</p>
+                                    <p className="text-2xl font-bold text-gray-900 mt-1">{recommendations.length}</p>
+                                  </div>
+                                  <div className="p-3 bg-purple-100 rounded-lg">
+                                    <FiStar className="w-6 h-6 text-purple-600" />
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-sm text-gray-600">Profile Complete</p>
+                                    <p className="text-2xl font-bold text-gray-900 mt-1">
+                                      {Math.round(
+                                          ((companySettings.companyName ? 20 : 0) +
+                                              (companySettings.industry ? 20 : 0) +
+                                              (companySettings.description ? 20 : 0) +
+                                              (companySettings.logo ? 20 : 0) +
+                                              (companySettings.website ? 20 : 0))
+                                      )}%
+                                    </p>
+                                  </div>
+                                  <div className="p-3 bg-orange-100 rounded-lg">
+                                    <FiBarChart2 className="w-6 h-6 text-orange-600" />
+                                  </div>
+                                </div>
                               </div>
                             </div>
 
-                            {jobError && (
-                                <div className="error-message">
-                                  <RiErrorWarningLine />
-                                  {jobError}
-                                  <button
-                                      className="retry-btn"
-                                      onClick={loadJobPostings}
-                                      disabled={jobsLoading}
-                                  >
-                                    Retry
-                                  </button>
+                            <div className="bg-gray-50 p-6 rounded-lg">
+                              <h3 className="text-lg font-semibold text-gray-900 mb-4">Company Information</h3>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <p className="text-sm text-gray-600">Company Name</p>
+                                  <p className="font-medium">{companySettings.companyName || 'Not set'}</p>
                                 </div>
-                            )}
-
-                            {jobsLoading ? (
-                                <div className="loading-container">
-                                  <div className="loading-spinner">
-                                    <RiLoader4Line className="spin" />
-                                  </div>
-                                  <p>Loading job postings...</p>
+                                <div>
+                                  <p className="text-sm text-gray-600">Industry</p>
+                                  <p className="font-medium">{companySettings.industry || 'Not specified'}</p>
                                 </div>
-                            ) : jobPostings.length === 0 ? (
-                                <div className="empty-state">
-                                  <RiBriefcaseLine />
-                                  <h3>No job postings yet</h3>
-                                  <p>Create your first job posting to start attracting candidates.</p>
-                                  <button
-                                      className="btn-primary"
-                                      onClick={handleCreateNewJob}
-                                  >
-                                    <RiAddLine /> Post Your First Job
-                                  </button>
+                                <div>
+                                  <p className="text-sm text-gray-600">Company Size</p>
+                                  <p className="font-medium">{companySettings.companySize || 'Not specified'}</p>
                                 </div>
-                            ) : (
-                                <div className="jobs-grid">
-                                  {jobPostings.map(job => (
-                                      <div key={job.id} className="job-card">
-                                        <div className="job-header">
-                                          <h3>{job.title}</h3>
-                                          <span className={`status-badge ${getJobStatusClass(job)}`}>
-                                {formatJobStatus(job)}
-                              </span>
-                                        </div>
-                                        <div className="job-details">
-                                          <p><strong>Type:</strong> {job.type}</p>
-                                          <p><strong>Location:</strong> {job.location}</p>
-                                          {formatSalary(job.salary) && (
-                                              <p><strong>Salary:</strong> ${formatSalary(job.salary)}</p>
-                                          )}
-                                          {job.experience && <p><strong>Experience:</strong> {job.experience} years</p>}
-                                          {job.deadline && (
-                                              <p><strong>Deadline:</strong> {new Date(job.deadline).toLocaleDateString()}</p>
-                                          )}
-                                          <p className="job-description">{job.description}</p>
-                                          {toSkillList(job.skills).length > 0 && (
-                                              <div className="skills-list" aria-label="Required skills">
-                                                {toSkillList(job.skills).map((skill) => (
-                                                    <span key={skill} className="skill-tag">{skill}</span>
-                                                ))}
-                                              </div>
-                                          )}
-                                        </div>
-                                        <div className="job-actions">
-                                          <button
-                                              className="btn-primary"
-                                              onClick={() => handleViewJobDetails(job)}
-                                          >
-                                            <RiEyeLine /> View Details
-                                          </button>
-                                          <button
-                                              className="btn-secondary"
-                                              onClick={() => handleEditJob(job)}
-                                          >
-                                            <RiEditLine /> Edit
-                                          </button>
-                                          <button
-                                              className="btn-danger"
-                                              onClick={() => handleDeleteJob(job.id)}
-                                              disabled={jobsLoading}
-                                          >
-                                            <RiDeleteBinLine /> Delete
-                                          </button>
-                                        </div>
-                                      </div>
-                                  ))}
+                                <div>
+                                  <p className="text-sm text-gray-600">Founded</p>
+                                  <p className="font-medium">{companySettings.founded || 'Not specified'}</p>
                                 </div>
-                            )}
-
-                            {/* Job Details Modal */}
-                            {showJobDetails && selectedJob && (
-                                <div className="modal-overlay" onClick={handleCloseJobDetails}>
-                                  <div className="job-details-modal" onClick={(e) => e.stopPropagation()}>
-                                    <div className="modal-header">
-                                      <h2>{selectedJob.title}</h2>
-                                      <button className="close-btn" onClick={handleCloseJobDetails}>
-                                        <RiCloseLine />
-                                      </button>
-                                    </div>
-                                    <div className="modal-content">
-                                      <div className="job-info-grid">
-                                        <div className="info-item">
-                                          <strong>Job Type:</strong>
-                                          <span>{selectedJob.type}</span>
-                                        </div>
-                                        <div className="info-item">
-                                          <strong>Location:</strong>
-                                          <span>{selectedJob.location}</span>
-                                        </div>
-                                        <div className="info-item">
-                                          <strong>Status:</strong>
-                                          <span className={`status-badge ${getJobStatusClass(selectedJob)}`}>
-                                  {formatJobStatus(selectedJob)}
-                                </span>
-                                        </div>
-                                        {formatSalary(selectedJob.salary) && (
-                                            <div className="info-item">
-                                              <strong>Salary:</strong>
-                                              <span>${formatSalary(selectedJob.salary)}</span>
-                                            </div>
-                                        )}
-                                        {selectedJob.experience && (
-                                            <div className="info-item">
-                                              <strong>Experience Required:</strong>
-                                              <span>{selectedJob.experience} years</span>
-                                            </div>
-                                        )}
-                                        {selectedJob.deadline && (
-                                            <div className="info-item">
-                                              <strong>Application Deadline:</strong>
-                                              <span>{new Date(selectedJob.deadline).toLocaleDateString()}</span>
-                                            </div>
-                                        )}
-                                        {selectedJob.createdAt && (
-                                            <div className="info-item">
-                                              <strong>Posted Date:</strong>
-                                              <span>{new Date(selectedJob.createdAt).toLocaleDateString()}</span>
-                                            </div>
-                                        )}
-                                        {selectedJob.updatedAt && (
-                                            <div className="info-item">
-                                              <strong>Last Updated:</strong>
-                                              <span>{new Date(selectedJob.updatedAt).toLocaleDateString()}</span>
-                                            </div>
-                                        )}
-                                      </div>
-                                      {toSkillList(selectedJob.skills).length > 0 && (
-                                          <div className="skills-section">
-                                            <h3>Key Skills</h3>
-                                            <div className="skills-list">
-                                              {toSkillList(selectedJob.skills).map((skill) => (
-                                                  <span key={skill} className="skill-tag">{skill}</span>
-                                              ))}
-                                            </div>
-                                          </div>
-                                      )}
-                                      <div className="description-section">
-                                        <h3>Job Description</h3>
-                                        <div className="job-description-full">
-                                          {selectedJob.description.split('\n').map((paragraph, index) => (
-                                              <p key={index}>{paragraph}</p>
-                                          ))}
-                                        </div>
-                                      </div>
-                                      {selectedJob.company && (
-                                          <div className="company-section">
-                                            <h3>Company Information</h3>
-                                            <div className="company-info">
-                                              <p><strong>Company:</strong> {selectedJob.company.name || companySettings.companyName}</p>
-                                              {selectedJob.company.industry && (
-                                                  <p><strong>Industry:</strong> {selectedJob.company.industry}</p>
-                                              )}
-                                              {selectedJob.company.website && (
-                                                  <p><strong>Website:</strong>
-                                                    <a href={selectedJob.company.website} target="_blank" rel="noopener noreferrer">
-                                                      {selectedJob.company.website}
-                                                    </a>
-                                                  </p>
-                                              )}
-                                            </div>
-                                          </div>
-                                      )}
-                                    </div>
-                                    <div className="modal-actions">
-                                      <button
-                                          className="btn-primary"
-                                          onClick={() => {
-                                            handleCloseJobDetails();
-                                            handleEditJob(selectedJob);
-                                          }}
-                                      >
-                                        <RiEditLine /> Edit Job
-                                      </button>
-                                      <button
-                                          className="btn-danger"
-                                          onClick={() => {
-                                            handleCloseJobDetails();
-                                            handleDeleteJob(selectedJob.id);
-                                          }}
-                                      >
-                                        <RiDeleteBinLine /> Delete Job
-                                      </button>
-                                      <button className="btn-secondary" onClick={handleCloseJobDetails}>
-                                        Close
-                                      </button>
-                                    </div>
-                                  </div>
+                                <div>
+                                  <p className="text-sm text-gray-600">Website</p>
+                                  <p className="font-medium">
+                                    {companySettings.website ? (
+                                        <a href={companySettings.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
+                                          {companySettings.website}
+                                        </a>
+                                    ) : 'Not set'}
+                                  </p>
                                 </div>
-                            )}
-                          </>
-                      )}
-                    </div>
-                )}
-                {activeTab === 'applicants' && (
-                    <div className="applicants-tab">
-                      <div className="tab-header">
-                        <h2>Applicants</h2>
-                        <div className="header-actions" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                          <select
-                              value={selectedApplicantsJob}
-                              onChange={(e) => setSelectedApplicantsJob(e.target.value)}
-                              title="Filter by job"
-                          >
-                            <option value="all">All jobs</option>
-                            {jobPostings.map((job) => (
-                                <option key={job.id} value={job.id}>{job.title || job.jobTitle || 'Untitled'}</option>
-                            ))}
-                          </select>
-                          <select
-                              value={applicantStatusFilter}
-                              onChange={(e) => setApplicantStatusFilter(e.target.value)}
-                              title="Filter by status"
-                          >
-                            <option value="all">All statuses</option>
-                            <option value="APPLIED">Applied</option>
-                            <option value="SHORTLISTED">Shortlisted</option>
-                            <option value="INTERVIEW">Interview</option>
-                            <option value="HIRED">Hired</option>
-                            <option value="REJECTED">Rejected</option>
-                          </select>
-                          <button className="btn-secondary" onClick={loadApplicants} disabled={applicantsLoading}>
-                            <RiRefreshLine /> Refresh
-                          </button>
-                        </div>
-                      </div>
-
-                      {applicantsError && (
-                          <div className="error-message">
-                            <RiErrorWarningLine /> {applicantsError}
-                          </div>
-                      )}
-                      {applicantsLoading && (
-                          <div className="loading-container">
-                            <div className="loading-spinner"><RiLoader4Line className="spin" /></div>
-                            <p>Loading applicants...</p>
-                          </div>
-                      )}
-                      {!applicantsLoading && applicants.length === 0 && !applicantsError && (
-                          <div className="empty-state">
-                            <p>No applicants found for the selected filters.</p>
-                          </div>
-                      )}
-
-                      {!applicantsLoading && applicants.length > 0 && (
-                          <div className="apps-table-wrapper">
-                            <table className="apps-table">
-                              <thead>
-                              <tr>
-                                <th>Candidate</th>
-                                <th>Job</th>
-                                <th>Location</th>
-                                <th>Applied</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                              </tr>
-                              </thead>
-                              <tbody>
-                              {applicants.map((a) => (
-                                  <tr key={a.id}>
-                                    <td>{a.candidateId}</td>
-                                    <td>{a.jobTitle}</td>
-                                    <td className="muted">{a.location}</td>
-                                    <td className="muted">{a.appliedAt ? new Date(a.appliedAt).toLocaleDateString() : '—'}</td>
-                                    <td>
-                                      <span className={`status-badge ${String(a.status).toLowerCase()}`}>{a.status}</span>
-                                    </td>
-                                    <td>
-                                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                                        <button
-                                            className="btn-outline small"
-                                            disabled={a.status === 'SHORTLISTED'}
-                                            onClick={() => handleUpdateApplicationStatus(a.id, 'SHORTLISTED')}
-                                        >
-                                          Shortlist
-                                        </button>
-                                        <button
-                                            className="btn-outline small"
-                                            disabled={a.status === 'INTERVIEW'}
-                                            onClick={() => handleUpdateApplicationStatus(a.id, 'INTERVIEW')}
-                                        >
-                                          Interview
-                                        </button>
-                                        <button
-                                            className="btn-outline small"
-                                            disabled={a.status === 'HIRED'}
-                                            onClick={() => handleUpdateApplicationStatus(a.id, 'HIRED')}
-                                        >
-                                          Hire
-                                        </button>
-                                        <button
-                                            className="btn-danger small"
-                                            disabled={a.status === 'REJECTED'}
-                                            onClick={() => handleUpdateApplicationStatus(a.id, 'REJECTED')}
-                                        >
-                                          Reject
-                                        </button>
-                                      </div>
-                                    </td>
-                                  </tr>
-                              ))}
-                              </tbody>
-                            </table>
-                          </div>
-                      )}
-                    </div>
-                )}
-                {activeTab === 'recommendations' && (
-                    <div className="recommendations-tab">
-                      <div className="recommendations-header">
-                        <h2>Candidate Recommendations</h2>
-                        <div className="recommendations-controls">
-                          <label htmlFor="recommendations-job-filter">Filter by job</label>
-                          <select
-                              id="recommendations-job-filter"
-                              value={selectedRecommendationJob}
-                              onChange={(event) => setSelectedRecommendationJob(event.target.value)}
-                          >
-                            <option value="all">All active jobs</option>
-                            {jobPostings.map((job) => (
-                                <option key={job.id} value={job.id}>
-                                  {job.title || job.jobTitle || 'Untitled position'}
-                                </option>
-                            ))}
-                          </select>
-                          <button
-                              type="button"
-                              className="btn-outline"
-                              onClick={() => loadRecommendations(selectedRecommendationJob)}
-                          >
-                            <RiRefreshLine /> Refresh
-                          </button>
-                        </div>
-                      </div>
-
-                      {recommendationsLoading && (
-                          <div className="recommendations-loading">
-                            <RiLoader4Line className="spin" />
-                            <p>Fetching recommended candidates...</p>
-                          </div>
-                      )}
-
-                      {!recommendationsLoading && recommendationsError && (
-                          <div className="recommendations-error">
-                            <RiErrorWarningLine />
-                            <span>{recommendationsError}</span>
-                          </div>
-                      )}
-
-                      {!recommendationsLoading && !recommendationsError && recommendations.length === 0 && (
-                          <div className="recommendations-empty">
-                            <p>No recommendations available yet. Post a job or adjust your filters to see matches.</p>
-                          </div>
-                      )}
-
-                      {!recommendationsLoading && !recommendationsError && recommendations.length > 0 && (
-                          <div className="recommendations-list">
-                            {recommendations.map((rec) => {
-                              const score = typeof rec.matchScore === 'number'
-                                  ? Math.round(rec.matchScore > 0 && rec.matchScore <= 1 ? rec.matchScore * 100 : rec.matchScore)
-                                  : null;
-
-                              return (
-                                  <div key={rec.id} className="recommendation-card">
-                                    <div className="recommendation-card-header">
-                                      <div>
-                                        <h3>{rec.candidateName}</h3>
-                                        <p className="recommendation-job">{rec.jobTitle || 'General fit'}</p>
-                                      </div>
-                                      {score !== null && <span className="recommendation-score">{score}% Match</span>}
-                                    </div>
-
-                                    {rec.skills.length > 0 && (
-                                        <div className="recommendation-skills">
-                                          {rec.skills.slice(0, 8).map((skill) => (
-                                              <span key={`${rec.id}-${skill}`} className="skill-tag">{skill}</span>
-                                          ))}
-                                        </div>
-                                    )}
-
-                                    {rec.summary && <p className="recommendation-summary">{rec.summary}</p>}
-
-                                    <div className="recommendation-actions">
-                                      {rec.resumeUrl && (
-                                          <a
-                                              href={rec.resumeUrl}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="btn-outline small"
-                                          >
-                                            <RiDownloadLine /> Resume
-                                          </a>
-                                      )}
-                                      {rec.email && (
-                                          <a href={`mailto:${rec.email}`} className="btn-primary small">
-                                            <RiMailLine /> Contact
-                                          </a>
-                                      )}
-                                    </div>
-                                  </div>
-                              );
-                            })}
-                          </div>
-                      )}
-                    </div>
-                )}
-                {activeTab === 'settings' && (
-                    <div className="settings-tab">
-                      <div className="tab-header">
-                        <h2>Company Settings</h2>
-                        <div className="save-section">
-                          {saveMessage && (
-                              <div className={`save-message ${saveStatus}`}>
-                                {saveStatus === 'success' && <RiCheckLine />}
-                                {saveStatus === 'error' && <RiErrorWarningLine />}
-                                {saveMessage}
+                                <div>
+                                  <p className="text-sm text-gray-600">Location</p>
+                                  <p className="font-medium">
+                                    {[companySettings.city, companySettings.state, companySettings.country]
+                                        .filter(Boolean).join(', ') || 'Not specified'}
+                                  </p>
+                                </div>
                               </div>
-                          )}
-                          <button
-                              className={`btn-primary ${isSaving ? 'loading' : ''}`}
-                              onClick={handleSaveSettings}
-                              disabled={isSaving}
-                          >
-                            {isSaving ? (
-                                <>
-                                  <RiLoader4Line className="spinning" /> Saving...
-                                </>
-                            ) : (
-                                <>
-                                  <RiSaveLine /> Save All Changes
-                                </>
-                            )}
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="settings-sections">
-                        {/* Company Logo Section */}
-                        <div className="settings-section">
-                          <h3><RiImageLine /> Company Logo</h3>
-                          <div className="logo-upload-section">
-                            <div className="current-logo">
-                              {logoPreview ? (
-                                  <div className="logo-preview-container">
-                                    <img src={logoPreview} alt="Company Logo Preview" className="logo-preview" />
-                                    <button
-                                        type="button"
-                                        className="remove-logo-btn"
-                                        onClick={handleRemoveLogo}
-                                        title="Remove logo"
-                                    >
-                                      <RiCloseLine />
-                                    </button>
-                                  </div>
-                              ) : (
-                                  <div className="logo-placeholder">
-                                    <RiImageLine />
-                                    <span>No logo uploaded</span>
+                              {companySettings.description && (
+                                  <div className="mt-4">
+                                    <p className="text-sm text-gray-600">Description</p>
+                                    <p className="mt-1 text-gray-900">{companySettings.description}</p>
                                   </div>
                               )}
                             </div>
-                            <div className="logo-upload-controls">
-                              <input
-                                  type="file"
-                                  id="logo-upload"
-                                  accept="image/png,image/jpeg,image/jpg,image/svg+xml"
-                                  onChange={handleLogoUpload}
-                                  style={{ display: 'none' }}
-                                  disabled={isSaving}
+                          </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'jobs' && (
+                        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                          {showJobForm ? (
+                              <JobForm
+                                  jobId={editingJob?.id}
+                                  initialJob={editingJob}
+                                  onSave={handleJobSave}
+                                  onCancel={handleJobFormCancel}
                               />
-                              <label
-                                  htmlFor="logo-upload"
-                                  className={`btn-secondary ${isSaving ? 'disabled' : ''}`}
+                          ) : (
+                              <>
+                                <div className="flex items-center justify-between mb-6">
+                                  <h2 className="text-2xl font-bold text-gray-900">Job Postings</h2>
+                                  <div className="flex gap-2">
+                                    <button
+                                        className="btn-secondary"
+                                        onClick={loadJobPostings}
+                                        disabled={jobsLoading}
+                                        title="Refresh job postings"
+                                    >
+                                      <FiRefreshCw />
+                                    </button>
+                                    <button
+                                        className="btn btn-primary"
+                                        onClick={handleCreateNewJob}
+                                        disabled={jobsLoading}
+                                    >
+                                      <FiPlus /> Post New Job
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {jobError && (
+                                    <div className="error-message mb-4">
+                                      <FiAlertTriangle />
+                                      {jobError}
+                                      <button
+                                          className="retry-btn"
+                                          onClick={loadJobPostings}
+                                          disabled={jobsLoading}
+                                      >
+                                        Retry
+                                      </button>
+                                    </div>
+                                )}
+
+                                {jobsLoading ? (
+                                    <div className="loading-container">
+                                      <div className="loading-spinner">
+                                        <FiLoader className="spin" />
+                                      </div>
+                                      <p>Loading job postings...</p>
+                                    </div>
+                                ) : jobPostings.length === 0 ? (
+                                    <div className="empty-state">
+                                      <FiBriefcase />
+                                      <h3>No job postings yet</h3>
+                                      <p>Create your first job posting to start attracting candidates.</p>
+                                      <button
+                                          className="btn btn-primary"
+                                          onClick={handleCreateNewJob}
+                                      >
+                                        <FiPlus /> Post Your First Job
+                                      </button>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                      {jobPostings.map(job => (
+                                          <div key={job.id} className="job-card">
+                                            <div className="job-header">
+                                              <h3>{job.title}</h3>
+                                              <span className={`status-badge ${getJobStatusClass(job)}`}>
+                                    {formatJobStatus(job)}
+                                  </span>
+                                            </div>
+                                            <div className="job-details">
+                                              <p><strong>Type:</strong> {job.type}</p>
+                                              <p><strong>Location:</strong> {job.location}</p>
+                                              {formatSalary(job.salary) && (
+                                                  <p><strong>Salary:</strong> ${formatSalary(job.salary)}</p>
+                                              )}
+                                              {job.experience && <p><strong>Experience:</strong> {job.experience} years</p>}
+                                              {job.deadline && (
+                                                  <p><strong>Deadline:</strong> {new Date(job.deadline).toLocaleDateString()}</p>
+                                              )}
+                                              <p className="job-description">{job.description}</p>
+                                              {toSkillList(job.skills).length > 0 && (
+                                                  <div className="skills-list" aria-label="Required skills">
+                                                    {toSkillList(job.skills).map((skill) => (
+                                                        <span key={skill} className="skill-tag">{skill}</span>
+                                                    ))}
+                                                  </div>
+                                              )}
+                                            </div>
+                                            <div className="job-actions">
+                                              <button
+                                                  className="btn-primary"
+                                                  onClick={() => handleViewJobDetails(job)}
+                                              >
+                                                <FiEye /> View Details
+                                              </button>
+                                              <button
+                                                  className="btn-secondary"
+                                                  onClick={() => handleEditJob(job)}
+                                              >
+                                                <FiEdit /> Edit
+                                              </button>
+                                              <button
+                                                  className="btn-danger"
+                                                  onClick={() => handleDeleteJob(job.id)}
+                                                  disabled={jobsLoading}
+                                              >
+                                                <FiTrash2 /> Delete
+                                              </button>
+                                            </div>
+                                          </div>
+                                      ))}
+                                    </div>
+                                )}
+
+                                {/* Job Details Modal */}
+                                {showJobDetails && selectedJob && (
+                                    <div className="modal-overlay" onClick={handleCloseJobDetails}>
+                                      <div className="job-details-modal" onClick={(e) => e.stopPropagation()}>
+                                        <div className="modal-header">
+                                          <h2>{selectedJob.title}</h2>
+                                          <button className="close-btn" onClick={handleCloseJobDetails}>
+                                            <FiX />
+                                          </button>
+                                        </div>
+                                        <div className="modal-content">
+                                          <div className="job-info-grid">
+                                            <div className="info-item">
+                                              <strong>Job Type:</strong>
+                                              <span>{selectedJob.type}</span>
+                                            </div>
+                                            <div className="info-item">
+                                              <strong>Location:</strong>
+                                              <span>{selectedJob.location}</span>
+                                            </div>
+                                            <div className="info-item">
+                                              <strong>Status:</strong>
+                                              <span className={`status-badge ${getJobStatusClass(selectedJob)}`}>
+                                      {formatJobStatus(selectedJob)}
+                                    </span>
+                                            </div>
+                                            {formatSalary(selectedJob.salary) && (
+                                                <div className="info-item">
+                                                  <strong>Salary:</strong>
+                                                  <span>${formatSalary(selectedJob.salary)}</span>
+                                                </div>
+                                            )}
+                                            {selectedJob.experience && (
+                                                <div className="info-item">
+                                                  <strong>Experience Required:</strong>
+                                                  <span>{selectedJob.experience} years</span>
+                                                </div>
+                                            )}
+                                            {selectedJob.deadline && (
+                                                <div className="info-item">
+                                                  <strong>Application Deadline:</strong>
+                                                  <span>{new Date(selectedJob.deadline).toLocaleDateString()}</span>
+                                                </div>
+                                            )}
+                                            {selectedJob.createdAt && (
+                                                <div className="info-item">
+                                                  <strong>Posted Date:</strong>
+                                                  <span>{new Date(selectedJob.createdAt).toLocaleDateString()}</span>
+                                                </div>
+                                            )}
+                                            {selectedJob.updatedAt && (
+                                                <div className="info-item">
+                                                  <strong>Last Updated:</strong>
+                                                  <span>{new Date(selectedJob.updatedAt).toLocaleDateString()}</span>
+                                                </div>
+                                            )}
+                                          </div>
+                                          {toSkillList(selectedJob.skills).length > 0 && (
+                                              <div className="skills-section">
+                                                <h3>Key Skills</h3>
+                                                <div className="skills-list">
+                                                  {toSkillList(selectedJob.skills).map((skill) => (
+                                                      <span key={skill} className="skill-tag">{skill}</span>
+                                                  ))}
+                                                </div>
+                                              </div>
+                                          )}
+                                          <div className="description-section">
+                                            <h3>Job Description</h3>
+                                            <div className="job-description-full">
+                                              {selectedJob.description.split('\n').map((paragraph, index) => (
+                                                  <p key={index}>{paragraph}</p>
+                                              ))}
+                                            </div>
+                                          </div>
+                                          {selectedJob.company && (
+                                              <div className="company-section">
+                                                <h3>Company Information</h3>
+                                                <div className="company-info">
+                                                  <p><strong>Company:</strong> {selectedJob.company.name || companySettings.companyName}</p>
+                                                  {selectedJob.company.industry && (
+                                                      <p><strong>Industry:</strong> {selectedJob.company.industry}</p>
+                                                  )}
+                                                  {selectedJob.company.website && (
+                                                      <p><strong>Website:</strong>
+                                                        <a href={selectedJob.company.website} target="_blank" rel="noopener noreferrer">
+                                                          {selectedJob.company.website}
+                                                        </a>
+                                                      </p>
+                                                  )}
+                                                </div>
+                                              </div>
+                                          )}
+                                        </div>
+                                        <div className="modal-actions">
+                                          <button
+                                              className="btn-primary"
+                                              onClick={() => {
+                                                handleCloseJobDetails();
+                                                handleEditJob(selectedJob);
+                                              }}
+                                          >
+                                            <FiEdit /> Edit Job
+                                          </button>
+                                          <button
+                                              className="btn-danger"
+                                              onClick={() => {
+                                                handleCloseJobDetails();
+                                                handleDeleteJob(selectedJob.id);
+                                              }}
+                                          >
+                                            <FiTrash2 /> Delete Job
+                                          </button>
+                                          <button className="btn-secondary" onClick={handleCloseJobDetails}>
+                                            Close
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                )}
+                              </>
+                          )}
+                        </div>
+                    )}
+
+                    {activeTab === 'applicants' && (
+                        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                          <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-2xl font-bold text-gray-900">Applicants</h2>
+                            <div className="flex gap-2">
+                              <select
+                                  value={selectedApplicantsJob}
+                                  onChange={(e) => setSelectedApplicantsJob(e.target.value)}
+                                  className="apps-select"
+                                  title="Filter by job"
+                              >
+                                <option value="all">All jobs</option>
+                                {jobPostings.map((job) => (
+                                    <option key={job.id} value={job.id}>{job.title || job.jobTitle || 'Untitled'}</option>
+                                ))}
+                              </select>
+                              <select
+                                  value={applicantStatusFilter}
+                                  onChange={(e) => setApplicantStatusFilter(e.target.value)}
+                                  className="apps-select"
+                                  title="Filter by status"
+                              >
+                                <option value="all">All statuses</option>
+                                <option value="APPLIED">Applied</option>
+                                <option value="SHORTLISTED">Shortlisted</option>
+                                <option value="INTERVIEW">Interview</option>
+                                <option value="HIRED">Hired</option>
+                                <option value="REJECTED">Rejected</option>
+                              </select>
+                              <button className="btn-secondary" onClick={loadApplicants} disabled={applicantsLoading}>
+                                <FiRefreshCw /> Refresh
+                              </button>
+                            </div>
+                          </div>
+
+                          {applicantsError && (
+                              <div className="error-message mb-4">
+                                <FiAlertTriangle /> {applicantsError}
+                              </div>
+                          )}
+                          {applicantsLoading && (
+                              <div className="loading-container">
+                                <div className="loading-spinner"><FiLoader className="spin" /></div>
+                                <p>Loading applicants...</p>
+                              </div>
+                          )}
+                          {!applicantsLoading && applicants.length === 0 && !applicantsError && (
+                              <div className="empty-state">
+                                <p>No applicants found for the selected filters.</p>
+                              </div>
+                          )}
+
+                          {!applicantsLoading && applicants.length > 0 && (
+                              <div className="apps-table-wrapper">
+                                <table className="apps-table">
+                                  <thead>
+                                  <tr>
+                                    <th>Candidate</th>
+                                    <th>Job</th>
+                                    <th>Location</th>
+                                    <th>Applied</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                  </tr>
+                                  </thead>
+                                  <tbody>
+                                  {applicants.map((a) => (
+                                      <tr key={a.id}>
+                                        <td>{a.candidateId}</td>
+                                        <td>{a.jobTitle}</td>
+                                        <td className="muted">{a.location}</td>
+                                        <td className="muted">{a.appliedAt ? new Date(a.appliedAt).toLocaleDateString() : '—'}</td>
+                                        <td>
+                                          <span className={`status-badge ${String(a.status).toLowerCase()}`}>{a.status}</span>
+                                        </td>
+                                        <td>
+                                          <div className="flex gap-2">
+                                            <button
+                                                className="btn-outline small"
+                                                disabled={a.status === 'SHORTLISTED'}
+                                                onClick={() => handleUpdateApplicationStatus(a.id, 'SHORTLISTED')}
+                                            >
+                                              Shortlist
+                                            </button>
+                                            <button
+                                                className="btn-outline small"
+                                                disabled={a.status === 'INTERVIEW'}
+                                                onClick={() => handleUpdateApplicationStatus(a.id, 'INTERVIEW')}
+                                            >
+                                              Interview
+                                            </button>
+                                            <button
+                                                className="btn-outline small"
+                                                disabled={a.status === 'HIRED'}
+                                                onClick={() => handleUpdateApplicationStatus(a.id, 'HIRED')}
+                                            >
+                                              Hire
+                                            </button>
+                                            <button
+                                                className="btn-danger small"
+                                                disabled={a.status === 'REJECTED'}
+                                                onClick={() => handleUpdateApplicationStatus(a.id, 'REJECTED')}
+                                            >
+                                              Reject
+                                            </button>
+                                          </div>
+                                        </td>
+                                      </tr>
+                                  ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                          )}
+                        </div>
+                    )}
+
+                    {activeTab === 'recommendations' && (
+                        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                          <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-2xl font-bold text-gray-900">Candidate Recommendations</h2>
+                            <div className="flex gap-2">
+                              <select
+                                  value={selectedRecommendationJob}
+                                  onChange={(event) => setSelectedRecommendationJob(event.target.value)}
+                                  className="apps-select"
+                              >
+                                <option value="all">All active jobs</option>
+                                {jobPostings.map((job) => (
+                                    <option key={job.id} value={job.id}>
+                                      {job.title || job.jobTitle || 'Untitled position'}
+                                    </option>
+                                ))}
+                              </select>
+                              <button
+                                  type="button"
+                                  className="btn-secondary"
+                                  onClick={() => loadRecommendations(selectedRecommendationJob)}
+                              >
+                                <FiRefreshCw /> Refresh
+                              </button>
+                            </div>
+                          </div>
+
+                          {recommendationsLoading && (
+                              <div className="loading-container">
+                                <FiLoader className="spin" />
+                                <p>Fetching recommended candidates...</p>
+                              </div>
+                          )}
+
+                          {!recommendationsLoading && recommendationsError && (
+                              <div className="error-message mb-4">
+                                <FiAlertTriangle />
+                                <span>{recommendationsError}</span>
+                              </div>
+                          )}
+
+                          {!recommendationsLoading && !recommendationsError && recommendations.length === 0 && (
+                              <div className="empty-state">
+                                <p>No recommendations available yet. Post a job or adjust your filters to see matches.</p>
+                              </div>
+                          )}
+
+                          {!recommendationsLoading && !recommendationsError && recommendations.length > 0 && (
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {recommendations.map((rec) => {
+                                  const score = typeof rec.matchScore === 'number'
+                                      ? Math.round(rec.matchScore > 0 && rec.matchScore <= 1 ? rec.matchScore * 100 : rec.matchScore)
+                                      : null;
+
+                                  return (
+                                      <div key={rec.id} className="recommendation-card">
+                                        <div className="recommendation-card-header">
+                                          <div>
+                                            <h3>{rec.candidateName}</h3>
+                                            <p className="recommendation-job">{rec.jobTitle || 'General fit'}</p>
+                                          </div>
+                                          {score !== null && <span className="recommendation-score">{score}% Match</span>}
+                                        </div>
+
+                                        {rec.skills.length > 0 && (
+                                            <div className="recommendation-skills">
+                                              {rec.skills.slice(0, 8).map((skill) => (
+                                                  <span key={`${rec.id}-${skill}`} className="skill-tag">{skill}</span>
+                                              ))}
+                                            </div>
+                                        )}
+
+                                        {rec.summary && <p className="recommendation-summary">{rec.summary}</p>}
+
+                                        <div className="recommendation-actions">
+                                          {rec.resumeUrl && (
+                                              <a
+                                                  href={rec.resumeUrl}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  className="btn-outline small"
+                                              >
+                                                <FiDownload /> Resume
+                                              </a>
+                                          )}
+                                          {rec.email && (
+                                              <a href={`mailto:${rec.email}`} className="btn-primary small">
+                                                <FiMail /> Contact
+                                              </a>
+                                          )}
+                                        </div>
+                                      </div>
+                                  );
+                                })}
+                              </div>
+                          )}
+                        </div>
+                    )}
+
+                    {activeTab === 'notifications' && (
+                        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                          <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-2xl font-bold text-gray-900">Notifications</h2>
+                            <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className="btn-outline small"
+                                  onClick={handleMarkAllNotificationsRead}
+                                  disabled={!unreadNotifications || notificationsLoading}
+                              >
+                                <FiCheck /> Mark all read
+                              </button>
+                              <button
+                                  type="button"
+                  className="btn-secondary"
+                                  onClick={handleRefreshNotifications}
+                                  disabled={notificationsLoading}
+                              >
+                                <FiRefreshCw /> Refresh
+                              </button>
+                            </div>
+                          </div>
+
+                          {notificationsLoading && (
+                              <div className="notifications-loading">
+                                <FiLoader className="spin" />
+                                <span>Loading notifications...</span>
+                              </div>
+                          )}
+
+                          {!notificationsLoading && notificationsError && (
+                              <div className="notifications-error mb-4">
+                                <FiAlertTriangle />
+                                <span>{notificationsError}</span>
+                              </div>
+                          )}
+
+                          {!notificationsLoading && !notificationsError && notifications.length === 0 && (
+                              <div className="notifications-empty">
+                                <FiInbox />
+                                <p>No notifications yet</p>
+                              </div>
+                          )}
+
+                          {!notificationsLoading && !notificationsError && notifications.length > 0 && (
+                              <ul className="notifications-list">
+                                {notifications.map((notification, index) => {
+                                  const notificationId = notification.id || notification._id || `notification-${index}`;
+                                  const isRead = Boolean(notification.read);
+                                  return (
+                                      <li
+                                          key={notificationId}
+                                          className={`notification-item ${isRead ? 'read' : 'unread'}`}
+                                      >
+                                        <div className="notification-main">
+                                          <p className="notification-message">{notification.message}</p>
+                                          <div className="notification-meta">
+                                            <span className="notification-time">
+                                              <FiClock /> {formatNotificationTime(notification.createdAt)}
+                                            </span>
+                                            {notification.jobPostId && (
+                                                <span className="notification-job">
+                                                  Job: {getJobTitle(notification.jobPostId) || notification.jobPostId}
+                                                </span>
+                                            )}
+                                            {notification.type && (
+                                                <span className="notification-type">
+                                                  {notification.type.replace(/_/g, ' ')}
+                                                </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                        <div className="notification-item-actions">
+                                          {!isRead && (
+                                              <button
+                                                  type="button"
+                                                  className="btn-outline small"
+                                                  onClick={() => handleMarkNotificationRead(notificationId)}
+                                              >
+                                                <FiCheck /> Mark read
+                                              </button>
+                                          )}
+                                          <button
+                                              type="button"
+                                              className="btn-danger small"
+                                              onClick={() => handleDeleteNotification(notificationId)}
+                                          >
+                                            <FiTrash2 /> Dismiss
+                                          </button>
+                                        </div>
+                                      </li>
+                                  );
+                                })}
+                              </ul>
+                          )}
+                        </div>
+                    )}
+
+                    {activeTab === 'settings' && (
+                        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                          <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-2xl font-bold text-gray-900">Company Settings</h2>
+                            <div className="flex items-center gap-4">
+                              {saveMessage && (
+                                  <div className={`save-message ${saveStatus}`}>
+                                    {saveStatus === 'success' && <FiCheck />}
+                                    {saveStatus === 'error' && <FiAlertTriangle />}
+                                    {saveMessage}
+                                  </div>
+                              )}
+                              <button
+                                  className={`btn-primary ${isSaving ? 'loading' : ''}`}
+                                  onClick={handleSaveSettings}
+                                  disabled={isSaving}
                               >
                                 {isSaving ? (
                                     <>
-                                      <RiLoader4Line className="spinning" /> Uploading...
+                                      <FiLoader className="spinning" /> Saving...
                                     </>
                                 ) : (
                                     <>
-                                      <RiUploadCloudLine /> {logoPreview ? 'Change Logo' : 'Upload Logo'}
+                                      <FiSave /> Save All Changes
                                     </>
                                 )}
-                              </label>
-                              <p className="upload-hint">
-                                Recommended: 200x200px, max 5MB (PNG, JPG, SVG)
-                              </p>
+                              </button>
                             </div>
                           </div>
-                        </div>
 
-                        {/* Basic Company Information */}
-                        <div className="settings-section">
-                          <h3><RiBuildingLine /> Basic Information</h3>
-                          <div className="settings-grid">
-                            <div className="setting-item">
-                              <label>Company Name *</label>
-                              <input
-                                  type="text"
-                                  value={companySettings.companyName}
-                                  onChange={(e) => handleBasicSettingsChange('companyName', e.target.value)}
-                                  placeholder="Enter company name"
-                              />
+                          <div className="space-y-6">
+                            {/* Company Logo Section */}
+                            <div className="bg-gray-50 p-6 rounded-lg">
+                              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <FiImage /> Company Logo
+                              </h3>
+                              <div className="flex flex-col md:flex-row gap-6 items-start">
+                                <div className="flex flex-col items-center gap-4">
+                                  {logoPreview ? (
+                                      <div className="logo-preview-container">
+                                        <img src={logoPreview} alt="Company Logo Preview" className="logo-preview" />
+                                        <button
+                                            type="button"
+                                            className="remove-logo-btn"
+                                            onClick={handleRemoveLogo}
+                                            title="Remove logo"
+                                        >
+                                          <FiX />
+                                        </button>
+                                      </div>
+                                  ) : (
+                                      <div className="logo-placeholder">
+                                        <FiImage />
+                                        <span>No logo uploaded</span>
+                                      </div>
+                                  )}
+                                </div>
+                                <div className="flex-1">
+                                  <div className="logo-upload-controls">
+                                    <input
+                                        type="file"
+                                        id="logo-upload"
+                                        accept="image/png,image/jpeg,image/jpg,image/svg+xml"
+                                        onChange={handleLogoUpload}
+                                        style={{ display: 'none' }}
+                                        disabled={isSaving}
+                                    />
+                                    <label
+                                        htmlFor="logo-upload"
+                                        className={`btn-secondary ${isSaving ? 'disabled' : ''}`}
+                                    >
+                                      {isSaving ? (
+                                          <>
+                                            <FiLoader className="spinning" /> Uploading...
+                                          </>
+                                      ) : (
+                                          <>
+                                            <FiUploadCloud /> {logoPreview ? 'Change Logo' : 'Upload Logo'}
+                                          </>
+                                      )}
+                                    </label>
+                                    <p className="upload-hint mt-2">
+                                      Recommended: 200x200px, max 5MB (PNG, JPG, SVG)
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                            <div className="setting-item">
-                              <label>Industry *</label>
-                              <select
-                                  value={companySettings.industry}
-                                  onChange={(e) => handleBasicSettingsChange('industry', e.target.value)}
-                              >
-                                <option value="">Select Industry</option>
-                                <option value="Technology">Technology</option>
-                                <option value="Healthcare">Healthcare</option>
-                                <option value="Finance">Finance</option>
-                                <option value="Education">Education</option>
-                                <option value="Manufacturing">Manufacturing</option>
-                                <option value="Retail">Retail</option>
-                                <option value="Other">Other</option>
-                              </select>
-                            </div>
-                            <div className="setting-item">
-                              <label>Company Size</label>
-                              <select
-                                  value={companySettings.companySize}
-                                  onChange={(e) => handleBasicSettingsChange('companySize', e.target.value)}
-                              >
-                                <option value="">Select Size</option>
-                                <option value="1-10 employees">1-10 employees</option>
-                                <option value="11-50 employees">11-50 employees</option>
-                                <option value="51-100 employees">51-100 employees</option>
-                                <option value="100-500 employees">100-500 employees</option>
-                                <option value="500+ employees">500+ employees</option>
-                              </select>
-                            </div>
-                            <div className="setting-item">
-                              <label>Founded Year</label>
-                              <input
-                                  type="number"
-                                  value={companySettings.founded}
-                                  onChange={(e) => handleBasicSettingsChange('founded', e.target.value)}
-                                  placeholder="e.g., 2018"
-                                  min="1800"
-                                  max={new Date().getFullYear()}
-                              />
-                            </div>
-                          </div>
-                          <div className="setting-item full-width">
-                            <label>Company Description</label>
-                            <textarea
-                                value={companySettings.description}
-                                onChange={(e) => handleBasicSettingsChange('description', e.target.value)}
-                                placeholder="Describe your company, mission, and values..."
-                                rows="4"
-                            />
-                          </div>
-                        </div>
 
-                        {/* Contact Information */}
-                        <div className="settings-section">
-                          <h3><RiMailLine /> Contact Information</h3>
-                          <div className="settings-grid">
-                            <div className="setting-item">
-                              <label>Email Address *</label>
-                              <div className="input-with-icon">
-                                <RiMailLine />
-                                <input
-                                    type="email"
-                                    value={companySettings.email}
-                                    onChange={(e) => handleBasicSettingsChange('email', e.target.value)}
-                                    placeholder="company@example.com"
+                            {/* Basic Company Information */}
+                            <div className="bg-gray-50 p-6 rounded-lg">
+                              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <FiInfo /> Basic Information
+                              </h3>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Company Name *</label>
+                                  <input
+                                      type="text"
+                                      value={companySettings.companyName}
+                                      onChange={(e) => handleBasicSettingsChange('companyName', e.target.value)}
+                                      className="form-input"
+                                      placeholder="Enter company name"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Industry *</label>
+                                  <select
+                                      value={companySettings.industry}
+                                      onChange={(e) => handleBasicSettingsChange('industry', e.target.value)}
+                                      className="form-input"
+                                  >
+                                    <option value="">Select Industry</option>
+                                    <option value="Technology">Technology</option>
+                                    <option value="Healthcare">Healthcare</option>
+                                    <option value="Finance">Finance</option>
+                                    <option value="Education">Education</option>
+                                    <option value="Manufacturing">Manufacturing</option>
+                                    <option value="Retail">Retail</option>
+                                    <option value="Other">Other</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Company Size</label>
+                                  <select
+                                      value={companySettings.companySize}
+                                      onChange={(e) => handleBasicSettingsChange('companySize', e.target.value)}
+                                      className="form-input"
+                                  >
+                                    <option value="">Select Size</option>
+                                    <option value="1-10 employees">1-10 employees</option>
+                                    <option value="11-50 employees">11-50 employees</option>
+                                    <option value="51-100 employees">51-100 employees</option>
+                                    <option value="100-500 employees">100-500 employees</option>
+                                    <option value="500+ employees">500+ employees</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Founded Year</label>
+                                  <input
+                                      type="number"
+                                      value={companySettings.founded}
+                                      onChange={(e) => handleBasicSettingsChange('founded', e.target.value)}
+                                      className="form-input"
+                                      placeholder="e.g., 2018"
+                                      min="1800"
+                                      max={new Date().getFullYear()}
+                                  />
+                                </div>
+                              </div>
+                              <div className="mt-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Company Description</label>
+                                <textarea
+                                    value={companySettings.description}
+                                    onChange={(e) => handleBasicSettingsChange('description', e.target.value)}
+                                    className="form-textarea"
+                                    placeholder="Describe your company, mission, and values..."
+                                    rows="4"
                                 />
                               </div>
                             </div>
-                            <div className="setting-item">
-                              <label>Phone Number</label>
-                              <div className="input-with-icon">
-                                <RiPhoneLine />
-                                <input
-                                    type="tel"
-                                    value={companySettings.phone}
-                                    onChange={(e) => handleBasicSettingsChange('phone', e.target.value)}
-                                    placeholder="+1 (555) 123-4567"
-                                />
-                              </div>
-                            </div>
-                            <div className="setting-item">
-                              <label>Website</label>
-                              <div className="input-with-icon">
-                                <RiGlobalLine />
-                                <input
-                                    type="url"
-                                    value={companySettings.website}
-                                    onChange={(e) => handleBasicSettingsChange('website', e.target.value)}
-                                    placeholder="https://yourcompany.com"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
 
-                        {/* Address Information */}
-                        <div className="settings-section">
-                          <h3><RiMapPinLine /> Address</h3>
-                          <div className="settings-grid">
-                            <div className="setting-item full-width">
-                              <label>Street Address</label>
-                              <input
-                                  type="text"
-                                  value={companySettings.address}
-                                  onChange={(e) => handleBasicSettingsChange('address', e.target.value)}
-                                  placeholder="123 Business Street"
-                              />
+                            {/* Contact Information */}
+                            <div className="bg-gray-50 p-6 rounded-lg">
+                              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <FiMail /> Contact Information
+                              </h3>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
+                                  <div className="input-with-icon">
+                                    <FiMail />
+                                    <input
+                                        type="email"
+                                        value={companySettings.email}
+                                        onChange={(e) => handleBasicSettingsChange('email', e.target.value)}
+                                        placeholder="company@example.com"
+                                    />
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                                  <div className="input-with-icon">
+                                    <FiPhone />
+                                    <input
+                                        type="tel"
+                                        value={companySettings.phone}
+                                        onChange={(e) => handleBasicSettingsChange('phone', e.target.value)}
+                                        placeholder="+1 (555) 123-4567"
+                                    />
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                                  <div className="input-with-icon">
+                                    <FiGlobe />
+                                    <input
+                                        type="url"
+                                        value={companySettings.website}
+                                        onChange={(e) => handleBasicSettingsChange('website', e.target.value)}
+                                        placeholder="https://yourcompany.com"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                            <div className="setting-item">
-                              <label>City</label>
-                              <input
-                                  type="text"
-                                  value={companySettings.city}
-                                  onChange={(e) => handleBasicSettingsChange('city', e.target.value)}
-                                  placeholder="San Francisco"
-                              />
-                            </div>
-                            <div className="setting-item">
-                              <label>State/Province</label>
-                              <input
-                                  type="text"
-                                  value={companySettings.state}
-                                  onChange={(e) => handleBasicSettingsChange('state', e.target.value)}
-                                  placeholder="CA"
-                              />
-                            </div>
-                            <div className="setting-item">
-                              <label>ZIP/Postal Code</label>
-                              <input
-                                  type="text"
-                                  value={companySettings.zipCode}
-                                  onChange={(e) => handleBasicSettingsChange('zipCode', e.target.value)}
-                                  placeholder="94102"
-                              />
-                            </div>
-                            <div className="setting-item">
-                              <label>Country</label>
-                              <select
-                                  value={companySettings.country}
-                                  onChange={(e) => handleBasicSettingsChange('country', e.target.value)}
-                              >
-                                <option value="">Select Country</option>
-                                <option value="United States">United States</option>
-                                <option value="Canada">Canada</option>
-                                <option value="United Kingdom">United Kingdom</option>
-                                <option value="Australia">Australia</option>
-                                <option value="Germany">Germany</option>
-                                <option value="France">France</option>
-                                <option value="Other">Other</option>
-                              </select>
-                            </div>
-                          </div>
-                        </div>
 
-                        {/* Social Media */}
-                        <div className="settings-section">
-                          <h3><RiGlobalLine /> Social Media</h3>
-                          <div className="settings-grid">
-                            <div className="setting-item">
-                              <label>LinkedIn URL</label>
-                              <input
-                                  type="url"
-                                  value={companySettings.linkedinUrl}
-                                  onChange={(e) => handleBasicSettingsChange('linkedinUrl', e.target.value)}
-                                  placeholder="https://linkedin.com/company/yourcompany"
-                              />
-                            </div>
-                            <div className="setting-item">
-                              <label>Twitter URL</label>
-                              <input
-                                  type="url"
-                                  value={companySettings.twitterUrl}
-                                  onChange={(e) => handleBasicSettingsChange('twitterUrl', e.target.value)}
-                                  placeholder="https://twitter.com/yourcompany"
-                              />
-                            </div>
-                            <div className="setting-item">
-                              <label>Facebook URL</label>
-                              <input
-                                  type="url"
-                                  value={companySettings.facebookUrl}
-                                  onChange={(e) => handleBasicSettingsChange('facebookUrl', e.target.value)}
-                                  placeholder="https://facebook.com/yourcompany"
-                              />
+                            {/* Account Security */}
+                            <div className="bg-gray-50 p-6 rounded-lg">
+                              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <FiShield /> Account Security
+                              </h3>
+                              <div className="flex flex-wrap gap-2">
+                                <button
+                                    className="btn-secondary"
+                                    onClick={handlePasswordChange}
+                                >
+                                  <FiLock /> Change Password
+                                </button>
+                                <button
+                                    className="btn-secondary"
+                                    onClick={handleEmailUpdate}
+                                >
+                                  <FiMail /> Update Email
+                                </button>
+                                <button
+                                    className="btn-danger"
+                                    onClick={handleAccountDeletion}
+                                >
+                                  <FiTrash2 /> Delete Account
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>
-
-                        {/* Notification Preferences */}
-                        <div className="settings-section">
-                          <h3><RiNotificationLine /> Notification Preferences</h3>
-                          <div className="notification-settings">
-                            <div className="notification-item">
-                              <div className="notification-info">
-                                <h4>Email Alerts</h4>
-                                <p>Receive important updates via email</p>
-                              </div>
-                              <label className="toggle-switch">
-                                <input
-                                    type="checkbox"
-                                    checked={companySettings.notifications.emailAlerts}
-                                    onChange={(e) => handleSettingsChange('notifications', 'emailAlerts', e.target.checked)}
-                                />
-                                <span className="slider"></span>
-                              </label>
-                            </div>
-                            <div className="notification-item">
-                              <div className="notification-info">
-                                <h4>SMS Alerts</h4>
-                                <p>Get urgent notifications via SMS</p>
-                              </div>
-                              <label className="toggle-switch">
-                                <input
-                                    type="checkbox"
-                                    checked={companySettings.notifications.smsAlerts}
-                                    onChange={(e) => handleSettingsChange('notifications', 'smsAlerts', e.target.checked)}
-                                />
-                                <span className="slider"></span>
-                              </label>
-                            </div>
-                            <div className="notification-item">
-                              <div className="notification-info">
-                                <h4>Application Updates</h4>
-                                <p>Notifications when candidates apply to your jobs</p>
-                              </div>
-                              <label className="toggle-switch">
-                                <input
-                                    type="checkbox"
-                                    checked={companySettings.notifications.applicationUpdates}
-                                    onChange={(e) => handleSettingsChange('notifications', 'applicationUpdates', e.target.checked)}
-                                />
-                                <span className="slider"></span>
-                              </label>
-                            </div>
-                            <div className="notification-item">
-                              <div className="notification-info">
-                                <h4>Weekly Reports</h4>
-                                <p>Receive weekly analytics and performance reports</p>
-                              </div>
-                              <label className="toggle-switch">
-                                <input
-                                    type="checkbox"
-                                    checked={companySettings.notifications.weeklyReports}
-                                    onChange={(e) => handleSettingsChange('notifications', 'weeklyReports', e.target.checked)}
-                                />
-                                <span className="slider"></span>
-                              </label>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Account Security */}
-                        <div className="settings-section">
-                          <h3><RiLockLine /> Account Security</h3>
-                          <div className="security-actions">
-                            <button
-                                className="btn-secondary"
-                                onClick={handlePasswordChange}
-                            >
-                              <RiLockLine /> Change Password
-                            </button>
-                            <button
-                                className="btn-secondary"
-                                onClick={handleEmailUpdate}
-                            >
-                              <RiMailLine /> Update Email
-                            </button>
-                            <button
-                                className="btn-danger"
-                                onClick={handleAccountDeletion}
-                            >
-                              <RiDeleteBinLine /> Delete Account
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                )}
-              </main>
+                    )}
+                  </main>
+                </div>
+              </div>
             </>
         )}
       </div>
