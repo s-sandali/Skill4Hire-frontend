@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { jobService } from "../../services/jobService";
 import { candidateService } from "../../services/candidateService";
+import apiClient from "../../utils/axiosConfig";
 import "../base.css";
 
 const normalizeJobs = (payload) => {
@@ -35,7 +36,7 @@ const normalizeJobs = (payload) => {
       id: j?.id || j?.jobPostId || j?.jobId || `job-${index}`,
       title: j?.title || j?.jobTitle || j?.role || '',
       company: j?.companyName || j?.company || j?.employer?.name || '',
-      companyLogo: j?.companyLogo || j?.employer?.logo || '',
+      companyLogo: j?.companyLogo || j?.companyLogoUrl || j?.employer?.logo || j?.employer?.logoUrl || '',
       location: j?.location || j?.jobLocation || j?.city || '',
       matchScore: null, // removed from UI
       summary: j?.summary || j?.description || j?.shortDescription || '',
@@ -44,6 +45,16 @@ const normalizeJobs = (payload) => {
       postedAt: j?.postedAt || j?.createdAt || j?.publishedAt || null,
     };
   });
+};
+
+// Normalize potential relative URLs for images
+const API_BASE = apiClient?.defaults?.baseURL || '';
+const toImageUrl = (url) => {
+  if (!url) return '';
+  if (/^(data:|blob:)/i.test(url)) return url;
+  if (/^https?:\/\//i.test(url)) return url;
+  if (url.startsWith('/')) return `${API_BASE}${url}`;
+  return `${API_BASE}/${url}`;
 };
 
 const percent = (score) => null; // no longer used
@@ -316,17 +327,18 @@ export default function JobMatches() {
           const apply = applyState[job.id]?.status;
           const isApplied = appliedJobs.has(String(job.id)) || apply === 'success' || Boolean(applyState[job.id]?.already);
           const meta = [job.company, job.location].filter(Boolean).join(' • ');
+          const logoUrl = job.companyLogo ? toImageUrl(job.companyLogo) : '';
           return (
             <div key={job.id} className="job-card">
               <div className="job-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  {job.companyLogo ? (
-                    <img src={job.companyLogo} alt={job.company || 'Company logo'} style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6, border: '1px solid #eee' }} />
-                  ) : (
-                    <div style={{ width: 40, height: 40, borderRadius: 6, background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', fontSize: 14 }}>
-                      {job.company?.charAt(0) ?? '•'}
-                    </div>
-                  )}
+                  <div className="company-logo">
+                    {logoUrl ? (
+                      <img src={logoUrl} alt={job.company || 'Company logo'} />
+                    ) : (
+                      <span style={{ fontWeight: 600, color: '#6b7280', fontSize: 14 }}>{job.company?.charAt(0) ?? '•'}</span>
+                    )}
+                  </div>
                   <div>
                     <h3 style={{ margin: 0 }}>{job.title || ' '}</h3>
                     {meta && <p className="muted" style={{ margin: 0 }}>{meta}</p>}

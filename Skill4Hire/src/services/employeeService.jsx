@@ -130,7 +130,10 @@ export const employeeService = {
         if (!jobId) throw new Error('Missing jobId');
         try {
             const response = await apiClient.get(`/api/employees/jobs/${jobId}/recommendations`, { params: { page, size } });
-            return response.data;
+            const data = response.data;
+            // Normalize to array of RecommendationView where possible
+            const content = Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
+            return { ...data, content };
         } catch (error) {
             throw new Error(error.response?.data?.message || 'Failed to fetch job recommendations');
         }

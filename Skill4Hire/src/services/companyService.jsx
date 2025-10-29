@@ -124,7 +124,8 @@ export const companyService = {
   getRecommendations: async () => {
     try {
       const response = await apiClient.get('/api/companies/recommendations');
-      return response.data;
+      const data = response.data;
+      const content = Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Failed to fetch recommendations');
     }
@@ -238,5 +239,41 @@ export const companyService = {
       }
       throw new Error(error.response?.data?.message || 'Failed to update application status');
     }
-  }
+  },
+
+  getCandidateBasic: async (candidateId) => {
+    if (!candidateId) throw new Error('Missing candidate identifier');
+    try {
+      const { data } = await apiClient.get(`/api/companies/candidates/${candidateId}/basic`);
+      return data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch candidate basic profile');
+    }
+  },
+
+  getCandidateProfile: async (candidateId) => {
+    if (!candidateId) throw new Error('Missing candidate identifier');
+    try {
+      const { data } = await apiClient.get(`/api/companies/candidates/${candidateId}/profile`);
+      return data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch candidate profile');
+    }
+  },
+
+  downloadCandidateCv: async (candidateId) => {
+    if (!candidateId) throw new Error('Missing candidate identifier');
+    try {
+      const response = await apiClient.get(`/api/companies/candidates/${candidateId}/cv`, { responseType: 'blob' });
+      const dispo = response.headers?.['content-disposition'] || response.headers?.get?.('content-disposition');
+      let filename = 'resume.pdf';
+      if (dispo) {
+        const match = /filename\*=UTF-8''([^;]+)|filename="?([^;\"]+)"?/i.exec(dispo);
+        filename = decodeURIComponent(match?.[1] || match?.[2] || filename);
+      }
+      return { blob: response.data, filename };
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to download candidate CV');
+    }
+  },
 };
