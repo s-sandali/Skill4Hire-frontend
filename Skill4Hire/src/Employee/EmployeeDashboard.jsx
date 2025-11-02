@@ -10,7 +10,7 @@ import {
 import EmployeeProfile from "./EmployeeProfile";
 import RecommendationModal from "./RecommendationModal";
 import CandidateDetailsModal from "./CandidateDetailsModal";
-import EmployeeNotificationPanel from "./EmployeeNotificationPanel";
+import EmployeeNotifications from "./EmployeeNotifications";
 import PortalLogoBadge from "../components/PortalLogoBadge.jsx";
 import { authService } from "../services/authService";
 import { employeeService } from "../services/employeeService";
@@ -378,7 +378,7 @@ const EmployeeDashboard = () => {
                     type="button"
                     className="relative p-2 hover:bg-gray-100 rounded-lg transition"
                     aria-label="Notifications"
-                    onClick={() => setNotificationPanelOpen(true)}
+                    onClick={() => setActiveTab("notifications")}
                 >
                   <RiNotification3Line className="w-5 h-5 text-gray-600" />
                   {unreadNotifications > 0 && (
@@ -459,7 +459,7 @@ const EmployeeDashboard = () => {
                 <div className="border-t border-gray-200 my-2"></div>
                 <button
                     className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 transition"
-                    onClick={() => setNotificationPanelOpen(true)}
+                    onClick={() => setActiveTab("notifications")}
                 >
                   <RiNotification3Line className="w-5 h-5" />
                   Notifications
@@ -822,6 +822,10 @@ const EmployeeDashboard = () => {
                     )}
                   </div>
               )}
+
+              {activeTab === "notifications" && (
+                <EmployeeNotifications />
+              )}
             </main>
           </div>
         </div>
@@ -909,11 +913,6 @@ const EmployeeDashboard = () => {
               </div>
             </div>
         )}
-
-        <EmployeeNotificationPanel
-            isOpen={notificationPanelOpen}
-            onClose={() => setNotificationPanelOpen(false)}
-        />
       </div>
   );
 };

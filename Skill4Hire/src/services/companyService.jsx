@@ -124,8 +124,8 @@ export const companyService = {
   getRecommendations: async () => {
     try {
       const response = await apiClient.get('/api/companies/recommendations');
-      const data = response.data;
-      const content = Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
+      // Return the server payload (likely Page<RecommendationView>); callers can extract .content
+      return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Failed to fetch recommendations');
     }

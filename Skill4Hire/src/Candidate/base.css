@@ -338,8 +338,9 @@ body {
 .modal--wide {
   max-height: 90vh;
   overflow-y: auto;
-  width: auto;
-  max-width: 92vw;
+  /* enforce consistent modal width */
+  width: clamp(640px, 72vw, 920px);
+  max-width: 96vw;
   background: var(--surface, #ffffff);
   border: 1px solid var(--border, #e5e7eb);
   border-radius: 16px;
@@ -347,6 +348,7 @@ body {
 
 /* Slightly wider for .modal--wide while respecting viewport */
 .modal--wide {
+  width: clamp(720px, 78vw, 980px);
   max-width: 96vw;
 }
 

@@ -412,6 +412,7 @@ const CompanyDashboard = () => {
         const avatarUrl = resolveAssetUrl(avatarPath);
         return {
           id: rec?.id || `rec-${idx}`,
+          candidateId: rec?.candidateId || rec?.candidate?.id || null,
           candidateName: name,
           candidateTitle: title,
           candidateLocation: location,
@@ -993,15 +994,20 @@ const CompanyDashboard = () => {
     try {
       const basic = await companyService.getCandidateProfile(candidateId); // full DTO includes skills, education, experience, resumePath
       // Normalize fields expected by modal
+      const picture = basic.profilePicturePath ? resolveAssetUrl(basic.profilePicturePath) : '';
       const normalized = {
         candidateId: basic.id || candidateId,
         name: basic.name,
         title: basic.title,
         location: basic.location,
+        email: basic.email,
+        phoneNumber: basic.phoneNumber,
         skills: Array.isArray(basic.skills) ? basic.skills : [],
         experience: basic.experience,
+        education: basic.education,
         resumePath: basic.resumePath,
-        profilePictureUrl: basic.profilePicturePath ? resolveAssetUrl(`/uploads/profile-pictures/${basic.profilePicturePath}`) : '',
+        profilePictureUrl: picture,
+        directDownloadUrl: `/api/companies/candidates/${basic.id || candidateId}/cv`,
       };
       setCandidateModalData(normalized);
       setCandidateModalOpen(true);

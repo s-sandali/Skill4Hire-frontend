@@ -154,8 +154,12 @@ export const employeeService = {
     getNotifications: async () => {
         try {
             const { data } = await apiClient.get('/api/employees/notifications');
+            if (import.meta.env?.DEV) {
+                console.log('[employeeService] GET /api/employees/notifications ->', data);
+            }
             return data;
         } catch (error) {
+            if (import.meta.env?.DEV) console.error('[employeeService] notifications error', error?.response || error);
             throw new Error(error.response?.data?.message || 'Failed to fetch notifications');
         }
     },
@@ -195,6 +199,43 @@ export const employeeService = {
             return true;
         } catch (error) {
             throw new Error(error.response?.data?.message || 'Failed to delete notification');
+        }
+    },
+
+    // New functions for pagination and PATCH support
+    getEmployeeNotifications: async (page, limit) => {
+        try {
+            if (typeof page === 'number' && typeof limit === 'number') {
+                const { data } = await apiClient.get('/api/employees/notifications', { params: { page, limit } });
+                if (import.meta.env?.DEV) console.log('[employeeService] paged notifications', { page, limit, data });
+                return data; // { content, page, limit, totalElements, totalPages }
+            }
+            const { data } = await apiClient.get('/api/employees/notifications');
+            if (import.meta.env?.DEV) console.log('[employeeService] notifications array', data);
+            return data; // array fallback
+        } catch (err) {
+            if (import.meta.env?.DEV) console.error('[employeeService] getEmployeeNotifications error', err?.response || err);
+            throw new Error(err.response?.data?.message || 'Failed to fetch notifications');
+        }
+    },
+
+    patchMarkNotificationAsRead: async (notificationId) => {
+        if (!notificationId) throw new Error('Missing notificationId');
+        try {
+            await apiClient.patch(`/api/employees/notifications/${notificationId}/read`);
+            return true;
+        } catch (err) {
+            throw new Error(err.response?.data?.message || 'Failed to mark notification as read');
+        }
+    },
+
+    // Dev-only helper to seed a sample notification for current employee
+    seedOneNotification: async () => {
+        try {
+            const { data } = await apiClient.post('/api/employees/notifications/seed');
+            return data;
+        } catch (err) {
+            throw new Error(err.response?.data?.message || 'Failed to seed notification');
         }
     }
 };
