@@ -72,12 +72,55 @@ export const employeeService = {
         }
     },
 
-    // View a candidate basic profile
+    // View a candidate profile enriched with basic info (CV metadata, avatar paths)
     getCandidateProfile: async (candidateId) => {
         if (!candidateId) throw new Error('Missing candidateId');
         try {
-            const response = await apiClient.get(`/api/employees/candidates/${candidateId}/basic`);
-            return response.data; // CandidateBasicView
+            const [basicResponse, profileResponse] = await Promise.all([
+                apiClient.get(`/api/employees/candidates/${candidateId}/basic`),
+                apiClient.get(`/api/employees/candidates/${candidateId}`)
+            ]);
+
+            const basic = basicResponse?.data || {};
+            const profile = profileResponse?.data || {};
+
+            const resumePath = profile.resumePath || basic.resumePath || '';
+            const profilePicturePath = profile.profilePicturePath || basic.profilePicturePath || '';
+
+            const normalized = {
+                ...basic,
+                ...profile,
+                candidateId: profile.userId || basic.candidateId || candidateId,
+                name: profile.name || basic.name,
+                title: profile.title || basic.title,
+                location: profile.location || basic.location,
+                email: profile.email || basic.email,
+                phoneNumber: profile.phoneNumber || profile.phone || basic.phoneNumber || basic.phone,
+                skills: Array.isArray(profile.skills) && profile.skills.length > 0
+                    ? profile.skills
+                    : (Array.isArray(basic.skills) ? basic.skills : []),
+                resumePath,
+                profilePicturePath
+            };
+
+            const hasCv = basic.hasCv ?? Boolean(resumePath);
+            normalized.hasCv = hasCv;
+
+            const cvDownloadUrl = basic.cvDownloadUrl || (hasCv ? `/api/employees/candidates/${candidateId}/cv` : '');
+            if (cvDownloadUrl) {
+                normalized.cvDownloadUrl = cvDownloadUrl;
+            }
+
+            if (profilePicturePath && !normalized.profilePictureUrl) {
+                normalized.profilePictureUrl = `/uploads/profile-pictures/${profilePicturePath}`;
+            }
+
+            if (!normalized.resumeFileName && resumePath) {
+                const parts = String(resumePath).split(/[/\\]/);
+                normalized.resumeFileName = parts[parts.length - 1];
+            }
+
+            return normalized;
         } catch (error) {
             throw new Error(error.response?.data?.message || 'Failed to fetch candidate profile');
         }
