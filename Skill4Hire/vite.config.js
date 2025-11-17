@@ -7,8 +7,14 @@ export default defineConfig({
   server: {
     port: 5175,
     proxy: {
-      // forward /api/* requests to backend running on 8000
+      // forward /api/* requests to backend running on 8080
       '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+      },
+      // also forward static uploads to backend so <img src="/uploads/..."> works in dev
+      '/uploads': {
         target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false,

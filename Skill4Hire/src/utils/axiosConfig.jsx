@@ -2,8 +2,8 @@ import axios from 'axios';
 
 const apiClient = axios.create({
   baseURL: import.meta.env.DEV
-    ? 'http://localhost:8080'  // local dev backend
-    : 'https://skill4hire-backend.onrender.com',  // deployed backend
+    ? '' // use Vite dev server origin and proxy /api -> backend
+    : 'https://skill4hire-backend.onrender.com',
   withCredentials: true, // required for session authentication
   timeout: 15000,
 });

@@ -246,15 +246,30 @@ body {
   padding: 1rem;
 }
 
+/* Make applicants table area scrollable within page/card */
 .apps-table-wrapper {
   width: 100%;
   overflow-x: auto;
+  /* new: vertical scroll with safe max height so content stays within viewport */
+  max-height: clamp(320px, calc(100vh - 280px), 75vh);
+  overflow-y: auto;
+  border-radius: 8px;
+}
+
+/* Optional sticky header for better UX when scrolling long tables */
+.apps-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface-alt);
 }
 
 .apps-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.95rem;
+  /* keep columns readable on small widths; wrapper will scroll */
+  min-width: 760px;
 }
 
 .apps-table th,
@@ -272,4 +287,80 @@ body {
 
 .apps-table tr:hover td {
   background: rgba(37, 99, 235, 0.04);
+}
+
+.company-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px; /* circle */
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.company-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Strong baseline for all modal overlays across app */
+.modal-overlay {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2147483647; /* ensure always on top */
+  padding: 1rem;
+}
+
+/* Ensure centered variant also centers (redundant but safe) */
+.modal-overlay.modal-overlay--center {
+  align-items: center;
+  justify-content: center;
+}
+
+/* Safe modal box defaults: sized to viewport and scroll internally */
+.modal,
+.modal-content,
+.modal-content--narrow,
+.modal--wide {
+  max-height: 90vh;
+  overflow-y: auto;
+  /* enforce consistent modal width */
+  width: clamp(640px, 72vw, 920px);
+  max-width: 96vw;
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 16px;
+}
+
+/* Slightly wider for .modal--wide while respecting viewport */
+.modal--wide {
+  width: clamp(720px, 78vw, 980px);
+  max-width: 96vw;
+}
+
+/* Improve contrast for form labels inside white modals */
+.modal-header h3,
+.form-group label {
+  color: #111827;
+}
+
+/* Small screens: reduce table min-width */
+@media (max-width: 640px) {
+  .apps-table {
+    min-width: 640px;
+  }
 }

@@ -32,8 +32,10 @@ import {
 import { authService } from '../services/authService';
 import { companyService } from '../services/companyService';
 import { jobService } from '../services/jobService';
+import apiClient from '../utils/axiosConfig';
 import JobForm from './JobForm';
 import PortalLogoBadge from '../components/PortalLogoBadge.jsx';
+import CandidateDetailsModal from "../Employee/CandidateDetailsModal";
 import './CompanyDashboard.css';
 
 const defaultNotificationPreferences = {
@@ -50,6 +52,42 @@ const TAB_LABELS = {
   applicants: 'Applicants',
   recommendations: 'Recommendations',
   settings: 'Settings'
+};
+
+const getAssetBaseUrl = () => {
+  const base = apiClient?.defaults?.baseURL || '';
+  return base.endsWith('/') ? base.slice(0, -1) : base;
+};
+
+const resolveAssetUrl = (raw, folder = 'profile-pictures') => {
+  if (!raw) return '';
+
+  const stringValue = String(raw).trim();
+  if (!stringValue) return '';
+
+  const normalized = stringValue.replace(/\\/g, '/');
+  if (/^https?:\/\//i.test(normalized)) {
+    return normalized;
+  }
+
+  const base = getAssetBaseUrl();
+
+  if (normalized.startsWith('/api/uploads/')) {
+    const stripped = normalized.replace(/^\/api/, '');
+    return base ? `${base}${stripped}` : stripped;
+  }
+
+  if (normalized.startsWith('/uploads/')) {
+    return base ? `${base}${normalized}` : normalized;
+  }
+
+  if (normalized.startsWith('uploads/')) {
+    return base ? `${base}/${normalized}` : `/${normalized}`;
+  }
+
+  const suffix = normalized.replace(/^\/+/g, '');
+  const path = `/uploads/${folder}/${suffix}`;
+  return base ? `${base}${path}` : path;
 };
 
 const buildDefaultCompanySettings = () => ({
@@ -134,6 +172,9 @@ const CompanyDashboard = () => {
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsError, setNotificationsError] = useState('');
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+
+  const [candidateModalOpen, setCandidateModalOpen] = useState(false);
+  const [candidateModalData, setCandidateModalData] = useState(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -361,7 +402,29 @@ const CompanyDashboard = () => {
       const data = jobId && jobId !== 'all'
           ? await companyService.getRecommendationsForJob(jobId)
           : await companyService.getRecommendations();
-      setRecommendations(normalizeRecommendations(data));
+
+      const list = Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
+      const normalized = list.map((rec, idx) => {
+        const name = rec?.candidateName || rec?.candidate?.name || 'Candidate';
+        const title = rec?.candidateTitle || rec?.candidate?.title || '';
+        const location = rec?.candidateLocation || rec?.candidate?.location || '';
+        const avatarPath = rec?.candidateProfilePictureUrl || rec?.candidateProfilePicturePath || rec?.candidate?.profilePictureUrl || rec?.candidate?.profilePicturePath || '';
+        const avatarUrl = resolveAssetUrl(avatarPath);
+        return {
+          id: rec?.id || `rec-${idx}`,
+          candidateId: rec?.candidateId || rec?.candidate?.id || null,
+          candidateName: name,
+          candidateTitle: title,
+          candidateLocation: location,
+          candidateAvatarUrl: avatarUrl,
+          jobTitle: rec?.jobTitle || '',
+          jobId: rec?.jobId || null,
+          status: rec?.status || '',
+          note: rec?.note || '',
+          createdAt: rec?.createdAt || null
+        };
+      });
+      setRecommendations(normalized);
     } catch (error) {
       const message = error.response?.data?.message || error.message || 'Failed to load recommendations';
       setRecommendations([]);
@@ -369,7 +432,7 @@ const CompanyDashboard = () => {
     } finally {
       setRecommendationsLoading(false);
     }
-  }, [normalizeRecommendations]);
+  }, []);
 
   // Load job postings from backend
   const loadJobPostings = useCallback(async () => {
@@ -840,16 +903,34 @@ const CompanyDashboard = () => {
 
   const normalizeApplications = useCallback((payload) => {
     const list = Array.isArray(payload) ? payload : (Array.isArray(payload?.data) ? payload.data : []);
-    return list.map((a, i) => ({
-      id: a.id || a._id || `app-${i}`,
-      candidateId: a.candidateId || a.candidate || '—',
-      jobId: a.jobPostId || a.jobId || null,
-      jobTitle: a.jobTitle || '—',
-      location: a.jobLocation || '—',
-      status: a.status || 'APPLIED',
-      appliedAt: a.appliedAt || a.createdAt || a.dateApplied || null,
-      companyName: a.companyName || '—',
-    }));
+    return list.map((a, i) => {
+      const candidateId = a.candidateId || a.candidate || '—';
+      const primaryName = (a.candidateName || a.candidateFullName || a.candidateDisplayName || '').toString().trim();
+      const displayName = primaryName || candidateId || 'Candidate';
+      const initials = displayName
+          .split(/\s+/)
+          .filter(Boolean)
+          .map((part) => part.charAt(0).toUpperCase())
+          .join('')
+          .slice(0, 2) || (candidateId && candidateId !== '—' ? String(candidateId).charAt(0).toUpperCase() : 'C');
+      const avatarSrc = resolveAssetUrl(a.candidateProfilePictureUrl || a.candidateProfilePicturePath || a.avatarUrl || '');
+
+      return {
+        id: a.id || a._id || `app-${i}`,
+        candidateId,
+        candidateDisplayName: displayName,
+        candidateInitials: initials,
+        candidateEmail: a.candidateEmail || '',
+        candidateTitle: a.candidateTitle || a.title || '',
+        candidateAvatarUrl: avatarSrc,
+        jobId: a.jobPostId || a.jobId || null,
+        jobTitle: a.jobTitle || '—',
+        location: a.jobLocation || '—',
+        status: a.status || 'APPLIED',
+        appliedAt: a.appliedAt || a.createdAt || a.dateApplied || null,
+        companyName: a.companyName || '—',
+      };
+    });
   }, []);
 
   const loadApplicants = useCallback(async () => {
@@ -908,6 +989,54 @@ const CompanyDashboard = () => {
 
   const firstInitial = (companySettings.companyName || 'C').charAt(0).toUpperCase();
   const avatarUrl = logoPreview || '';
+
+  const openCandidateModal = async (candidateId) => {
+    try {
+      const basic = await companyService.getCandidateProfile(candidateId); // full DTO includes skills, education, experience, resumePath
+      // Normalize fields expected by modal
+      const picture = basic.profilePicturePath ? resolveAssetUrl(basic.profilePicturePath) : '';
+      const normalized = {
+        candidateId: basic.id || candidateId,
+        name: basic.name,
+        title: basic.title,
+        location: basic.location,
+        email: basic.email,
+        phoneNumber: basic.phoneNumber,
+        skills: Array.isArray(basic.skills) ? basic.skills : [],
+        experience: basic.experience,
+        education: basic.education,
+        resumePath: basic.resumePath,
+        profilePictureUrl: picture,
+        directDownloadUrl: `/api/companies/candidates/${basic.id || candidateId}/cv`,
+      };
+      setCandidateModalData(normalized);
+      setCandidateModalOpen(true);
+    } catch (err) {
+      alert(err?.message || 'Failed to load candidate details');
+    }
+  };
+
+  const closeCandidateModal = () => {
+    setCandidateModalOpen(false);
+    setCandidateModalData(null);
+  };
+
+  const handleCompanyDownloadCv = async () => {
+    if (!candidateModalData?.candidateId) return;
+    try {
+      const { blob, filename } = await companyService.downloadCandidateCv(candidateModalData.candidateId);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename || 'resume.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      alert(error?.message || 'Failed to download CV');
+    }
+  };
 
   return (
     <div className="company-dashboard min-h-screen bg-gray-50">
@@ -1470,49 +1599,73 @@ const CompanyDashboard = () => {
                                   </tr>
                                   </thead>
                                   <tbody>
-                                  {applicants.map((a) => (
-                                      <tr key={a.id}>
-                                        <td>{a.candidateId}</td>
-                                        <td>{a.jobTitle}</td>
-                                        <td className="muted">{a.location}</td>
-                                        <td className="muted">{a.appliedAt ? new Date(a.appliedAt).toLocaleDateString() : '—'}</td>
-                                        <td>
-                                          <span className={`status-badge ${String(a.status).toLowerCase()}`}>{a.status}</span>
-                                        </td>
-                                        <td>
-                                          <div className="flex gap-2">
-                                            <button
-                                                className="btn-outline small"
-                                                disabled={a.status === 'SHORTLISTED'}
-                                                onClick={() => handleUpdateApplicationStatus(a.id, 'SHORTLISTED')}
-                                            >
-                                              Shortlist
-                                            </button>
-                                            <button
-                                                className="btn-outline small"
-                                                disabled={a.status === 'INTERVIEW'}
-                                                onClick={() => handleUpdateApplicationStatus(a.id, 'INTERVIEW')}
-                                            >
-                                              Interview
-                                            </button>
-                                            <button
-                                                className="btn-outline small"
-                                                disabled={a.status === 'HIRED'}
-                                                onClick={() => handleUpdateApplicationStatus(a.id, 'HIRED')}
-                                            >
-                                              Hire
-                                            </button>
-                                            <button
-                                                className="btn-danger small"
-                                                disabled={a.status === 'REJECTED'}
-                                                onClick={() => handleUpdateApplicationStatus(a.id, 'REJECTED')}
-                                            >
-                                              Reject
-                                            </button>
-                                          </div>
-                                        </td>
-                                      </tr>
-                                  ))}
+                                  {applicants.map((a) => {
+                                    const subText = a.candidateEmail || a.candidateTitle || (a.candidateId && a.candidateId !== '—' ? a.candidateId : '');
+                                    const altText = a.candidateDisplayName && a.candidateDisplayName !== '—' ? a.candidateDisplayName : 'Candidate';
+                                    return (
+                                        <tr key={a.id}>
+                                          <td>
+                                            <div className="applicant-identity">
+                                              <div className="applicant-avatar" aria-hidden="true">
+                                                {a.candidateAvatarUrl ? (
+                                                    <img src={a.candidateAvatarUrl} alt={`Profile for ${altText}`} />
+                                                ) : (
+                                                    <span>{a.candidateInitials}</span>
+                                                )}
+                                              </div>
+                                              <div className="applicant-meta">
+                                                <span className="applicant-name">{a.candidateDisplayName}</span>
+                                                {subText && <span className="applicant-subtext">{subText}</span>}
+                                              </div>
+                                            </div>
+                                          </td>
+                                          <td>{a.jobTitle}</td>
+                                          <td className="muted">{a.location}</td>
+                                          <td className="muted">{a.appliedAt ? new Date(a.appliedAt).toLocaleDateString() : '—'}</td>
+                                          <td>
+                                            <span className={`status-badge ${String(a.status).toLowerCase()}`}>{a.status}</span>
+                                          </td>
+                                          <td>
+                                            <div className="flex gap-2">
+                                              <button
+                                                  className="btn-primary"
+                                                  onClick={() => openCandidateModal(a.candidateId)}
+                                              >
+                                                <FiEye /> View
+                                              </button>
+                                              <button
+                                                  className="btn-outline small"
+                                                  disabled={a.status === 'SHORTLISTED'}
+                                                  onClick={() => handleUpdateApplicationStatus(a.id, 'SHORTLISTED')}
+                                              >
+                                                Shortlist
+                                              </button>
+                                              <button
+                                                  className="btn-outline small"
+                                                  disabled={a.status === 'INTERVIEW'}
+                                                  onClick={() => handleUpdateApplicationStatus(a.id, 'INTERVIEW')}
+                                              >
+                                                Interview
+                                              </button>
+                                              <button
+                                                  className="btn-outline small"
+                                                  disabled={a.status === 'HIRED'}
+                                                  onClick={() => handleUpdateApplicationStatus(a.id, 'HIRED')}
+                                              >
+                                                Hire
+                                              </button>
+                                              <button
+                                                  className="btn-danger small"
+                                                  disabled={a.status === 'REJECTED'}
+                                                  onClick={() => handleUpdateApplicationStatus(a.id, 'REJECTED')}
+                                              >
+                                                Reject
+                                              </button>
+                                            </div>
+                                          </td>
+                                        </tr>
+                                    );
+                                  })}
                                   </tbody>
                                 </table>
                               </div>
@@ -1570,45 +1723,43 @@ const CompanyDashboard = () => {
                           {!recommendationsLoading && !recommendationsError && recommendations.length > 0 && (
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {recommendations.map((rec) => {
-                                  const score = typeof rec.matchScore === 'number'
-                                      ? Math.round(rec.matchScore > 0 && rec.matchScore <= 1 ? rec.matchScore * 100 : rec.matchScore)
-                                      : null;
+                                  const initials = (rec.candidateName || 'C')
+                                    .split(/\s+/)
+                                    .filter(Boolean)
+                                    .map((p) => p[0].toUpperCase())
+                                    .join('')
+                                    .slice(0,2);
 
                                   return (
                                       <div key={rec.id} className="recommendation-card">
                                         <div className="recommendation-card-header">
-                                          <div>
-                                            <h3>{rec.candidateName}</h3>
-                                            <p className="recommendation-job">{rec.jobTitle || 'General fit'}</p>
+                                          <div className="flex items-center gap-3">
+                                            <div className="candidate-avatar w-12 h-12">
+                                              {rec.candidateAvatarUrl ? (
+                                                <img src={rec.candidateAvatarUrl} alt={rec.candidateName} />
+                                              ) : (
+                                                <span>{initials}</span>
+                                              )}
+                                            </div>
+                                            <div>
+                                              <h3>{rec.candidateName}</h3>
+                                              <p className="text-sm text-gray-600">
+                                                {rec.candidateTitle || '—'}
+                                                {rec.candidateLocation ? ` • ${rec.candidateLocation}` : ''}
+                                              </p>
+                                              <p className="recommendation-job">{rec.jobTitle || 'General fit'}</p>
+                                            </div>
                                           </div>
-                                          {score !== null && <span className="recommendation-score">{score}% Match</span>}
                                         </div>
 
-                                        {rec.skills.length > 0 && (
-                                            <div className="recommendation-skills">
-                                              {rec.skills.slice(0, 8).map((skill) => (
-                                                  <span key={`${rec.id}-${skill}`} className="skill-tag">{skill}</span>
-                                              ))}
-                                            </div>
-                                        )}
-
-                                        {rec.summary && <p className="recommendation-summary">{rec.summary}</p>}
+                                        {rec.note && <p className="recommendation-summary">{rec.note}</p>}
 
                                         <div className="recommendation-actions">
-                                          {rec.resumeUrl && (
-                                              <a
-                                                  href={rec.resumeUrl}
-                                                  target="_blank"
-                                                  rel="noopener noreferrer"
-                                                  className="btn-outline small"
-                                              >
-                                                <FiDownload /> Resume
-                                              </a>
-                                          )}
-                                          {rec.email && (
-                                              <a href={`mailto:${rec.email}`} className="btn-primary small">
-                                                <FiMail /> Contact
-                                              </a>
+                                          <button className="btn btn-primary small" onClick={() => openCandidateModal(rec.candidateId || rec.id)}>
+                                            <FiEye /> View
+                                          </button>
+                                          {rec.createdAt && (
+                                            <span className="text-xs text-gray-500">{new Date(rec.createdAt).toLocaleDateString()}</span>
                                           )}
                                         </div>
                                       </div>
@@ -1959,6 +2110,15 @@ const CompanyDashboard = () => {
               </div>
             </>
         )}
+
+        {/* Candidate details modal for company view */}
+        <CandidateDetailsModal
+          isOpen={candidateModalOpen}
+          onClose={closeCandidateModal}
+          candidate={candidateModalData}
+          onDownloadCv={handleCompanyDownloadCv}
+          onRecommend={() => {}}
+        />
       </div>
   );
 };

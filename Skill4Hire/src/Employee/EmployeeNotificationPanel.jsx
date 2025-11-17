@@ -14,12 +14,11 @@ const EmployeeNotificationPanel = ({ isOpen, onClose }) => {
     const [loading, setLoading] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
 
-    // Fetch notifications
     const fetchNotifications = async () => {
         setLoading(true);
         try {
             const data = await employeeService.getNotifications();
-            setNotifications(data || []);
+            setNotifications(Array.isArray(data) ? data : (data?.content || []));
         } catch (error) {
             console.error("Error fetching notifications:", error);
             setNotifications([]);
@@ -28,7 +27,6 @@ const EmployeeNotificationPanel = ({ isOpen, onClose }) => {
         }
     };
 
-    // Fetch unread count
     const fetchUnreadCount = async () => {
         try {
             const data = await employeeService.getUnreadNotificationCount();
@@ -38,59 +36,57 @@ const EmployeeNotificationPanel = ({ isOpen, onClose }) => {
         }
     };
 
-    // Mark as read
     const markAsRead = async (notificationId) => {
         try {
-            await employeeService.markNotificationAsRead(notificationId);
-            // Update local state
-            setNotifications(prev =>
-                prev.map(notif =>
-                    notif.id === notificationId ? { ...notif, read: true } : notif
-                )
-            );
+            // Prefer PATCH when available
+            if (employeeService.patchMarkNotificationAsRead) {
+                await employeeService.patchMarkNotificationAsRead(notificationId);
+            } else {
+                await employeeService.markNotificationAsRead(notificationId);
+            }
+            setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, read: true } : n));
             setUnreadCount(prev => Math.max(0, prev - 1));
         } catch (error) {
             console.error("Error marking as read:", error);
         }
     };
 
-    // Mark all as read
     const markAllAsRead = async () => {
         try {
             await employeeService.markAllNotificationsAsRead();
-            // Update local state
-            setNotifications(prev =>
-                prev.map(notif => ({ ...notif, read: true }))
-            );
+            setNotifications(prev => prev.map(n => ({ ...n, read: true })));
             setUnreadCount(0);
         } catch (error) {
             console.error("Error marking all as read:", error);
         }
     };
 
-    // Delete notification
     const deleteNotification = async (notificationId) => {
         try {
             await employeeService.deleteNotification(notificationId);
-            // Update local state
-            const notificationToDelete = notifications.find(n => n.id === notificationId);
-            setNotifications(prev => prev.filter(notif => notif.id !== notificationId));
-
-            // Update unread count if deleted notification was unread
-            if (notificationToDelete && !notificationToDelete.read) {
-                setUnreadCount(prev => Math.max(0, prev - 1));
-            }
+            const toDelete = notifications.find(n => n.id === notificationId);
+            setNotifications(prev => prev.filter(n => n.id !== notificationId));
+            if (toDelete && !toDelete.read) setUnreadCount(prev => Math.max(0, prev - 1));
         } catch (error) {
             console.error("Error deleting notification:", error);
         }
     };
 
-    // Initial data fetch
     useEffect(() => {
         if (isOpen) {
             fetchNotifications();
             fetchUnreadCount();
         }
+    }, [isOpen]);
+
+    // Simple polling refresh while panel is open
+    useEffect(() => {
+        if (!isOpen) return;
+        const id = setInterval(() => {
+            fetchNotifications();
+            fetchUnreadCount();
+        }, 30000);
+        return () => clearInterval(id);
     }, [isOpen]);
 
     if (!isOpen) return null;
@@ -107,11 +103,7 @@ const EmployeeNotificationPanel = ({ isOpen, onClose }) => {
                     </div>
                     <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
                         {unreadCount > 0 && (
-                            <button
-                                className="btn btn-secondary btn-small"
-                                onClick={markAllAsRead}
-                                title="Mark all as read"
-                            >
+                            <button className="btn btn-secondary btn-small" onClick={markAllAsRead} title="Mark all as read">
                                 <RiCheckLine /> Mark All Read
                             </button>
                         )}
@@ -132,41 +124,27 @@ const EmployeeNotificationPanel = ({ isOpen, onClose }) => {
                         </div>
                     ) : (
                         <div className="notifications-list">
-                            {notifications.map((notification) => (
-                                <div
-                                    key={notification.id}
-                                    className={`notification-item ${!notification.read ? 'unread' : ''}`}
-                                >
+                            {notifications.map((n) => (
+                                <div key={n.id} className={`notification-item ${!n.read ? 'unread' : ''}`}>
                                     <div className="notification-content">
-                                        <div className="notification-message">
-                                            {notification.message}
-                                        </div>
+                                        {n.title && <div className="notification-title">{n.title}</div>}
+                                        <div className="notification-message">{n.message}</div>
                                         <div className="notification-meta">
-                                            <span className="notification-type">{notification.type}</span>
+                                            {n.category && <span className="notification-category">{n.category}</span>}
+                                            <span className="notification-type">{n.type}</span>
                                             <span className="notification-time">
-                        {new Date(notification.createdAt).toLocaleDateString()} •
-                                                {new Date(notification.createdAt).toLocaleTimeString([], {
-                                                    hour: '2-digit',
-                                                    minute: '2-digit'
-                                                })}
-                      </span>
+                                                {new Date(n.createdAt).toLocaleDateString()} •
+                                                {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
                                         </div>
                                     </div>
                                     <div className="notification-actions">
-                                        {!notification.read && (
-                                            <button
-                                                className="btn-icon"
-                                                onClick={() => markAsRead(notification.id)}
-                                                title="Mark as read"
-                                            >
+                                        {!n.read && (
+                                            <button className="btn-icon" onClick={() => markAsRead(n.id)} title="Mark as read">
                                                 <RiEyeLine />
                                             </button>
                                         )}
-                                        <button
-                                            className="btn-icon danger"
-                                            onClick={() => deleteNotification(notification.id)}
-                                            title="Delete notification"
-                                        >
+                                        <button className="btn-icon danger" onClick={() => deleteNotification(n.id)} title="Delete notification">
                                             <RiDeleteBinLine />
                                         </button>
                                     </div>
@@ -181,3 +159,4 @@ const EmployeeNotificationPanel = ({ isOpen, onClose }) => {
 };
 
 export default EmployeeNotificationPanel;
+

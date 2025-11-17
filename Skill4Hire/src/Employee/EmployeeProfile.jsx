@@ -13,7 +13,53 @@ import PortalLogoBadge from "../components/PortalLogoBadge.jsx";
 import "../Candidate/base.css";
 import "../Candidate/buttons.css";
 import "./EmployeeProfile.css";
+import apiClient from "../utils/axiosConfig";
 import { employeeService } from "../services/employeeService.jsx";
+
+const getAssetBaseUrl = () => {
+    const base = apiClient?.defaults?.baseURL || "";
+    return base.endsWith("/") ? base.slice(0, -1) : base;
+};
+
+const resolveAssetUrl = (raw, folder = "profile-pictures") => {
+    if (!raw) return "";
+
+    const stringValue = String(raw).trim();
+    if (!stringValue) return "";
+
+    const normalized = stringValue.replace(/\\/g, "/");
+    if (/^https?:\/\//i.test(normalized)) {
+        return normalized;
+    }
+
+    const base = getAssetBaseUrl();
+
+    if (normalized.startsWith("/api/uploads/")) {
+        const stripped = normalized.replace(/^\/api/, "");
+        return base ? `${base}${stripped}` : stripped;
+    }
+
+    if (normalized.startsWith("/uploads/")) {
+        return base ? `${base}${normalized}` : normalized;
+    }
+
+    if (normalized.startsWith("uploads/")) {
+        return base ? `${base}/${normalized}` : `/${normalized}`;
+    }
+
+    if (normalized.startsWith(`${folder}/`)) {
+        const path = `/uploads/${normalized}`;
+        return base ? `${base}${path}` : path;
+    }
+
+    if (normalized.startsWith("/")) {
+        return base ? `${base}${normalized}` : normalized;
+    }
+
+    const suffix = normalized.replace(/^\/+/g, "");
+    const path = `/uploads/${folder}/${suffix}`;
+    return base ? `${base}${path}` : path;
+};
 
 const resolveUploadedPath = (payload) => {
     if (!payload) return null;
@@ -25,7 +71,8 @@ const resolveUploadedPath = (payload) => {
         payload.fileDownloadUri ||
         payload.url ||
         payload.path ||
-        payload.location;
+        payload.location ||
+        payload.fileName;
 
     if (directPath) return directPath;
 
@@ -86,10 +133,12 @@ export default function EmployeeProfile() {
             try {
                 const data = await employeeService.getProfile(); // GET /me
                 if (!cancelled && data) {
+                    const rawPath = data.profilePicturePath || data.profilePictureUrl || null;
                     setProfile((p) => ({
                         ...p,
                         ...data,
-                        photoPreviewUrl: data.profilePicturePath || p.photoPreviewUrl,
+                        profilePicturePath: rawPath ?? p.profilePicturePath,
+                        photoPreviewUrl: rawPath ? resolveAssetUrl(rawPath) : p.photoPreviewUrl,
                     }));
                 }
             } catch {
@@ -136,10 +185,14 @@ export default function EmployeeProfile() {
             const uploadedPath = resolveUploadedPath(uploadResponse);
 
             if (uploadedPath) {
+                if (previousPreview && previousPreview.startsWith("blob:")) {
+                    URL.revokeObjectURL(previousPreview);
+                }
+                const previewUrlFinal = resolveAssetUrl(uploadedPath);
                 setProfile((p) => ({
                     ...p,
                     profilePicturePath: uploadedPath,
-                    photoPreviewUrl: uploadedPath,
+                    photoPreviewUrl: previewUrlFinal || uploadedPath,
                 }));
             } else {
                 setUploadError("Upload succeeded, but no image path was returned.");
@@ -155,6 +208,9 @@ export default function EmployeeProfile() {
             setUploadingPhoto(false);
             if (inputEl) {
                 inputEl.value = "";
+            }
+            if (previewUrl.startsWith("blob:")) {
+                URL.revokeObjectURL(previewUrl);
             }
         }
     };
@@ -189,7 +245,8 @@ export default function EmployeeProfile() {
             setProfile((prev) => ({
                 ...prev,
                 ...saved,
-                photoPreviewUrl: saved?.profilePicturePath || saved?.profilePictureUrl || prev.photoPreviewUrl,
+                profilePicturePath: saved?.profilePicturePath ?? saved?.profilePictureUrl ?? prev.profilePicturePath,
+                photoPreviewUrl: resolveAssetUrl(saved?.profilePicturePath || saved?.profilePictureUrl) || prev.photoPreviewUrl,
             }));
             setEditing(false);
             setUploadError("");
@@ -224,7 +281,7 @@ export default function EmployeeProfile() {
                 <div className="avatar-block">
                     {profile.photoPreviewUrl || profile.profilePicturePath ? (
                         <img
-                            src={profile.photoPreviewUrl || profile.profilePicturePath}
+                            src={profile.photoPreviewUrl || resolveAssetUrl(profile.profilePicturePath)}
                             alt="Profile"
                             className="avatar-img"
                         />

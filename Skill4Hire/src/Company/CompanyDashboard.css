@@ -528,9 +528,13 @@
   border: 1px solid var(--border);
   border-radius: 1rem;
   overflow-x: auto;
-  overflow-y: hidden;
+  /* allow vertical scrolling when content exceeds card height */
+  overflow-y: auto;
   max-width: 100%;
   width: 100%;
+  /* keep table visible within viewport; adjusts for header and paddings */
+  max-height: clamp(320px, calc(100vh - 280px), 75vh);
+  -webkit-overflow-scrolling: touch;
   box-shadow: var(--shadow-sm);
 }
 
@@ -538,6 +542,9 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.95rem;
+  /* keep a sensible width to avoid over-squishing columns; can scroll horizontally */
+  min-width: 860px;
+  table-layout: auto;
 }
 
 .company-dashboard .apps-table th,
@@ -545,12 +552,16 @@
   padding: 0.85rem 1rem;
   text-align: left;
   border-bottom: 1px solid var(--border);
+  vertical-align: middle;
 }
 
 .company-dashboard .apps-table th {
   font-weight: 600;
   color: var(--text-secondary);
   background: var(--surface-alt);
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .company-dashboard .apps-table tbody tr:hover td {
@@ -565,6 +576,16 @@
 .company-dashboard .apps-table .btn-danger {
   min-width: 96px;
   justify-content: center;
+}
+
+/* actions cell: allow wrapping on smaller widths */
+.company-dashboard .apps-table td:last-child {
+  min-width: 340px;
+}
+
+.company-dashboard .apps-table td:last-child .flex {
+  flex-wrap: wrap;
+  gap: 0.4rem;
 }
 
 .company-dashboard .apps-table .status-badge {
@@ -609,6 +630,53 @@
   border-color: rgba(239, 68, 68, 0.45);
   background: rgba(239, 68, 68, 0.1);
   color: #b91c1c;
+}
+
+.company-dashboard .applicant-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 220px;
+}
+
+.company-dashboard .applicant-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  color: #1f2937;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(124, 58, 237, 0.16));
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.company-dashboard .applicant-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.company-dashboard .applicant-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.company-dashboard .applicant-name {
+  font-weight: 600;
+  color: #111827;
+  font-size: 0.95rem;
+}
+
+.company-dashboard .applicant-subtext {
+  font-size: 0.75rem;
+  color: #64748b;
 }
 
 /* Recommendation Styles */
@@ -921,6 +989,11 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+  .company-dashboard .apps-table { min-width: 760px; }
+  .company-dashboard .apps-table-wrapper { max-height: clamp(300px, calc(100vh - 260px), 72vh); }
+}
+
 @media (max-width: 768px) {
   .company-dashboard .px-6 {
     padding-left: 1rem;
@@ -943,4 +1016,7 @@
   .company-dashboard .candidate-header-card {
     display: none;
   }
+
+  .company-dashboard .apps-table { min-width: 640px; }
+  .company-dashboard .apps-table td:last-child { min-width: 280px; }
 }

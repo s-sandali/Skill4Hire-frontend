@@ -14,7 +14,6 @@ import JobForm from './Company/JobForm.jsx';
 import CompanyProfilePage from './Company/CompanyProfilePage.jsx';
 import CandidateProfileApp from './Candidate/Profile.jsx';
 import EmployeeProfile from './Employee/EmployeeProfile.jsx';
-import EmployeeNotificationPanel from './Employee/EmployeeNotificationPanel.jsx';
 
 import './App.css';
 
@@ -50,7 +49,6 @@ function App() {
 
         {/* Employee Additional */}
         <Route path="/employee-profile" element={withMainApp(<EmployeeProfile />)} />
-        <Route path="/employee-notifications" element={withMainApp(<EmployeeNotificationPanel />)} />
       </Routes>
     </Router>
   );
