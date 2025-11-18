@@ -1,245 +1,268 @@
 .candidate-register {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0A0A3D 0%, #1A1A5E 100%);
+  padding: clamp(2rem, 4vw, 4rem);
+  background: linear-gradient(120deg, #f6f8ff 0%, #ecf9ff 45%, #f9f5ff 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
   font-family: 'Inter', sans-serif;
+  color: #0f172a;
 }
 
-.register-container {
-  background: rgba(16, 16, 61, 0.9);
-  backdrop-filter: blur(10px);
-  border: 1px solid #2D2D5A;
-  border-radius: 24px;
-  padding: 3rem;
-  width: 100%;
-  max-width: 500px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+.candidate-register .register-container {
+  width: min(640px, 100%);
+  background: #ffffff;
+  border-radius: 28px;
+  padding: clamp(2rem, 6vw, 3.5rem);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 35px 80px rgba(15, 23, 42, 0.12);
 }
 
-.register-header {
+.candidate-register .register-header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 
-.logo-section {
+.candidate-register .logo-section {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
-.logo {
-  width: 50px;
-  height: 50px;
-  border-radius: 12px;
+.candidate-register .register-logo,
+.candidate-register .logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
   object-fit: cover;
+  box-shadow: 0 8px 18px rgba(148, 163, 184, 0.35);
 }
 
-.register-header h1 {
-  color: #4DB8FF;
-  font-size: 2rem;
+.candidate-register .register-header h1 {
+  margin: 0;
+  font-size: clamp(2rem, 3vw, 2.5rem);
+  color: #0f172a;
   font-weight: 700;
-  margin: 0;
 }
 
-.register-header h2 {
-  color: #FFFFFF;
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem 0;
-}
-
-.register-header p {
-  color: #CCCCCC;
+.candidate-register .register-subtitle {
+  margin: 0.25rem 0 0;
+  color: #475467;
   font-size: 1rem;
-  margin: 0;
 }
 
-.register-form {
+.candidate-register .register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.candidate-register .form-section {
+  background: #f9fafb;
+  border: 1px solid #e4e7ec;
+  border-radius: 22px;
+  padding: 1.75rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-.form-group {
+.candidate-register .section-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #0f172a;
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 0.5rem;
 }
 
-.form-group label {
-  color: #FFFFFF;
-  font-weight: 500;
-  font-size: 0.9rem;
+.candidate-register .section-icon {
+  color: #2563eb;
 }
 
-.input-group {
-  position: relative;
+.candidate-register .form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+.candidate-register .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.candidate-register .form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.candidate-register .form-group label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #101828;
   display: flex;
   align-items: center;
+  gap: 0.35rem;
 }
 
-.input-icon {
-  position: absolute;
-  left: 1rem;
-  color: #4DB8FF;
-  font-size: 1.1rem;
-  z-index: 1;
+.candidate-register .password-input-container {
+  position: relative;
 }
 
-.input-group input {
+.candidate-register .form-group input {
   width: 100%;
-  padding: 0.875rem 1rem 0.875rem 3rem;
-  background: rgba(16, 16, 61, 0.8);
-  border: 1px solid #2D2D5A;
-  border-radius: 12px;
-  color: #FFFFFF;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  border: 1px solid #d0d5dd;
+  background: #ffffff;
   font-size: 1rem;
-  transition: all 0.3s ease;
+  color: #101828;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
 }
 
-.input-group input:focus {
+.candidate-register .form-group input:focus {
   outline: none;
-  border-color: #4DB8FF;
-  box-shadow: 0 0 0 3px rgba(77, 184, 255, 0.1);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
-.input-group input::placeholder {
-  color: #888;
+.candidate-register .form-group input::placeholder {
+  color: #98a2b3;
 }
 
-.input-group input.error {
-  border-color: #FF6B00;
-  box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
+.candidate-register .form-group input.error {
+  border-color: #f04438;
+  box-shadow: 0 0 0 3px rgba(240, 68, 56, 0.15);
 }
 
-.password-toggle {
+.candidate-register .password-toggle {
   position: absolute;
-  right: 1rem;
+  right: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
   background: none;
   border: none;
-  color: #4DB8FF;
+  color: #2563eb;
   cursor: pointer;
   padding: 0.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.3s ease;
 }
 
-.password-toggle:hover {
-  color: #00CFEA;
+.candidate-register .password-toggle:hover {
+  color: #0ea5e9;
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, #4DB8FF, #00CFEA);
-  color: #0A0A3D;
+.candidate-register .form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.candidate-register .btn-secondary {
+  border: 1px solid #d0d5dd;
+  color: #0f172a;
+  background: #f8fafc;
+  padding: 0.9rem 1.5rem;
+  border-radius: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.candidate-register .btn-secondary:hover {
+  background: #e4e7ec;
+  border-color: #98a2b3;
+}
+
+.candidate-register .submit-btn {
   border: none;
-  padding: 1rem 2rem;
-  border-radius: 12px;
+  border-radius: 16px;
+  padding: 1rem 1.5rem;
   font-size: 1rem;
   font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(120deg, #2563eb, #06b6d4);
   cursor: pointer;
-  transition: all 0.3s ease;
-  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.btn-primary:hover:not(:disabled) {
+.candidate-register .submit-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(77, 184, 255, 0.3);
+  box-shadow: 0 18px 30px rgba(14, 165, 233, 0.35);
 }
 
-.btn-primary:disabled {
-  opacity: 0.7;
+.candidate-register .submit-btn:disabled {
+  opacity: 0.65;
   cursor: not-allowed;
   transform: none;
 }
 
-.btn-link {
-  display: inline-flex;
-  align-items: center;
-  color: #4DB8FF;
-  text-decoration: none;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: color 0.3s ease;
-  margin-top: 1rem;
-}
-
-.btn-link:hover {
-  color: #00CFEA;
-}
-
-.form-footer {
+.candidate-register .form-note {
+  margin: 0;
   text-align: center;
-  margin-top: 1rem;
+  color: #475467;
+  font-size: 0.9rem;
 }
 
-.form-footer p {
-  color: #CCCCCC;
-  margin: 0 0 1rem 0;
+.candidate-register .error-text {
+  color: #b42318;
+  font-size: 0.85rem;
 }
 
-.form-footer a {
-  color: #4DB8FF;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.3s ease;
-}
-
-.form-footer a:hover {
-  color: #00CFEA;
-}
-
-.error-text {
-  color: #FF6B00;
-  font-size: 0.8rem;
-  margin-top: 0.25rem;
-}
-
-.error-message {
-  background: rgba(255, 107, 0, 0.1);
-  border: 1px solid #FF6B00;
-  color: #FF6B00;
+.candidate-register .error-message {
+  border-radius: 18px;
   padding: 1rem;
-  border-radius: 12px;
-  text-align: center;
-  font-size: 0.9rem;
+  border: 1px solid #fda29b;
+  background: #fef3f2;
+  color: #b42318;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
 }
 
-.general-error {
-  margin-bottom: 1rem;
+.candidate-register .general-error {
+  margin-bottom: 0.5rem;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
+.candidate-register .loading-spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: #ffffff;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 640px) {
   .candidate-register {
-    padding: 1rem;
+    padding: 1.5rem 1rem;
   }
-  
-  .register-container {
+
+  .candidate-register .register-container {
+    border-radius: 22px;
     padding: 2rem;
   }
-  
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-  
-  .register-header h1 {
-    font-size: 1.5rem;
-  }
-  
-  .register-header h2 {
-    font-size: 1.25rem;
+
+  .candidate-register .form-section {
+    padding: 1.25rem;
   }
 }

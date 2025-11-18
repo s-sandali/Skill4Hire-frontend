@@ -120,6 +120,13 @@ html {
   font-weight: 500;
   transition: color 0.3s ease;
   position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
 }
 
 .nav-link:hover {
@@ -459,6 +466,7 @@ html {
   background: linear-gradient(135deg, var(--primary-bg) 0%, var(--light-bg) 100%);
   text-align: center;
 }
+
 
 /* Login Section */
 .login-section {
@@ -929,10 +937,6 @@ html {
   margin-bottom: 5rem;
 }
 
-.features-grid.extended .feature-card {
-  text-align: left;
-}
-
 /* Enhanced Key Features with Icons */
 .features-grid.extended {
   display: grid;
@@ -1081,6 +1085,7 @@ html {
     height: 75px;
     font-size: 1.8rem;
   }
+
 }
 /* Scroll reveal */
 .reveal { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
