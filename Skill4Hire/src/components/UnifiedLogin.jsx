@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   FiEye, FiEyeOff, FiLock, FiMail, FiLogIn, FiArrowLeft,
-  FiHelpCircle, FiUserPlus, FiUser, FiBriefcase, FiUsers, FiSettings
+  FiHelpCircle, FiUserPlus, FiUser, FiBriefcase, FiUsers
 } from 'react-icons/fi';
 import brainLogo from '../assets/brain-logo.jpg';
 import { authService } from '../services/authService';
@@ -24,8 +24,7 @@ const UnifiedLogin = () => {
   const roles = [
     { value: 'CANDIDATE', label: 'Candidate', icon: FiUser, available: true },
     { value: 'COMPANY', label: 'Company', icon: FiBriefcase, available: true },
-    { value: 'EMPLOYEE', label: 'Employee', icon: FiUsers, available: true },
-    { value: 'ADMIN', label: 'Admin', icon: FiSettings, available: true }
+    { value: 'EMPLOYEE', label: 'Employee', icon: FiUsers, available: true }
   ];
 
   const handleInputChange = (e) => {
@@ -88,9 +87,6 @@ const UnifiedLogin = () => {
         case 'EMPLOYEE':
           response = await authService.loginEmployee(formData.email, formData.password);
           break;
-        case 'ADMIN':
-          response = await authService.loginAdmin(formData.email, formData.password);
-          break;
         default:
           response = await authService.loginCandidate(formData.email, formData.password);
       }
@@ -113,9 +109,6 @@ const UnifiedLogin = () => {
             break;
           case 'EMPLOYEE':
             navigate('/employee-dashboard');
-            break;
-          case 'ADMIN':
-            navigate('/admin-dashboard');
             break;
           default:
             navigate('/');

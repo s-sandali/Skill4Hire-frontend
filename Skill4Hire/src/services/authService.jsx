@@ -7,9 +7,7 @@ export const authService = {
       const domain = email.split('@')[1]?.toLowerCase();
       let loginEndpoint = '/api/candidates/auth/login'; // default
       
-      if (domain?.includes('admin') || domain?.includes('skill4hire')) {
-        loginEndpoint = '/api/admin/auth/login';
-      } else if (domain?.includes('company') || domain?.includes('corp') || domain?.includes('inc')) {
+      if (domain?.includes('company') || domain?.includes('corp') || domain?.includes('inc')) {
         loginEndpoint = '/api/companies/auth/login';
       } else if (domain?.includes('hr') || domain?.includes('employee')) {
         loginEndpoint = '/api/employees/auth/login';
@@ -83,25 +81,6 @@ export const authService = {
     }
   },
 
-  loginAdmin: async (email, password) => {
-    try {
-      const response = await apiClient.post('/api/admin/auth/login', {
-        email,
-        password
-      });
-      const data = response.data || {};
-      const id = data.id || data.userId || data.adminId;
-      localStorage.setItem('userRole', 'ADMIN');
-      if (id != null) localStorage.setItem('userId', String(id));
-      return { success: true, role: 'ADMIN', id, data };
-    } catch (error) {
-      throw new Error(error.response?.data?.message || 'Admin login failed');
-    }
-  },
-
-  
-  
-  
   // Candidate registration
   registerCandidate: async (userData) => {
     try {
@@ -132,16 +111,6 @@ export const authService = {
     }
   },
 
-  // Admin registration
-  registerAdmin: async (userData) => {
-    try {
-      const response = await apiClient.post('/api/admin/auth/register', userData);
-      return response.data;
-    } catch (error) {
-      throw new Error(error.response?.data?.message || 'Registration failed');
-    }
-  },
-
   // Logout - determines role and calls appropriate endpoint
   logout: async () => {
     try {
@@ -154,9 +123,6 @@ export const authService = {
           break;
         case 'EMPLOYEE':
           logoutEndpoint = '/api/employees/auth/logout';
-          break;
-        case 'ADMIN':
-          logoutEndpoint = '/api/admin/auth/logout';
           break;
         default:
           logoutEndpoint = '/api/candidates/auth/logout';
@@ -188,9 +154,6 @@ export const authService = {
           break;
         case 'EMPLOYEE':
           meEndpoint = '/api/employees/auth/me';
-          break;
-        case 'ADMIN':
-          meEndpoint = '/api/admin/auth/me';
           break;
         default:
           meEndpoint = '/api/candidates/auth/me';

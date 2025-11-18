@@ -25,6 +25,14 @@ const LandingPage = () => {
   const countersRef = useRef([])
   const hasCountedRef = useRef(false)
 
+  const scrollToSection = (sectionId) => {
+    const target = document.getElementById(sectionId)
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+    setIsMenuOpen(false)
+  }
+
   useEffect(() => {
     const revealEls = document.querySelectorAll('.reveal')
     const revealObserver = new IntersectionObserver(
@@ -85,9 +93,12 @@ const LandingPage = () => {
           </div>
           
           <div className={`nav-menu ${isMenuOpen ? 'active' : ''}`}>
-            <a href="#features" className="nav-link">Features</a>
-            <a href="#about" className="nav-link">About</a>
-            <a href="#contact" className="nav-link">Contact</a>
+            <button type="button" className="nav-link" onClick={() => scrollToSection('features')}>
+              Features
+            </button>
+            <button type="button" className="nav-link" onClick={() => scrollToSection('about')}>
+              About
+            </button>
             <Link to="/login" className="nav-cta">Log In</Link>
           </div>
           
@@ -158,7 +169,7 @@ const LandingPage = () => {
 
       
       {/* How It Works Section */}
-      <section className="how-it-works reveal" id="how-it-works">
+      <section className="how-it-works reveal" id="about">
         <div className="container">
           <h2 className="section-title">How It Works</h2>
           <div className="hiw-split">
@@ -232,7 +243,7 @@ const LandingPage = () => {
       </section>
 
       {/* Extended Key Features */}
-      <section className="key-features reveal" id="key-features">
+      <section className="key-features reveal" id="features">
         <div className="container">
           <h2 className="section-title">Key Platform Features</h2>
           <div className="features-grid extended">
@@ -314,7 +325,6 @@ const LandingPage = () => {
             <div className="footer-links">
               <a href="#privacy">Privacy Policy</a>
               <a href="#terms">Terms of Service</a>
-              <a href="#contact">Contact Us</a>
             </div>
           </div>
           <div className="footer-bottom">

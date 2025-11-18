@@ -1,8 +1,8 @@
-import axios from 'axios';
+import axios from 'axios'; 
 
 const apiClient = axios.create({
   baseURL: import.meta.env.DEV
-    ? '' // use Vite dev server origin and proxy /api -> backend
+    ? 'http://localhost:5714' // use local backend during development
     : 'https://skill4hire-backend.onrender.com',
   withCredentials: true, // required for session authentication
   timeout: 15000,

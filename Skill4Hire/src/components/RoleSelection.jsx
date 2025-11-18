@@ -3,8 +3,7 @@ import { Link } from 'react-router-dom';
 import { 
   FiUser, 
   FiBriefcase, 
-  FiUsers, 
-  FiSettings,
+  FiUsers,
   FiArrowLeft,
   FiArrowRight,
   FiCheck
@@ -39,14 +38,6 @@ const RoleSelection = () => {
       description: 'I am an employee and want to refer candidates or manage hiring',
       features: ['Refer candidates', 'Manage team hiring', 'Access company tools', 'Track referrals'],
       color: '#DC2626'
-    },
-    {
-      id: 'admin',
-      title: 'Admin',
-      icon: <FiSettings size={32} />,
-      description: 'I need administrative access to manage the platform',
-      features: ['Platform management', 'User oversight', 'System configuration', 'Analytics dashboard'],
-      color: '#7C3AED'
     }
   ];
 
